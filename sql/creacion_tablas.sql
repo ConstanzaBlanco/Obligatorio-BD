@@ -1,6 +1,7 @@
--- Crear base de datos
-CREATE DATABASE IF NOT EXISTS gestion_salas;
+DROP DATABASE IF EXISTS gestion_salas;
+CREATE DATABASE gestion_salas;
 USE gestion_salas;
+
 
 -- Tabla de login
 CREATE TABLE login (
@@ -19,7 +20,7 @@ CREATE TABLE facultad (
     deleted_at DATETIME
 );
 
--- Tabla de programa_académico
+-- Tabla de programa_academico
 CREATE TABLE programa_academico (
     nombre_programa VARCHAR(100) PRIMARY KEY,
     id_facultad INT NOT NULL,
@@ -34,12 +35,11 @@ CREATE TABLE participante (
     apellido VARCHAR(50) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     created_at DATETIME,
-    deleted DATETIME
+    deleted DATETIME,
     FOREIGN KEY (email) REFERENCES login(correo)
-
 );
 
--- Tabla participante_programa_académico
+-- Tabla participante_programa_academico
 CREATE TABLE participante_programa_academico (
     id_alumno_programa INT PRIMARY KEY,
     ci_participante BIGINT NOT NULL,
@@ -54,11 +54,11 @@ CREATE TABLE participante_programa_academico (
 -- Tabla de edificio
 CREATE TABLE edificio (
     nombre_edificio VARCHAR(100) PRIMARY KEY,
+    id_facultad INT NOT NULL,
     direccion VARCHAR(200),
-    departamento VARCHAR(100),
     created_at DATETIME,
     deleted_at DATETIME,
-    FOREIGN KEY (departamento) REFERENCES facultad(id_facultad)
+    FOREIGN KEY (id_facultad) REFERENCES facultad(id_facultad)
 );
 
 -- Tabla de sala
@@ -92,8 +92,7 @@ CREATE TABLE reserva (
     estado ENUM('activa','cancelada','sin asistencia','finalizada') NOT NULL,
     created_at DATETIME,
     deleted_at DATETIME,
-    FOREIGN KEY (nombre_sala) REFERENCES sala(nombre_sala),
-    FOREIGN KEY (edificio) REFERENCES edificio(nombre_edificio),
+    FOREIGN KEY (nombre_sala, edificio) REFERENCES sala(nombre_sala, edificio),
     FOREIGN KEY (id_turno) REFERENCES turno(id_turno)
 );
 
@@ -120,3 +119,61 @@ CREATE TABLE sancion_participante (
     PRIMARY KEY (ci_participante, fecha_inicio, fecha_fin),
     FOREIGN KEY (ci_participante) REFERENCES participante(ci)
 );
+
+
+-- Inserciones de prueba
+
+-- Facultades
+INSERT INTO facultad (id_facultad, nombre, created_at) VALUES
+(1, 'Ingeniería', NOW()),
+(2, 'Ciencias', NOW());
+
+-- Edificios
+INSERT INTO edificio (nombre_edificio, id_facultad, direccion, created_at) VALUES
+('Central', 1, 'Av. Principal 123', NOW()),
+('Sur', 2, 'Calle Secundaria 45', NOW());
+
+-- Salas
+INSERT INTO sala (nombre_sala, edificio, capacidad, tipo_sala, created_at) VALUES
+('Sala A', 'Central', 10, 'libre', NOW()),
+('Sala B', 'Sur', 20, 'posgrado', NOW());
+
+-- Turnos
+INSERT INTO turno (id_turno, hora_inicio, hora_fin, created_at) VALUES
+(1, '08:00:00', '10:00:00', NOW()),
+(2, '10:00:00', '12:00:00', NOW());
+
+-- Login
+INSERT INTO login (correo, contraseña, created_at) VALUES
+('juan.perez@ucu.edu.uy', '123456', NOW()),
+('maria.gomez@ucu.edu.uy', 'abcdef', NOW());
+
+-- Participantes
+INSERT INTO participante (ci, nombre, apellido, email, created_at) VALUES
+(12345678, 'Juan', 'Pérez', 'juan.perez@ucu.edu.uy', NOW()),
+(87654321, 'Maria', 'Gomez', 'maria.gomez@ucu.edu.uy', NOW());
+
+-- Programas académicos
+INSERT INTO programa_academico (nombre_programa, id_facultad, tipo) VALUES
+('Ingeniería Informática', 1, 'grado'),
+('Física Teórica', 2, 'posgrado');
+
+-- Participante - Programa académico
+INSERT INTO participante_programa_academico (id_alumno_programa, ci_participante, nombre_programa, rol, created_at) VALUES
+(1, 12345678, 'Ingeniería Informática', 'alumno', NOW()),
+(2, 87654321, 'Física Teórica', 'docente', NOW());
+
+-- Reservas
+INSERT INTO reserva (id_reserva, nombre_sala, edificio, fecha, id_turno, estado, created_at) VALUES
+(1, 'Sala A', 'Central', '2025-10-22', 1, 'activa', NOW()),
+(2, 'Sala B', 'Sur', '2025-10-23', 2, 'finalizada', NOW());
+
+-- Reserva - Participante
+INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia, created_at) VALUES
+(12345678, 1, TRUE, NOW()),
+(87654321, 2, FALSE, NOW());
+
+-- Sanciones
+INSERT INTO sancion_participante (ci_participante, fecha_inicio, fecha_fin, created_at) VALUES
+(12345678, '2025-11-01', '2025-11-07', NOW()),
+(87654321, '2025-12-01', '2025-12-05', NOW());
