@@ -6,7 +6,7 @@ USE gestion_salas;
 -- Tabla de login
 CREATE TABLE login (
     correo VARCHAR(100) PRIMARY KEY,
-    contraseña VARCHAR(255) NOT NULL,
+    contrasenia VARCHAR(255) NOT NULL,
     created_at DATETIME,
     deleted_at DATETIME,
     last_access DATETIME
