@@ -144,7 +144,7 @@ INSERT INTO turno (id_turno, hora_inicio, hora_fin, created_at) VALUES
 (2, '10:00:00', '12:00:00', NOW());
 
 -- Login
-INSERT INTO login (correo, contraseña, created_at) VALUES
+INSERT INTO login (correo, contrasena, created_at) VALUES
 ('juan.perez@ucu.edu.uy', '123456', NOW()),
 ('maria.gomez@ucu.edu.uy', 'abcdef', NOW());
 
