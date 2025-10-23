@@ -7,7 +7,7 @@ services:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: gestion_salas
       MYSQL_USER: gestion_salas_user
-      MYSQL_PASSWORD: manuElMasGay4
+      MYSQL_PASSWORD: shaw
     ports:
       - "3306:3306"
     volumes:
@@ -21,7 +21,7 @@ services:
     environment:
       DB_HOST: db
       DB_USER: gestion_salas_user
-      DB_PASSWORD: manuElMasGay4
+      DB_PASSWORD: shaw
       DB_NAME: gestion_salas
     depends_on:
       - db
