@@ -1,4 +1,5 @@
 import mysql.connector
+from datetime import time
 
 # Configuración de conexión
 conn = mysql.connector.connect(
@@ -59,6 +60,57 @@ resultado=cursor.fetchall()
 
 for sala in resultado:
     print(f"{sala[0]} {sala[1]} {sala[2]} {sala[3]}")
+
+
+#Cantidad de sanciones para profesores y alumnos (grado y posgrado)
+print("Cantidad de sanciones para profesores y alumnos (grado y posgrado)")
+cursor.execute("""
+SELECT 
+    ppa.rol AS tipo_rol,
+    pa.tipo AS tipo_programa,
+    COUNT(sp.ci_participante) AS cant_sanciones
+FROM sancion_participante sp
+JOIN participante_programa_academico ppa ON sp.ci_participante = ppa.ci_participante
+JOIN programa_academico pa ON ppa.nombre_programa = pa.nombre_programa
+GROUP BY ppa.rol, pa.tipo
+ORDER BY ppa.rol, pa.tipo;
+""")
+
+resultado = cursor.fetchall()
+
+for res in resultado:
+    print(f"{res[0]} {res[1]} {res[2]}")
+
+
+
+
+#Verificacion para turno entre las 8AM y las 11PM
+def turno_valido(hora_inicio: str, hora_fin: str):
+
+    h_inicio = time.fromisoformat(hora_inicio)  
+    h_fin = time.fromisoformat(hora_fin)
+
+    inicio_permitido = time(8, 0, 0)   
+    fin_permitido = time(23, 0, 0)    
+
+#Es valido si esta entre las horas de inicio y fin
+    if(h_inicio>=inicio_permitido and h_fin<=fin_permitido):
+        #verifico que el horarario de fin no sea > al de inicio
+        if(h_inicio<h_fin):
+            return True
+        else:
+            return False
+
+    else:
+        return False
+    
+
+# Pruebo la funcion
+print("Prueba de turnos validos")
+print(turno_valido("08:00:00", "10:00:00"))  # True 
+print(turno_valido("07:30:00", "09:00:00"))  # False
+print(turno_valido("22:00:00", "23:30:00"))  # False
+print(turno_valido("14:00:00","08:00:00"))  #False
 
 
 
