@@ -93,17 +93,23 @@ def turno_valido(hora_inicio: str, hora_fin: str):
     inicio_permitido = time(8, 0, 0)   
     fin_permitido = time(23, 0, 0)    
 
-#Es valido si esta entre las horas de inicio y fin
-    if(h_inicio>=inicio_permitido and h_fin<=fin_permitido):
-        #verifico que el horarario de fin no sea > al de inicio
-        if(h_inicio<h_fin):
-            return True
+
+    #No es valido si inicio = fin
+    if (h_fin==h_inicio) :
+        return False
+
+    else:
+    #Es valido si esta entre las horas de inicio y fin
+        if(h_inicio>=inicio_permitido and h_fin<=fin_permitido):
+            #verifico que el horarario de fin no sea > al de inicio
+            if(h_inicio<h_fin):
+                return True
+            else:
+                return False
+
         else:
             return False
 
-    else:
-        return False
-    
 
 # Pruebo la funcion
 print("Prueba de turnos validos")
@@ -111,6 +117,7 @@ print(turno_valido("08:00:00", "10:00:00"))  # True
 print(turno_valido("07:30:00", "09:00:00"))  # False
 print(turno_valido("22:00:00", "23:30:00"))  # False
 print(turno_valido("14:00:00","08:00:00"))  #False
+print(turno_valido("08:00:00","08:00:00"))  #False
 
 
 
