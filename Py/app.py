@@ -121,3 +121,35 @@ print(turno_valido("08:00:00","08:00:00"))  #False
 
 
 
+def redondeo_horas(hora_inicio:str,hora_fin:str):
+    partes_inicio=hora_inicio.split(':')
+    partes_fin=hora_fin.split(':')
+
+    h_inicio=partes_inicio[0]
+    h_fin=partes_fin[0]
+    m_inicio=partes_inicio[1]
+    m_fin=partes_fin[1]
+    s_inicio=partes_inicio[2]
+    s_fin=partes_fin[2]
+
+    #Redondeo para abajo la hora inicio
+    inicio=f"{h_inicio}:00:00"
+    fin=""
+
+    if(m_fin!="00" or s_fin!="00"):
+        fin_int=int(h_fin)
+        if(fin_int>9):
+            fin=f"{fin_int+1}:00:00"
+        else:
+            fin_1cifra=list(h_fin)
+            hora_final=fin_1cifra[1]
+            fin=f"{hora_final+1}:00:00"
+    else:
+        fin=hora_fin
+    return (inicio,fin)
+
+print(redondeo_horas("8:00:00","10:00:00")) #8 a 10
+print(redondeo_horas("8:15:00","10:00:00")) #8 a 10
+print(redondeo_horas("8:15:00","10:00:03")) #8 a 11
+print(redondeo_horas("8:15:00","10:02:00")) #8 a 11
+print(redondeo_horas("8:15:12","10:23:03")) #8 a 11
