@@ -119,5 +119,44 @@ print(turno_valido("22:00:00", "23:30:00"))  # False
 print(turno_valido("14:00:00","08:00:00"))  #False
 print(turno_valido("08:00:00","08:00:00"))  #False
 
+#Verifiacar si al resrva es valida
+#Si esta resrvando una sala a la que tiene permiso
+#Si no tiene 3 o mas reservas en la semana
+def reserva_valida(ci: str, fecha_reserva: str, tipo_sala: str):
+    
+    cursor.execute(f"""
+        SELECT pp.rol, pa.tipo
+        FROM participante_programa_academico pp
+        JOIN programa_academico pa
+            ON pp.nombre_programa = pa.nombre_programa
+        WHERE pp.ci_participante = {int(ci)};
+    """)
+    resultado = cursor.fetchone()
+    if not resultado:
+        return False  # resultado nulo, no existe la persona
+    
+    rol_persona, tipo_programa = resultado
 
+    if tipo_sala == "docente" and rol_persona == "docente":
+        return True
 
+    if tipo_sala == "posgrado" and (rol_persona == "docente" or tipo_programa == "posgrado"):
+        return True
+
+    if tipo_sala == "libre":
+        cursor.execute(f"""
+            SELECT COUNT(*) 
+            FROM reserva r
+            JOIN reserva_participante rp ON r.id_reserva = rp.id_reserva
+            WHERE DATEDIFF(CURRENT_DATE, DATE(r.fecha)) <= 7
+              AND rp.ci_participante = {int(ci)}
+              AND r.estado = 'activa';
+        """)
+        cantidad_reservas = cursor.fetchone()[0]
+
+        if cantidad_reservas >= 3:
+            return False
+        else:
+            return True
+
+    return False
