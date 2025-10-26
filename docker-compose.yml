@@ -13,20 +13,27 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./sql:/docker-entrypoint-initdb.d
+    restart: unless-stopped
 
-  app:
-    build: ./Py
-    container_name: gestion_salas_app
-    restart: always
+  api:
+    build:
+      context: ./FastAPI
+      dockerfile: Dockerfile
+    container_name: fastapi-app
     environment:
       DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: gestion_salas
       DB_USER: gestion_salas_user
       DB_PASSWORD: shaw
-      DB_NAME: gestion_salas
     depends_on:
       - db
     ports:
-      - "5000:5000"
+      - "8000:8000"
+    volumes:
+      - ./FastAPI:/code
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
 
 volumes:
   mysql_data:

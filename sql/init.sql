@@ -7,6 +7,7 @@ USE gestion_salas;
 CREATE TABLE login (
     correo VARCHAR(100) PRIMARY KEY,
     contrasenia VARCHAR(255) NOT NULL,
+    rol ENUM('Usuario','Bibliotecario','Administrador'),
     created_at DATETIME,
     deleted_at DATETIME,
     last_access DATETIME
@@ -35,7 +36,7 @@ CREATE TABLE participante (
     apellido VARCHAR(50) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     created_at DATETIME,
-    deleted DATETIME,
+    deleted_at DATETIME,
     FOREIGN KEY (email) REFERENCES login(correo)
 );
 
@@ -56,6 +57,7 @@ CREATE TABLE edificio (
     nombre_edificio VARCHAR(100) PRIMARY KEY,
     id_facultad INT NOT NULL,
     direccion VARCHAR(200),
+    departamento VARCHAR(100),
     created_at DATETIME,
     deleted_at DATETIME,
     FOREIGN KEY (id_facultad) REFERENCES facultad(id_facultad)
