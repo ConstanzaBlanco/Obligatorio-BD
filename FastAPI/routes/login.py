@@ -1,9 +1,10 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from core.security import create_token
-from dbConnect import get_user, update_last_access
+from core.security import createToken
+from db.loginSentences import getUser, updateLastAccess
+from core.passwordHash import verifyPassword
 
-router = APIRouter(tags=["auth"])
+router = APIRouter()
 
 class LoginRequest(BaseModel):
     username: str
@@ -14,10 +15,10 @@ def login(payload: LoginRequest):
     correo = payload.username
     password = payload.password
 
-    user = get_user(correo)
-    if not user or user["contrasenia"] != password:
+    user = getUser(correo)
+    if not user or not verifyPassword(password, user["contrasenia"]):
         raise HTTPException(status_code=401, detail="Credenciales inválidas")
 
-    update_last_access(correo)
-    token = create_token(correo)
+    updateLastAccess(correo)
+    token = createToken(correo)
     return {"access_token": token, "token_type": "bearer"}
