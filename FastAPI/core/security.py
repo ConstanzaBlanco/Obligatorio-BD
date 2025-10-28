@@ -4,8 +4,6 @@ from datetime import datetime, timedelta
 import jwt
 from db.loginSentences import getUser
 
-
-
 # Config básica
 SECRET_KEY = "bbfd9ee2a536ed05d4b609ff305b09f54b5af49ac3e567456fa913d9137c9617"
 ALGORITHM = "HS256"
