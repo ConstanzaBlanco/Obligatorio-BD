@@ -5,6 +5,9 @@ GROUP BY nombre_sala
 ORDER BY cant_reservas desc
 
 -- MARTIN Turnos más demandados
+SELECT r.id_turno, t.hora_inicio, t.hora_fin, COUNT(*) AS total_reservas 
+FROM reserva r JOIN turno t ON t.id_turno = r.id_turno WHERE r.deleted_at IS NULL AND r.estado IN ('activa','finalizada')  
+GROUP BY r.id_turno, t.hora_inicio, t.hora_fin ORDER BY total_reservas DESC LIMIT 10; 
 
 -- Promedio de participantes por sala
 SELECT nombre_sala, AVG(cant_participantes) AS promedio_participantes 
@@ -87,3 +90,6 @@ right join participante p on sp.ci_participante = p.ci
 group by p.ci;
 
 -- Día de la semana con más reservas MARTIN
+SELECT DAYNAME(r.fecha) AS dia_semana, DAYOFWEEK(r.fecha) AS num_semana, COUNT(*) AS total_reservas 
+FROM reserva r WHERE r.deleted_at IS NULL AND r.estado IN ('activa','finalizada') 
+GROUP BY dia_semana, num_semana ORDER BY total_reservas DESC LIMIT 1; 
