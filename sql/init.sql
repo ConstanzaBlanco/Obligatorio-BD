@@ -7,7 +7,7 @@ USE gestion_salas;
 CREATE TABLE login (
     correo VARCHAR(100) PRIMARY KEY,
     contrasenia VARCHAR(255) NOT NULL,
-    rol ENUM('Usuario','Bibliotecario','Administrador'),
+    rol ENUM('Usuario','Bibliotecario','Administrador') NULL DEFAULT NULL,
     created_at DATETIME,
     deleted_at DATETIME,
     last_access DATETIME
@@ -155,13 +155,13 @@ INSERT INTO turno (id_turno, hora_inicio, hora_fin, created_at) VALUES
 (4, '14:00:00', '16:00:00', NOW());
 
 -- Login
-INSERT INTO login (correo, contrasenia, created_at) VALUES
-('juan.perez@ucu.edu.uy', '123456', NOW()),
-('maria.gomez@ucu.edu.uy', 'abcdef', NOW()),
-('ana.lopez@ucu.edu.uy', 'ana123', NOW()),
-('carlos.mendez@ucu.edu.uy', 'cmz123', NOW()),
-('sofia.ruiz@ucu.edu.uy', 'sfrz', NOW()),
-('jorge.diaz@ucu.edu.uy', 'jd123', NOW());
+INSERT INTO login (correo, contrasenia, rol, created_at) VALUES
+('juan.perez@ucu.edu.uy', '123456', 'Usuario', NOW()),
+('maria.gomez@ucu.edu.uy', 'abcdef', 'Usuario', NOW()),
+('ana.lopez@ucu.edu.uy', '$2b$12$FLBMHPrLRxW5odbuGVGUVezabc.i/EyC9XvhyZY4syAljzhEXrVHq', 'Usuario', NOW()),
+('carlos.mendez@ucu.edu.uy', 'cmz123', 'Usuario', NOW()),
+('sofia.ruiz@ucu.edu.uy', 'sfrz', 'Usuario', NOW()),
+('jorge.diaz@ucu.edu.uy', 'jd123', 'Usuario', NOW());
 
 -- Participantes
 INSERT INTO participante (ci, nombre, apellido, email, created_at) VALUES

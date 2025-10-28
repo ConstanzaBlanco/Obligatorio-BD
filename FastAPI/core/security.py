@@ -2,7 +2,8 @@ from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime, timedelta
 import jwt
-from dbConnect import get_user
+from db.loginSentences import getUser
+
 
 
 # Config básica
@@ -13,12 +14,12 @@ ACCESS_TOKEN_MIN = 60
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 # --- Helpers JWT ---
-def create_token(correo: str):
+def createToken(correo: str):
     exp = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_MIN)
     payload = {"sub": correo, "exp": exp}
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
-def verify_token(token: str):
+def verifyToken(token: str):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload.get("sub")
@@ -28,9 +29,36 @@ def verify_token(token: str):
         raise HTTPException(status_code=401, detail="Token inválido")
 
 # --- Dependencia para endpoints protegidos ---
-def current_user(token: str = Depends(oauth2_scheme)):
-    correo = verify_token(token)
-    user = get_user(correo)
+def currentUser(token: str = Depends(oauth2_scheme)):
+    correo = verifyToken(token)
+    user = getUser(correo)
     if not user:
         raise HTTPException(status_code=401, detail="Usuario no encontrado")
     return user
+
+def requireRole(role: str):
+    # roles: "Usuario" | "Bibliotecario" | "Administrador"
+    def dep(user = Depends(currentUser)):
+        roleUser = user.get("rol")
+
+        if role == "Usuario":
+            # cualquiera con rol valido pasa
+            if roleUser not in ("Usuario", "Bibliotecario", "Administrador"):
+                raise HTTPException(status_code=403, detail="No autorizado")
+
+        elif role == "Bibliotecario":
+            # pasan Bibliotecario y Administrador
+            if roleUser not in ("Bibliotecario", "Administrador"):
+                raise HTTPException(status_code=403, detail="No autorizado")
+
+        elif role == "Administrador":
+            # solo Administrador
+            if roleUser != "Administrador":
+                raise HTTPException(status_code=403, detail="No autorizado")
+
+        else:
+            # rol pedido inválido
+            raise HTTPException(status_code=403, detail="No autorizado")
+
+        return user
+    return dep
