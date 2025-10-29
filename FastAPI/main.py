@@ -5,6 +5,10 @@ from routes import home
 from routes import showAll 
 from FastAPI.routes import dayReservations
 from routes import weekReservations
+from routes import me
+from routes import changePassword
+from routes import infoSalas
+from routes import seeAllSanctions
 
 
 app = FastAPI()
