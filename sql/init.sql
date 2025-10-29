@@ -15,7 +15,7 @@ CREATE TABLE login (
 
 -- Tabla de facultad
 CREATE TABLE facultad (
-    id_facultad INT PRIMARY KEY,
+    id_facultad INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     created_at DATETIME,
     deleted_at DATETIME
@@ -42,7 +42,7 @@ CREATE TABLE participante (
 
 -- Tabla participante_programa_academico
 CREATE TABLE participante_programa_academico (
-    id_alumno_programa INT PRIMARY KEY,
+    id_alumno_programa INT AUTO_INCREMENT PRIMARY KEY,
     ci_participante BIGINT NOT NULL,
     nombre_programa VARCHAR(100) NOT NULL,
     rol ENUM('alumno','docente') NOT NULL,
@@ -77,7 +77,7 @@ CREATE TABLE sala (
 
 -- Tabla de turno
 CREATE TABLE turno (
-    id_turno INT PRIMARY KEY,
+    id_turno INT AUTO_INCREMENT PRIMARY KEY,
     hora_inicio TIME NOT NULL,
     hora_fin TIME NOT NULL,
     created_at DATETIME,
@@ -86,7 +86,7 @@ CREATE TABLE turno (
 
 -- Tabla de reserva
 CREATE TABLE reserva (
-    id_reserva INT PRIMARY KEY,
+    id_reserva INT AUTO_INCREMENT PRIMARY KEY,
     nombre_sala VARCHAR(100) NOT NULL,
     edificio VARCHAR(100) NOT NULL,
     fecha DATE NOT NULL,
@@ -126,11 +126,11 @@ CREATE TABLE sancion_participante (
 -- Inserciones de prueba
 
 -- Facultades
-INSERT INTO facultad (id_facultad, nombre, created_at) VALUES
-(1, 'Ingenieria', NOW()),
-(2, 'Ciencias', NOW()),
-(3, 'Derecho', NOW()),
-(4, 'Economia', NOW());
+INSERT INTO facultad ( nombre, created_at) VALUES
+( 'Ingenieria', NOW()),
+( 'Ciencias', NOW()),
+( 'Derecho', NOW()),
+( 'Economia', NOW());
 
 INSERT INTO edificio (nombre_edificio, id_facultad, direccion, departamento, created_at) VALUES
 ('Central', 1, 'Av. Principal 123', 'Montevideo', NOW()),
@@ -148,11 +148,23 @@ INSERT INTO sala (nombre_sala, edificio, capacidad, tipo_sala, created_at) VALUE
 ('Sala E', 'Central', 12, 'posgrado', NOW());
 
 -- Turnos
-INSERT INTO turno (id_turno, hora_inicio, hora_fin, created_at) VALUES
-(1, '08:00:00', '10:00:00', NOW()),
-(2, '10:00:00', '12:00:00', NOW()),
-(3, '12:00:00', '14:00:00', NOW()),
-(4, '14:00:00', '16:00:00', NOW());
+INSERT INTO turno (hora_inicio, hora_fin)
+VALUES 
+('08:00:00', '09:00:00'),
+('09:00:00', '10:00:00'),
+('10:00:00', '11:00:00'),
+('11:00:00', '12:00:00'),
+('12:00:00', '13:00:00'),
+('13:00:00', '14:00:00'),
+('14:00:00', '15:00:00'),
+('15:00:00', '16:00:00'),
+('16:00:00', '17:00:00'),
+('17:00:00', '18:00:00'),
+('18:00:00', '19:00:00'),
+('19:00:00', '20:00:00'),
+('20:00:00', '21:00:00'),
+('21:00:00', '22:00:00'),
+('22:00:00', '23:00:00');
 
 -- Login
 INSERT INTO login (correo, contrasenia, rol, created_at) VALUES
@@ -180,25 +192,25 @@ INSERT INTO programa_academico (nombre_programa, id_facultad, tipo) VALUES
 ('Economia Internacional', 4, 'posgrado');
 
 -- Participante - Programa academico
-INSERT INTO participante_programa_academico (id_alumno_programa, ci_participante, nombre_programa, rol, created_at) VALUES
-(1, 12345678, 'Ingenieria Informatica', 'alumno', NOW()),
-(2, 87654321, 'Fisica Teorica', 'docente', NOW()),
-(3, 11111111, 'Ingenieria Informatica', 'docente', NOW()),
-(4, 22222222, 'Derecho Penal', 'alumno', NOW()),
-(5, 33333333, 'Economia Internacional', 'docente', NOW()),
-(6, 44444444, 'Fisica Teorica', 'alumno', NOW());
+INSERT INTO participante_programa_academico ( ci_participante, nombre_programa, rol, created_at) VALUES
+( 12345678, 'Ingenieria Informatica', 'alumno', NOW()),
+( 87654321, 'Fisica Teorica', 'docente', NOW()),
+( 11111111, 'Ingenieria Informatica', 'docente', NOW()),
+( 22222222, 'Derecho Penal', 'alumno', NOW()),
+( 33333333, 'Economia Internacional', 'docente', NOW()),
+( 44444444, 'Fisica Teorica', 'alumno', NOW());
 
 -- Reservas
-INSERT INTO reserva (id_reserva, nombre_sala, edificio, fecha, id_turno, estado, created_at) VALUES
-(1, 'Sala A', 'Central', '2025-10-22', 1, 'activa', NOW()),
-(2, 'Sala B', 'Sur', '2025-10-23', 2, 'finalizada', NOW()),
-(3, 'Sala A', 'Central', '2025-10-24', 1, 'activa', NOW()),
-(4, 'Sala A', 'Central', '2025-10-24', 2, 'finalizada', NOW()),
-(5, 'Sala B', 'Sur', '2025-10-24', 3, 'cancelada', NOW()),
-(6, 'Sala C', 'Norte', '2025-10-24', 1, 'finalizada', NOW()),
-(7, 'Sala D', 'Este', '2025-10-24', 4, 'sin asistencia', NOW()),
-(8, 'Sala D', 'Este', '2025-10-25', 1, 'activa', NOW()),
-(9, 'Sala E', 'Central', '2025-10-25', 2, 'activa', NOW());
+INSERT INTO reserva ( nombre_sala, edificio, fecha, id_turno, estado, created_at) VALUES
+( 'Sala A', 'Central', '2025-10-22', 1, 'activa', NOW()),
+( 'Sala B', 'Sur', '2025-10-23', 2, 'finalizada', NOW()),
+( 'Sala A', 'Central', '2025-10-24', 1, 'activa', NOW()),
+( 'Sala A', 'Central', '2025-10-24', 2, 'finalizada', NOW()),
+( 'Sala B', 'Sur', '2025-10-24', 3, 'cancelada', NOW()),
+( 'Sala C', 'Norte', '2025-10-24', 1, 'finalizada', NOW()),
+( 'Sala D', 'Este', '2025-10-24', 4, 'sin asistencia', NOW()),
+( 'Sala D', 'Este', '2025-10-25', 1, 'activa', NOW()),
+( 'Sala E', 'Central', '2025-10-25', 2, 'activa', NOW());
 
 
 -- Reserva - Participante

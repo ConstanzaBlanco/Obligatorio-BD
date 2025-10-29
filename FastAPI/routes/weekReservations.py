@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from db.connector import getConnection
-from core.security import currentUser  # 👈 Importante
+from core.security import currentUser  
 
 router = APIRouter()
 

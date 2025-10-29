@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from routes import proof
 from routes import login
-from routes import  home
+from routes import home
 from routes import showAll 
 from routes import dayReservations
 from routes import weekReservations
@@ -9,7 +9,7 @@ from routes import me
 from routes import changePassword
 from routes import infoSalas
 from routes import seeAllSanctions
-
+from routes import turnos
 
 app = FastAPI()
 
@@ -30,3 +30,4 @@ app.include_router(changePassword.router)
 app.include_router(infoSalas.router)
 app.include_router(seeAllSanctions.router)
 app.include_router(weekReservations.router)
+app.include_router(turnos.router)
