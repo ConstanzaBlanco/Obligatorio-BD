@@ -1,0 +1,95 @@
+-- Salas más reservadas
+SELECT nombre_sala, COUNT(*) as cant_reservas 
+FROM reserva 
+GROUP BY nombre_sala 
+ORDER BY cant_reservas desc
+
+-- MARTIN Turnos más demandados
+SELECT r.id_turno, t.hora_inicio, t.hora_fin, COUNT(*) AS total_reservas 
+FROM reserva r JOIN turno t ON t.id_turno = r.id_turno WHERE r.deleted_at IS NULL AND r.estado IN ('activa','finalizada')  
+GROUP BY r.id_turno, t.hora_inicio, t.hora_fin ORDER BY total_reservas DESC LIMIT 10; 
+
+-- Promedio de participantes por sala
+SELECT nombre_sala, AVG(cant_participantes) AS promedio_participantes 
+FROM ( 
+    SELECT r.id_reserva, r.nombre_sala, COUNT(rp.ci_participante) AS cant_participantes 
+    FROM reserva r LEFT JOIN reserva_participante rp ON rp.id_reserva = r.id_reserva 
+    GROUP BY r.id_reserva, r.nombre_sala 
+    ) AS sub GROUP BY nombre_sala; 
+
+-- Cantidad de reservas por carrera y facultad
+select f.nombre, pa.nombre_programa, count(*) as cantidadReservas
+from reserva r join reserva_participante rp on (r.id_reserva = rp.id_reserva)
+join participante_programa_academico ppa on (ppa.ci_participante = rp.ci_participante)
+join programa_academico pa on (pa.nombre_programa = ppa.nombre_programa)
+join facultad f on (f.id_facultad = pa.id_facultad)
+group by f.nombre, pa.nombre_programa;
+
+-- Porcentaje de ocupación de salas por edificio (ARREGLAR PROBLEMA DE HORA)
+SELECT st.edificio,((CASE
+        WHEN so.salas_ocupadas IS NULL THEN 0
+        ELSE so.salas_ocupadas
+     END) / st.cantidad_salas * 100) AS porcentaje_ocupadas
+FROM
+    (SELECT s.edificio, COUNT(*) AS cantidad_salas
+     FROM sala s
+     GROUP BY s.edificio) AS st
+LEFT JOIN
+    (SELECT r.edificio, COUNT(*) AS salas_ocupadas
+     FROM reserva r
+     JOIN turno t ON r.id_turno = t.id_turno
+     WHERE r.fecha = '2025-10-23'
+       AND '22:53:00' BETWEEN t.hora_inicio AND t.hora_fin
+       AND r.estado = 'activa'
+     GROUP BY r.edificio) AS so
+ON st.edificio = so.edificio;
+
+-- Cantidad de reservas y asistencias de profesores y alumnos (grado y posgrado)
+select p.nombre, p.apellido, sum(case when asistencia = true then 1 else 0 end) as CantidadAsistencias,
+       count(*) as cantidadReservas --  sum(case when asistencia = true then 0 else 1 end) as CantidadInasistencias Si queremos ver el caso complementario
+        ,ppa.rol
+        , pa.tipo
+from reserva r join reserva_participante rp on r.id_reserva = rp.id_reserva
+join participante p on rp.ci_participante = p.ci
+join participante_programa_academico ppa on p.ci = ppa.ci_participante
+join programa_academico pa on ppa.nombre_programa = pa.nombre_programa
+group by p.nombre, p.apellido, ppa.rol,pa.tipo;
+
+-- Cantidad de sanciones para profesores y alumnos (grado y posgrado)
+SELECT 
+    ppa.rol AS tipo_rol,
+    pa.tipo AS tipo_programa,
+    COUNT(sp.ci_participante) AS cant_sanciones
+FROM sancion_participante sp
+JOIN participante_programa_academico ppa ON sp.ci_participante = ppa.ci_participante
+JOIN programa_academico pa ON ppa.nombre_programa = pa.nombre_programa
+GROUP BY ppa.rol, pa.tipo
+ORDER BY ppa.rol, pa.tipo;
+
+-- Porcentaje de reservas efectivamente utilizadas vs. canceladas/no asistidas
+select (((RC.totalReservas - RC.cantidadFinalizadas)/RC.totalReservas)*100) as NoUtilizadasPorcentaje, (((RC.cantidadFinalizadas)/RC.totalReservas)*100) as UtilizadasPorcentaje
+    from(
+        select sum(case when estado = 'activa' or estado='finalizada' then cantidad else 0 end) as cantidadFinalizadas, sum(cantidad) as totalReservas
+        from (select count(*) cantidad, estado
+            from reserva r
+            group by estado) as cantidadReservasPorEstado) as RC;
+
+-- Participantes con más reservas en el mes
+SELECT p.ci, p.nombre, p.apellido, COUNT(*) AS cant_reservas 
+FROM participante p JOIN reserva_participante r ON p.ci = r.ci_participante 
+WHERE MONTH(r.fecha_solicitud_reserva) = MONTH(CURRENT_DATE) 
+    AND YEAR(r.fecha_solicitud_reserva) = YEAR(CURRENT_DATE) 
+GROUP BY p.ci, p.nombre, p.apellido 
+ORDER BY cant_reservas DESC 
+LIMIT 3;
+
+-- Promedio de duración de sanción por participante
+select p.ci, (case when sp.ci_participante is not null then (avg(DATEDIFF(fecha_fin,fecha_inicio))) else 0 end )as promedio
+from sancion_participante sp
+right join participante p on sp.ci_participante = p.ci
+group by p.ci;
+
+-- Día de la semana con más reservas MARTIN
+SELECT DAYNAME(r.fecha) AS dia_semana, DAYOFWEEK(r.fecha) AS num_semana, COUNT(*) AS total_reservas 
+FROM reserva r WHERE r.deleted_at IS NULL AND r.estado IN ('activa','finalizada') 
+GROUP BY dia_semana, num_semana ORDER BY total_reservas DESC LIMIT 1; 
