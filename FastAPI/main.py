@@ -9,6 +9,9 @@ from routes import me
 from routes import changePassword
 from routes import infoSalas
 from routes import seeAllSanctions
+from routes import previousReservations
+from routes import seeOwnSanctions
+from routes import seeOwnActiveReservations
 
 
 app = FastAPI()
@@ -30,3 +33,6 @@ app.include_router(changePassword.router)
 app.include_router(infoSalas.router)
 app.include_router(seeAllSanctions.router)
 app.include_router(weekReservations.router)
+app.include_router(previousReservations.router)
+app.include_router(seeOwnSanctions.router)
+app.include_router(seeOwnActiveReservations.router)
