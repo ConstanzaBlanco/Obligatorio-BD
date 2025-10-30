@@ -14,6 +14,7 @@ from routes import previousReservations
 from routes import seeOwnSanctions
 from routes import seeOwnActiveReservations
 from routes import agregarReserva
+from routes import seePastAndActiveReservations
 
 app = FastAPI()
 
@@ -52,4 +53,5 @@ app.include_router(previousReservations.router)
 app.include_router(seeOwnSanctions.router)
 app.include_router(seeOwnActiveReservations.router)
 app.include_router(agregarReserva.router)
+app.include_router(seePastAndActiveReservations.router)
 
