@@ -13,8 +13,22 @@ from routes import turnos
 from routes import previousReservations
 from routes import seeOwnSanctions
 from routes import seeOwnActiveReservations
+from routes import agregarReserva
 
 app = FastAPI()
+
+from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI()
+
+# --- Habilitar CORS ---
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # dominio del frontend (Vite)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # --- Endpoints ---
 
@@ -37,4 +51,5 @@ app.include_router(turnos.router)
 app.include_router(previousReservations.router)
 app.include_router(seeOwnSanctions.router)
 app.include_router(seeOwnActiveReservations.router)
+app.include_router(agregarReserva.router)
 
