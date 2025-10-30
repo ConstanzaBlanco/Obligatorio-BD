@@ -16,6 +16,8 @@ from routes import seeOwnActiveReservations
 from routes import agregarReserva
 from routes import seePastAndActiveReservations
 from routes import createSalas
+from routes import seeAllReservations
+from routes import assistReservation
 
 app = FastAPI()
 
@@ -56,4 +58,5 @@ app.include_router(seeOwnActiveReservations.router)
 app.include_router(agregarReserva.router)
 app.include_router(seePastAndActiveReservations.router)
 app.include_router(createSalas.router)
-
+app.include_router(seeAllReservations.router)
+app.include_router(assistReservation.router)
