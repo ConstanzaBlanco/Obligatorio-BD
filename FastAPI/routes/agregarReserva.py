@@ -10,6 +10,7 @@ class ReservationRequest(BaseModel):
     edificio: str
     fecha: str  # Formato 'YYYY-MM-DD'
     id_turno: int
+    participantes: list[int]
 
 #El base model lo que hace es definir el esquema del request q se espera y valido los tipos de datos e intenta convertirlos a tipos datos
 
@@ -20,7 +21,8 @@ def reservar(request: ReservationRequest):
         cur = cn.cursor(dictionary=True)
 
         ci = 33333333  # CI que exista en tu tabla participante
-        
+        #Remplazar lo de arriba por:
+        #ci = user["ci"]  # CI del usuario autenticado
         
         #Sala y edificio existentes ANDA
         cur.execute("""
@@ -33,6 +35,28 @@ def reservar(request: ReservationRequest):
         sala = cur.fetchone()
         if not sala:
             return {"error": "No se encontró la sala o edificio especificado"}
+        
+
+        #Verificar que los participantes existan ANDA
+        for participanteCi in request.participantes:
+            cur.execute("SELECT ci FROM participante WHERE ci = %s", (participanteCi,))
+            if not cur.fetchone():
+                return {"error": f"El participante con CI {participanteCi} no existe en la base de datos"}
+            
+        #Verificar que la cantidad de participantes no supere el límite No Probado
+        cur.execute("""
+            SELECT
+                s.capacidad_maxima
+            FROM sala s
+            WHERE s.nombre_sala = %s AND s.edificio = %s;
+        """, (request.nombre_sala, request.edificio))
+
+        
+        sala_info = cur.fetchone()
+        capacidad_maxima = sala_info['capacidad_maxima']
+        total_participantes = 1 + len(request.participantes)  # Incluye al solicitante
+        if total_participantes > capacidad_maxima:
+            return {"error": "La cantidad de participantes excede la capacidad máxima de la sala"}
         
         #ID turno existente ANDA
         
@@ -74,19 +98,22 @@ def reservar(request: ReservationRequest):
             if not resp:
                 return {"error": "El participante no tiene permiso para reservar esta sala"}
             
-        #Verificar si la sala ya está reservada en la fecha y turno 
-            
+        #Verificar si la sala ya está reservada y activa en la fecha y turno 
+
         cur.execute("""
-            SELECT 
-                r.id_reserva
-                    FROM reserva r
-                    WHERE r.nombre_sala = %s AND r.edificio = %s
-                    AND r.fecha = %s AND r.id_turno = %s
-            """, (request.nombre_sala, request.edificio, request.fecha, request.id_turno))
+            SELECT estado
+            FROM reserva
+            WHERE nombre_sala = %s 
+            AND edificio = %s
+            AND fecha = %s 
+            AND id_turno = %s;
+        """, (request.nombre_sala, request.edificio, request.fecha, request.id_turno))
+
+        reserva_existente = cur.fetchone()
+        if reserva_existente and reserva_existente["estado"] == "activa":
+            return {"error": "La sala ya está reservada en esa fecha y turno"}
+
         
-        resp = cur.fetchall()
-        if resp:
-            return {"error": "La sala ya se encuentra reservada en la fecha y turno especificados"}
         
         #Verificar si el participante está sancionado ANDA
 
@@ -123,10 +150,24 @@ def reservar(request: ReservationRequest):
         #Asocio el participante a la reserva
         cur.execute("""
             INSERT INTO reserva_participante ( ci_participante, id_reserva, asistencia, created_at) 
-            VALUES (%s, %s, TRUE, NOW());
+            VALUES (%s, %s, FALSE, NOW());
         """, (ci, id_reserva))
         cn.commit()
-        return {"mensaje": "Reserva realizada con éxito", "id_reserva": id_reserva}
+
+        # Agrego a los otros participantes
+        for ci_participantes in request.participantes:
+            cur.execute("""
+                INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia, created_at)
+                VALUES (%s, %s, FALSE, NOW());
+            """, (ci_participantes, id_reserva))
+
+        cn.commit()
+
+        return {
+            "mensaje": "Reserva creada correctamente",
+            "id_reserva": id_reserva,
+            "participantes_totales": [ci] + request.participantes
+        }
     
 
     except Exception as e:
