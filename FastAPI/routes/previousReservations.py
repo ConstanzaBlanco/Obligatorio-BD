@@ -6,7 +6,7 @@ from core.security import currentUser
 router = APIRouter()
 
 @router.get("/previousReservations")
-def dayReservations(user=Depends(currentUser)): 
+def previousReservations(user=Depends(currentUser)): 
     try:
         cn = getConnection()
         cur = cn.cursor(dictionary=True)
