@@ -11,7 +11,7 @@ def seePastAndActiveReservations():
     try:
         cn = getConnection()
         cur = cn.cursor(dictionary=True)
-        
+
         #Hago la consulta de reservas totales pasadas y activas para sancionar o marcar como finalizadas
         cur.execute("""
              SELECT
@@ -26,7 +26,8 @@ def seePastAndActiveReservations():
         WHERE r.estado = 'ACTIVA'
         AND (r.fecha < CURRENT_DATE
             OR (r.fecha = CURRENT_DATE AND CURRENT_TIME > t.hora_fin)
-            );
+            )
+        ORDER BY r.fecha asc;
         """) #Parametrizamos para evitar Injections
 
         resp = cur.fetchall()
