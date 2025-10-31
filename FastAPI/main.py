@@ -13,6 +13,8 @@ from routes import turnos
 from routes import previousReservations
 from routes import seeOwnSanctions
 from routes import seeOwnActiveReservations
+from routes import agregarReserva
+from routes import cancelarReserva
 from routes import seePastAndActiveReservations
 from routes import createSalas
 from routes import seeAllReservations
@@ -57,6 +59,8 @@ app.include_router(turnos.router)
 app.include_router(previousReservations.router)
 app.include_router(seeOwnSanctions.router)
 app.include_router(seeOwnActiveReservations.router)
+app.include_router(agregarReserva.router)
+app.include_router(cancelarReserva.router)
 app.include_router(seePastAndActiveReservations.router)
 app.include_router(createSalas.router)
 app.include_router(seeAllReservations.router)
