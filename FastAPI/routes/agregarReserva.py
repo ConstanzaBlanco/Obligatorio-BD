@@ -20,9 +20,27 @@ def reservar(request: ReservationRequest):
         cn = getConnection()
         cur = cn.cursor(dictionary=True)
 
-        ci = 33333333  # CI que exista en tu tabla participante
+        ci = 33333333  # CI que exista en la tabla participante
         #Remplazar lo de arriba por:
         #ci = user["ci"]  # CI del usuario autenticado
+
+        # Ver que el usuario no haya reservado ya 2 veces en ese dia
+        # Ver que el usuario no haya reservado ya 2 veces en ese dia
+        cur.execute(
+            """
+            SELECT COUNT(*) AS reservas_diarias
+            FROM reserva r
+            JOIN reserva_participante rp ON r.id_reserva = rp.id_reserva
+            WHERE rp.ci_participante = %s AND r.fecha = %s
+            AND r.estado != 'cancelada';
+            """,
+            (ci, request.fecha)
+        )
+
+        row = cur.fetchone()
+        if row and row["reservas_diarias"] >= 2:
+            return {"error": "Ya reservaste 2 horas en este día"}
+
         
         #Sala y edificio existentes ANDA
         cur.execute("""
