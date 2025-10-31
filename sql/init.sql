@@ -173,7 +173,8 @@ INSERT INTO login (correo, contrasenia, rol, created_at) VALUES
 ('ana.lopez@ucu.edu.uy', '$2b$12$FLBMHPrLRxW5odbuGVGUVezabc.i/EyC9XvhyZY4syAljzhEXrVHq', 'Usuario', NOW()),
 ('carlos.mendez@ucu.edu.uy', 'cmz123', 'Usuario', NOW()),
 ('sofia.ruiz@ucu.edu.uy', 'sfrz', 'Usuario', NOW()),
-('jorge.diaz@ucu.edu.uy', 'jd123', 'Usuario', NOW());
+('jorge.diaz@ucu.edu.uy', 'jd123', 'Usuario', NOW()),
+('admin@admin','$2b$12$WCN.KjRl8ZbmK9OxwHtnGeqqx8tkwDppdosbevTQ7YLi4PTuz7reu','Administrador', NOW());
 
 -- Participantes
 INSERT INTO participante (ci, nombre, apellido, email, created_at) VALUES
@@ -183,6 +184,7 @@ INSERT INTO participante (ci, nombre, apellido, email, created_at) VALUES
 (22222222, 'Carlos', 'Mendez', 'carlos.mendez@ucu.edu.uy', NOW()),
 (33333333, 'Sofia', 'Ruiz', 'sofia.ruiz@ucu.edu.uy', NOW()),
 (44444444, 'Jorge', 'Diaz', 'jorge.diaz@ucu.edu.uy', NOW());
+(00000000, 'Admin', 'User', 'admin@admin', NOW());
 
 -- Programas academicos
 INSERT INTO programa_academico (nombre_programa, id_facultad, tipo) VALUES
