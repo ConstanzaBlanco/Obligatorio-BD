@@ -20,11 +20,11 @@ def reservar(request: ReservationRequest):
         cn = getConnection()
         cur = cn.cursor(dictionary=True)
 
+
         ci = 33333333  # CI que exista en la tabla participante
         #Remplazar lo de arriba por:
         #ci = user["ci"]  # CI del usuario autenticado
 
-        # Ver que el usuario no haya reservado ya 2 veces en ese dia
         # Ver que el usuario no haya reservado ya 2 veces en ese dia
         cur.execute(
             """
