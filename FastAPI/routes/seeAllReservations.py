@@ -4,6 +4,15 @@ from db.reservationSentences import getAllReservations
 
 router = APIRouter()
 
+@router.get("/allReservation")
+def allSanctions():
+    items = getAllReservations()
+
+    for r in items:
+        r["cis"] = toList(r.get("cis"))
+
+    return {"items": items, "total": len(items)}
+
 def toList(cis):
     partes = cis.split(",")
     if isinstance(cis, str):
@@ -13,14 +22,3 @@ def toList(cis):
             if s != "":
                 limpia.append(s)
         return limpia
-
-
-
-@router.get("/allReservation")
-def allSanctions():
-    items = getAllReservations()
-
-    for r in items:
-        r["cis"] = toList(r.get("cis"))
-
-    return {"items": items, "total": len(items)}
