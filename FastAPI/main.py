@@ -22,12 +22,12 @@ from routes import assistReservation
 from routes import agregarReserva
 from routes import cancelarReserva
 from routes import salasDisponibles
+from routes import removeSalas
 
 app = FastAPI()
 
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
 
 # --- Habilitar CORS ---
 app.add_middleware(
@@ -65,6 +65,5 @@ app.include_router(seePastAndActiveReservations.router)
 app.include_router(createSalas.router)
 app.include_router(seeAllReservations.router)
 app.include_router(assistReservation.router)
-app.include_router(agregarReserva.router)
-app.include_router(cancelarReserva.router)
 app.include_router(salasDisponibles.router)
+app.include_router(removeSalas.router)

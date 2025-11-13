@@ -4,7 +4,7 @@ from core.security import currentUser
 
 router = APIRouter()
 
-@router.get("/seeOwnSanctions")
+@router.get("/seeOwnActiveReservations")
 def seeOwnActiveReservations(user=Depends(currentUser)): 
     try:
         cn = getConnection()
