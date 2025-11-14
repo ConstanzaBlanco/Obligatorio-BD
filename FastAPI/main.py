@@ -1,4 +1,7 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+# --- Rutas existentes ---
 from routes import proof
 from routes import login
 from routes import home
@@ -20,9 +23,13 @@ from routes import createSalas
 from routes import seeAllReservations
 from routes import assistReservation
 
-app = FastAPI()
+# --- ADMIN ---
+from routes import CreateBiblio
+from routes import changeRolOfUser
+from routes import deleteUserLogical
 
-from fastapi.middleware.cors import CORSMiddleware
+# --- NUEVO: FACULTAD ---
+from routes import facultad
 
 app = FastAPI()
 
@@ -35,13 +42,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- Endpoints ---
-
-
+# --- Endpoint raíz ---
 @app.get("/")
 def root():
     return {"status": "ok"}
 
+# --- routers generales ---
 app.include_router(proof.router)
 app.include_router(login.router)
 app.include_router(home.router)
@@ -62,3 +68,11 @@ app.include_router(seePastAndActiveReservations.router)
 app.include_router(createSalas.router)
 app.include_router(seeAllReservations.router)
 app.include_router(assistReservation.router)
+
+# --- routers admin ---
+app.include_router(CreateBiblio.router)
+app.include_router(changeRolOfUser.router)
+app.include_router(deleteUserLogical.router)
+
+# --- router facultad ---
+app.include_router(facultad.router)
