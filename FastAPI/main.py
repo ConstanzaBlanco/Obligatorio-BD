@@ -25,6 +25,7 @@ from routes import salasDisponibles
 from routes import removeSalas
 from routes import edificios
 from routes import salasDelEdificio
+from routes import departamentos
 
 app = FastAPI()
 
@@ -71,3 +72,4 @@ app.include_router(salasDisponibles.router)
 app.include_router(removeSalas.router)
 app.include_router(edificios.router)
 app.include_router(salasDelEdificio.router)
+app.include_router(departamentos.router)

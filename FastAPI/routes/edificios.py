@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from db.connector import getConnection
-from core.security import currentUser  # 🔥 Agregar esto
+from core.security import currentUser 
 
 router = APIRouter()
 
