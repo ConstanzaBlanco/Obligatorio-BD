@@ -23,6 +23,8 @@ from routes import agregarReserva
 from routes import cancelarReserva
 from routes import salasDisponibles
 from routes import removeSalas
+from routes import edificios
+from routes import salasDelEdificio
 
 app = FastAPI()
 
@@ -67,3 +69,5 @@ app.include_router(seeAllReservations.router)
 app.include_router(assistReservation.router)
 app.include_router(salasDisponibles.router)
 app.include_router(removeSalas.router)
+app.include_router(edificios.router)
+app.include_router(salasDelEdificio.router)

@@ -25,16 +25,23 @@ def seeOwnSanctions(user=Depends(currentUser)):
             return {"error": "No se encontró participante asociado a este usuario"}
 
         ci = participante["ci"]
+
         #Hago la consulta de sanciones del usuario segun el ci
         cur.execute("""
-             SELECT r.fecha,r.estado
-            from reserva r JOIN reserva_participante rp 
-                    on (r.id_reserva=rp.id_reserva)
-            where rp.ci_participante=%s
-                    AND r.estado!='activa';
-        """, (ci,)) #Parametrizamos para evitar Injections
+            SELECT 
+                fecha_inicio,
+                fecha_fin
+            FROM sancion_participante
+            WHERE ci_participante = %s
+            ORDER BY fecha_inicio DESC
+        """, (ci,))  # Parametrizamos para evitar Injections
 
         resp = cur.fetchall()
+
+        # Si el usuario no tiene sanciones, es un capo :D
+        if not resp:
+            return {"mensaje": "El usuario no tiene sanciones registradas"}
+
         return {"sanciones_del_usuario": resp}
 
     except Exception as e:
@@ -42,6 +49,7 @@ def seeOwnSanctions(user=Depends(currentUser)):
 
     finally:
         try:
+            cur.close() 
             cn.close()
         except:
             pass

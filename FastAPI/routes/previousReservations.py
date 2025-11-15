@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends
 from db.connector import getConnection
 from core.security import currentUser
 
-
 router = APIRouter()
 
 @router.get("/previousReservations")
@@ -26,14 +25,23 @@ def previousReservations(user=Depends(currentUser)):
             return {"error": "No se encontró participante asociado a este usuario"}
 
         ci = participante["ci"]
-        #Hago la consulta de reservas anteriores del usaurio (finalizada o cancelada)
+
+        #Hago la consulta de reservas anteriores del usuario
         cur.execute("""
-             SELECT r.fecha,r.estado
-            from reserva r JOIN reserva_participante rp 
-                    on (r.id_reserva=rp.id_reserva)
-            where rp.ci_participante=}%s
-                    AND r.estado!='activa';
-        """, (ci,)) #Parametrizamos para evitar Injections
+            SELECT 
+                r.fecha,
+                r.estado,
+                t.hora_inicio,
+                t.hora_fin,
+                r.nombre_sala,
+                r.edificio
+            FROM reserva r 
+            JOIN reserva_participante rp ON r.id_reserva = rp.id_reserva
+            JOIN turno t ON t.id_turno = r.id_turno
+            WHERE rp.ci_participante = %s
+              AND r.estado != 'activa'
+            ORDER BY r.fecha DESC;
+        """, (ci,))
 
         resp = cur.fetchall()
         return {"reservas_del_usuario_anteriores": resp}
@@ -43,6 +51,7 @@ def previousReservations(user=Depends(currentUser)):
 
     finally:
         try:
+            cur.close()
             cn.close()
         except:
             pass
