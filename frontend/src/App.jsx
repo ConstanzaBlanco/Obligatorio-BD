@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+
 import Login from "./Login";
 import Salas from "./components/Salas";
 import Reservas from "./components/Reservas";
@@ -11,73 +13,45 @@ function App() {
     !!localStorage.getItem("token")
   );
 
-  const [vista, setVista] = useState("none");
-
-  const renderVista = () => {
-    switch (vista) {
-      case "salas":
-        return <Salas />;
-      case "reservas":
-        return <Reservas />;
-      case "sanciones":
-        return <Sanciones />;
-      case "crearSala":
-        return <CrearSala />;
-      case "reservas":
-        return <Reservas />;
-      case "crearReserva":
-        return <CrearReserva />;
-      default:
-        return <h3>Seleccione una opción del menú</h3>;
-    }
-  };
+  if (!isLogged) {
+    return <Login onLogin={() => setIsLogged(true)} />;
+  }
 
   return (
-    <div style={{ textAlign: "center", marginTop: 50 }}>
-      {isLogged ? (
-        <div>
+    <Router>
+      <div style={{ textAlign: "center", marginTop: 40 }}>
+        
+        {/* BOTÓN DE LOGOUT */}
+        <button
+          onClick={() => {
+            localStorage.removeItem("token");
+            setIsLogged(false);
+          }}
+          style={{ marginBottom: 30 }}
+        >
+          Cerrar Sesión
+        </button>
 
-          <button
-            onClick={() => {
-              localStorage.removeItem("token");
-              setIsLogged(false);
-            }}
-            style={{ marginBottom: 20 }}
-          >
-            Cerrar Sesión
-          </button>
+        {/* MENÚ DE NAVEGACIÓN */}
+        <nav style={{ marginBottom: 30 }}>
+          <Link to="/salas" style={{ marginRight: 20 }}>Salas</Link>
+          <Link to="/reservas" style={{ marginRight: 20 }}>Reservas</Link>
+          <Link to="/sanciones" style={{ marginRight: 20 }}>Sanciones</Link>
+          <Link to="/crear-sala" style={{ marginRight: 20 }}>Crear Sala</Link>
+          <Link to="/crear-reserva">Crear Reserva</Link>
+        </nav>
 
-          {/* MENÚ */}
-          <div style={{ marginBottom: 20 }}>
-            <button onClick={() => setVista("salas")} style={{ marginRight: 10 }}>
-              Ver Información de Salas
-            </button>
-
-            <button onClick={() => setVista("reservas")} style={{ marginRight: 10 }}>
-              Ver Información de Reservas
-            </button>
-
-            <button onClick={() => setVista("sanciones")} style={{ marginRight: 10 }}>
-              Ver Información de Sanciones
-            </button>
-
-            <button onClick={() => setVista("crearSala")}>
-              Crear Sala
-            </button>
-
-            <button onClick={() => setVista("crearReserva")}>
-              Crear Reserva
-            </button>
-
-          </div>
-
-          {renderVista()}
-
-        </div>
-      ) : (
-        <Login onLogin={() => setIsLogged(true)} />
-      )}
-    </div>
+        {/* RUTAS */}
+        <Routes>
+          <Route path="/salas" element={<Salas />} />
+          <Route path="/reservas" element={<Reservas />} />
+          <Route path="/sanciones" element={<Sanciones />} />
+          <Route path="/crear-sala" element={<CrearSala />} />
+          <Route path="/crear-reserva" element={<CrearReserva />} />
+          <Route path="*" element={<h3>Seleccione una opción del menú</h3>} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
