@@ -13,6 +13,7 @@ def seeOwnActiveReservations(user=Depends(currentUser)):
         # Obtener el correo del usuario autenticado
         correo = user["correo"]
 
+
         # Busco su ci a partir del correo
         cur.execute("""
             SELECT ci

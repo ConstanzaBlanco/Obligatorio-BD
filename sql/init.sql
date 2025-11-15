@@ -147,7 +147,7 @@ INSERT INTO turno (hora_inicio, hora_fin) VALUES
 INSERT INTO login (correo, contrasenia, rol) VALUES
 ('juan.perez@ucu.edu.uy', '123456', 'Usuario'),
 ('maria.gomez@ucu.edu.uy', 'abcdef', 'Usuario'),
-('ana.lopez@ucu.edu.uy', '$2b$12$FLBMHPrLRxW5odbuGVGUVezabc.i/EyC9XvhyZY4syAljzhEXrVHq', 'Usuario'),
+('ana.lopez@ucu.edu.uy', '$2b$12$FLBMHPrLRxW5odbuGVGUVezabc.i/EyC9XvhyZY4syAljzhEXrVHq', 'usuario'),
 ('carlos.mendez@ucu.edu.uy', 'cmz123', 'Usuario'),
 ('sofia.ruiz@ucu.edu.uy', 'sfrz', 'Usuario'),
 ('jorge.diaz@ucu.edu.uy', 'jd123', 'Usuario'),

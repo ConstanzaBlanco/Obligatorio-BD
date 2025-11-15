@@ -11,13 +11,13 @@ def dayReservations(user=Depends(requireRole("Usuario"))):
         cur = cn.cursor(dictionary=True)
 
         # nos quedamos con el correo del usuario autenticado
-        correo = user["correo"]
+        correo = user["email"]
 
         # Busco su CI a partir del correo del user
         cur.execute("""
             SELECT ci
             FROM participante
-            WHERE correo = %s
+            WHERE email = %s
         """, (correo,))
         participante = cur.fetchone()
 
