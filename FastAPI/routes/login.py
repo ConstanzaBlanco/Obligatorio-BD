@@ -12,13 +12,31 @@ class LoginRequest(BaseModel):
 
 @router.post("/login")
 def login(payload: LoginRequest):
-    correo = payload.username
+    correo = payload.username.strip().lower()  # normalizar correo
     password = payload.password
 
     user = getUser(correo)
-    if not user or not verifyPassword(password, user["contrasenia"]):
+
+    # Usuario no encontrado en la bd
+    if not user:
         raise HTTPException(status_code=401, detail="Credenciales inválidas")
 
+    # el usario no tiene contraseña 
+    if not user.get("contrasenia"):
+        raise HTTPException(status_code=500, detail="Error interno: usuario sin contraseña registrada")
+
+    # mall la contra bro
+    if not verifyPassword(password, user["contrasenia"]):
+        raise HTTPException(status_code=401, detail="Credenciales inválidas")
+
+    # se actualiza la ultima conexion
     updateLastAccess(correo)
+
+    # generamos el token pal front
     token = createToken(correo)
-    return {"access_token": token, "token_type": "bearer"}
+
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+        "rol": user["rol"]
+    }

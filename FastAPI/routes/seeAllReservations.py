@@ -17,7 +17,7 @@ def toList(cis):
 
 
 @router.get("/allReservation")
-def allSanctions():
+def allSanctions(user=Depends(requireRole("Bibliotecario"))):
     items = getAllReservations()
 
     for r in items:

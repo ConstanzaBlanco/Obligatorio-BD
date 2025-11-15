@@ -4,6 +4,10 @@ from core.security import currentUser
 
 router = APIRouter()
 """
+Este por ahora lo dejo pero en mi opnion ya se va.... porque el front va a ser difrente y edificio y salasdeledifico hacen su funcion
+
+
+
 Tomar en cuenta que este endpoint permite filtrar por edificio, fecha y turno. 
 Si no se provee alguno de estos filtros, se listan las salas disponibles sin considerar ese filtro.
 Por ejemplo, si solo se provee el edificio, se listan todas las salas en ese edificio sin importar su disponibilidad en fecha o turno ya se en algun hoarrio o fecha hay se va a mostrar.

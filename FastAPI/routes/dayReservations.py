@@ -1,19 +1,19 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from db.connector import getConnection
-from core.security import currentUser
+from core.security import requireRole
 
 router = APIRouter()
 
 @router.get("/dayReservations")
-def dayReservations(user=Depends(currentUser)): 
+def dayReservations(user=Depends(requireRole("Usuario"))): 
     try:
         cn = getConnection()
         cur = cn.cursor(dictionary=True)
 
-        #Obtener el correo del usuario autenticado
+        # nos quedamos con el correo del usuario autenticado
         correo = user["correo"]
 
-        #Busco su ci a partir del correo
+        # Busco su CI a partir del correo del user
         cur.execute("""
             SELECT ci
             FROM participante
@@ -22,31 +22,40 @@ def dayReservations(user=Depends(currentUser)):
         participante = cur.fetchone()
 
         if not participante:
-            return {"error": "No se encontró participante asociado a este usuario"}
+            raise HTTPException(status_code=404, detail="No se encontró participante asociado a este usuario")
 
         ci = participante["ci"]
-        #Hago la consulta de reservas en el dia sin contar las canceladas con ci
+
+        # Hago la consulta de reservas activas en el día del usuario
         cur.execute("""
             SELECT 
+                r.id_reserva,
                 r.fecha, 
+                r.nombre_sala,
+                r.edificio,
                 t.hora_inicio, 
                 t.hora_fin
             FROM turno t
             JOIN reserva r ON t.id_turno = r.id_turno
             JOIN reserva_participante rp ON r.id_reserva = rp.id_reserva
-            WHERE DATE(r.fecha) = CURRENT_DATE
+            WHERE r.fecha = CURRENT_DATE
                 AND rp.ci_participante = %s
-                AND r.estado!='cancelada';
-        """, (ci,)) #Parametrizamos para evitar Injections
+                AND r.estado != 'cancelada';
+        """, (ci,))
 
         resp = cur.fetchall()
+
         return {"reservas_del_usuario_en_el_dia": resp}
 
+    except HTTPException:
+        raise
+    
     except Exception as e:
         return {"error": str(e)}
 
     finally:
         try:
+            cur.close()
             cn.close()
         except:
             pass

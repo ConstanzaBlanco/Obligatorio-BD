@@ -3,6 +3,7 @@ from db.connector import getConnection
 
 router = APIRouter()
 
+#Este me parece irrelevante después diganme si no
 @router.get("/showAll")
 def showAll():
     try:
