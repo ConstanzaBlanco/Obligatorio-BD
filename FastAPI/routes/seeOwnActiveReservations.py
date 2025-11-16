@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from db.connector import getConnection
-from core.security import currentUser 
+from core.security import currentUser
 
 router = APIRouter()
 
@@ -10,11 +10,10 @@ def seeOwnActiveReservations(user=Depends(currentUser)):
         cn = getConnection()
         cur = cn.cursor(dictionary=True)
 
-        # Obtener el correo del usuario autenticado
+        # Obtener el correo del user auth
         correo = user["correo"]
 
-
-        # Busco su ci a partir del correo
+        # Buscar CI del participante por su mail
         cur.execute("""
             SELECT ci
             FROM participante
@@ -22,15 +21,19 @@ def seeOwnActiveReservations(user=Depends(currentUser)):
         """, (correo,))
         participante = cur.fetchone()
 
-        # si no lo encuentro aviso
         if not participante:
             raise HTTPException(status_code=404, detail="No se encontró participante asociado a este usuario")
 
         ci = participante["ci"]
 
-        # Hago la consulta de reservas activas del usuario por su ci
+        # Me quedo con la fecha y hora actual del sistema
+        cur.execute("SELECT NOW() AS now;")
+        now = cur.fetchone()["now"]
+
+        # Consultamos por las reservas activas que aún se pueden cancelar
         cur.execute("""
             SELECT 
+                r.id_reserva,
                 rp.ci_participante,
                 r.nombre_sala,
                 r.edificio,
@@ -39,13 +42,20 @@ def seeOwnActiveReservations(user=Depends(currentUser)):
                 t.hora_fin,
                 r.estado,
                 rp.fecha_solicitud_reserva
-            FROM turno t 
+            FROM turno t
             JOIN reserva r ON t.id_turno = r.id_turno
             JOIN reserva_participante rp ON r.id_reserva = rp.id_reserva
             WHERE r.estado = 'activa'
                 AND rp.ci_participante = %s
+                -- No permitir reservas de días pasados
+                AND r.fecha >= DATE(%s)
+                -- Si la reserva es hoy, no permitir si ya empezó
+                AND NOT (
+                        r.fecha = DATE(%s)
+                        AND t.hora_inicio <= TIME(%s)
+                    )
             ORDER BY r.fecha, t.hora_inicio;
-        """, (ci,))  # Parametrizamos para evitar Injections
+        """, (ci, now, now, now))
 
         reservas = cur.fetchall()
 
