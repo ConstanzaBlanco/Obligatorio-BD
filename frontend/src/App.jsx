@@ -8,7 +8,7 @@ import MisReservas from "./components/User/MisReservas";
 import Edificios from "./components/Edificios";
 import SalasPorEdificio from "./components/SalasPorEdificio";
 import CrearReserva from "./components/User/CrearReserva";
-import Sanciones from "./components/User/Sanciones";
+import Sanciones from "./components/User/MisSanciones";
 import ReservasVencidas from "./components/Bibliotecario/ReservasVencidas";
 import CrearSala from "./components/Admin/CrearSala";
 import RemoveSalas from "./components/Admin/RemoveSalas";
@@ -49,7 +49,7 @@ export default function App() {
         <Route path="/edificios" element={<Edificios />} />
         <Route path="/edificios/:nombreEdificio" element={<SalasPorEdificio />} />
         <Route path="/crear-reserva" element={<CrearReserva />} />
-        <Route path="/sanciones" element={<Sanciones />} />
+        <Route path="/mis-sanciones" element={<Sanciones />} />
         <Route path="/reservas-vencidas" element={<ReservasVencidas />} />
         <Route path="/crear-sala" element={<CrearSala />} />
         <Route path="/remove-sala" element={<RemoveSalas />} />
