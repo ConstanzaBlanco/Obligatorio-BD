@@ -21,8 +21,8 @@ export default function Header() {
         Crear Reserva
       </Link>
 
-      <Link to="/sanciones" style={linkStyle}>
-        Sanciones
+      <Link to="/mis-sanciones" style={linkStyle}>
+        Mis Sanciones
       </Link>
 
       <Link to="/reservas-vencidas" style={linkStyle}>

@@ -11,7 +11,8 @@ from routes import infoSalas
 from routes import seeAllSanctions
 from routes import turnos
 from routes import previousReservations
-from routes import seeOwnSanctions
+from routes import seeOwnActiveSanctions
+from routes import seeOwnPastSanctions
 from routes import seeOwnActiveReservations
 from routes import agregarReserva
 from routes import cancelarReserva
@@ -35,7 +36,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # --- Habilitar CORS ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # dominio del frontend (Vite)
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -60,11 +61,12 @@ app.include_router(seeAllSanctions.router)
 app.include_router(weekReservations.router)
 app.include_router(turnos.router)
 app.include_router(previousReservations.router)
-app.include_router(seeOwnSanctions.router)
+app.include_router(seeOwnActiveSanctions.router)
 app.include_router(seeOwnActiveReservations.router)
 app.include_router(agregarReserva.router)
 app.include_router(cancelarReserva.router)
 app.include_router(seePastAndActiveReservations.router)
+app.include_router(seeOwnPastSanctions.router)
 app.include_router(createSalas.router)
 app.include_router(seeAllReservations.router)
 app.include_router(assistReservation.router)
