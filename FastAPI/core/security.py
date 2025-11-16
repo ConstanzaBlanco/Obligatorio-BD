@@ -34,29 +34,29 @@ def currentUser(token: str = Depends(oauth2_scheme)):
         raise HTTPException(status_code=401, detail="Usuario no encontrado")
     return user
 
-def requireRole(role: str):
-    # roles: "Usuario" | "Bibliotecario" | "Administrador"
+def requireRole(*roles):
+    """
+    Ejemplos de uso:
+
+    requireRole("Usuario")
+    requireRole("Bibliotecario")
+    requireRole("Administrador")
+    requireRole("Usuario", "Bibliotecario")
+    """
     def dep(user = Depends(currentUser)):
         roleUser = user.get("rol")
 
-        if role == "Usuario":
-            # cualquiera con rol valido pasa
-            if roleUser not in ("Usuario", "Bibliotecario", "Administrador"):
-                raise HTTPException(status_code=403, detail="No autorizado")
+        if not roleUser:
+            raise HTTPException(status_code=403, detail="Usuario sin rol asignado")
 
-        elif role == "Bibliotecario":
-            # pasan Bibliotecario y Administrador
-            if roleUser not in ("Bibliotecario", "Administrador"):
-                raise HTTPException(status_code=403, detail="No autorizado")
+        roleUser = roleUser.strip()
 
-        elif role == "Administrador":
-            # solo Administrador
-            if roleUser != "Administrador":
-                raise HTTPException(status_code=403, detail="No autorizado")
-
-        else:
-            # rol pedido inválido
-            raise HTTPException(status_code=403, detail="No autorizado")
+        if roleUser not in roles:
+            raise HTTPException(
+                status_code=403,
+                detail=f"No autorizado: se requiere uno de estos roles: {roles}"
+            )
 
         return user
+
     return dep
