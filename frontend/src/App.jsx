@@ -8,11 +8,11 @@ import MisReservas from "./components/User/MisReservas";
 import Edificios from "./components/Edificios";
 import SalasPorEdificio from "./components/SalasPorEdificio";
 import CrearReserva from "./components/User/CrearReserva";
-import Sanciones from "./components/User/MisSanciones";
 import ReservasVencidas from "./components/Bibliotecario/ReservasVencidas";
 import CrearSala from "./components/Admin/CrearSala";
 import RemoveSalas from "./components/Admin/RemoveSalas";
 import MisSanciones from "./components/User/MisSanciones";
+import Reservas from "./components/Bibliotecario/Reservas";
 
 export default function App() {
   const { user, logout } = useUser();
@@ -54,6 +54,7 @@ export default function App() {
         <Route path="/reservas-vencidas" element={<ReservasVencidas />} />
         <Route path="/crear-sala" element={<CrearSala />} />
         <Route path="/remove-sala" element={<RemoveSalas />} />
+        <Route path="/reservas" element={<Reservas />} />
 
 
         {/* Página por defecto */}

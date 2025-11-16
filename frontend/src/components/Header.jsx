@@ -40,6 +40,12 @@ export default function Header() {
           <Link to="/edificios" style={linkStyle}>
             Edificios
           </Link>
+
+          <Link to="/reservas" style={linkStyle}>
+            Reservas
+          </Link>
+
+
         </>
       )}
 

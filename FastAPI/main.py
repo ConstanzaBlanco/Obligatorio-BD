@@ -28,6 +28,8 @@ from routes import edificios
 from routes import salasDelEdificio
 from routes import departamentos
 from routes import createUser
+from routes import reservasActivas
+from routes import reservasPasadas
 
 # --- ADMIN ---
 
@@ -86,6 +88,8 @@ app.include_router(edificios.router)
 app.include_router(salasDelEdificio.router)
 app.include_router(departamentos.router)
 app.include_router(createUser.router)
+app.include_router(reservasPasadas.router)
+app.include_router(reservasActivas.router)
 # --- routers admin ---
 app.include_router(CreateBiblio.router)
 app.include_router(changeRolOfUser.router)
