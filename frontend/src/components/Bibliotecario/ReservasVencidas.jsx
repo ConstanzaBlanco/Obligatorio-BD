@@ -99,6 +99,8 @@ export default function ReservasVencidas() {
             <p><strong>Fecha:</strong> {r.fecha}</p>
             <p><strong>Hora fin:</strong> {r.hora_fin}</p>
             <p><strong>Estado actual:</strong> {r.estado}</p>
+            <p><strong>ID reserva:</strong> {r.id_reserva}</p>
+
 
             <button
               onClick={() => marcarFinalizada(r.id_reserva, r.ci_participantes)}
@@ -108,11 +110,15 @@ export default function ReservasVencidas() {
             </button>
 
             <button
-              onClick={() => marcarSinAsistencia(r.id_reserva)}
-              style={btnFail}
-            >
-              Sin asistencia
+                onClick={() => {
+                        console.log("ID RESERVA ENVIADO:", r.id_reserva);
+                        marcarSinAsistencia(r.id_reserva);
+                        }}
+                style={btnFail}
+                >
+                Sin asistencia
             </button>
+
           </li>
         ))}
       </ul>

@@ -13,10 +13,18 @@ class UpdateStateOfReservation(BaseModel):
 @router.post("/updateReservation")
 def update_reservation_state(
     payload: UpdateStateOfReservation,
-    user=Depends(requireRole("Bibliotecario"))  # ← CORRECTO
+    user=Depends(requireRole("Bibliotecario"))
 ):
+
+    print("====== DEBUG ======")
+    print("ROL DEL TOKEN:", user["rol"])
+    print("CIS RECIBIDOS:", payload.cis)
+    print("RESERVE ID:", payload.reserveId)
+    print("====================")
+
     reserveId = payload.reserveId
     attended_cis = payload.cis
+
 
     existing_cis = getAllCisOfOneReservation(reserveId)
 
