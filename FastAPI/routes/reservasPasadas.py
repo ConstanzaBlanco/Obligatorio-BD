@@ -20,7 +20,7 @@ def reservas_pasadas():
                 t.hora_fin
             FROM reserva r
             JOIN turno t ON t.id_turno = r.id_turno
-            WHERE r.estado IN ('finalizada', 'sin_asistencia', 'vencida')
+            WHERE r.estado IN ('finalizada', 'sin asistencia')
             ORDER BY r.fecha DESC;
         """)
 
