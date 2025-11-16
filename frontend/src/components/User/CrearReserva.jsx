@@ -17,8 +17,8 @@ export default function CrearReserva() {
   const [error, setError] = useState("");
 
   const hoy = new Date().toISOString().split("T")[0];
-  
-  const rolNoPermitido = rol === "admin" || rol === "bibliotecario"; 
+
+  const rolNoPermitido = rol === "administrador" || rol === "bibliotecario"; 
 
   const crearReserva = async () => {
     setMensaje("");
