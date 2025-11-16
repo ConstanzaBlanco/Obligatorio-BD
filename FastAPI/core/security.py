@@ -2,7 +2,7 @@ from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime, timedelta
 import jwt
-from db.loginSentences import getUser
+from db.loginSentences import getUser, getOneUser
 
 # Config básica
 SECRET_KEY = "bbfd9ee2a536ed05d4b609ff305b09f54b5af49ac3e567456fa913d9137c9617"
@@ -29,10 +29,21 @@ def verifyToken(token: str):
 # --- Dependencia para endpoints protegidos ---
 def currentUser(token: str = Depends(oauth2_scheme)):
     correo = verifyToken(token)
-    user = getUser(correo)
-    if not user:
+
+    # Obtener datos de la tabla de login (rol, last_access, etc.)
+    user_login = getUser(correo)
+    if not user_login:
         raise HTTPException(status_code=401, detail="Usuario no encontrado")
-    return user
+
+    # Intentar obtener datos del participante (por ejemplo `ci`) y combinar
+    user_part = getOneUser(correo)
+
+    if user_part:
+        # Combinar datos, dando preferencia a campos de participante en caso de solapamiento
+        combined = {**user_login, **user_part}
+        return combined
+
+    return user_login
 
 def requireRole(*roles):
     """
@@ -43,15 +54,18 @@ def requireRole(*roles):
     requireRole("Administrador")
     requireRole("Usuario", "Bibliotecario")
     """
+    # Normalizar roles permitidos a minúsculas para comparación insensible a mayúsculas
+    allowed_roles = [r.strip().lower() for r in roles]
+
     def dep(user = Depends(currentUser)):
         roleUser = user.get("rol")
 
         if not roleUser:
             raise HTTPException(status_code=403, detail="Usuario sin rol asignado")
 
-        roleUser = roleUser.strip()
+        role_normalized = roleUser.strip().lower()
 
-        if roleUser not in roles:
+        if role_normalized not in allowed_roles:
             raise HTTPException(
                 status_code=403,
                 detail=f"No autorizado: se requiere uno de estos roles: {roles}"
