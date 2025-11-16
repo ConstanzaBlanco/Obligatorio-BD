@@ -17,9 +17,6 @@ export default function Header() {
         Edificios
       </Link>
 
-      <Link to="/crear-reserva" style={linkStyle}>
-        Crear Reserva
-      </Link>
 
       <Link to="/sanciones" style={linkStyle}>
         Sanciones

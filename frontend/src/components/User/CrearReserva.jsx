@@ -1,14 +1,12 @@
 import { useState } from "react";
 import { useUser } from "../UserContext";
 
-export default function CrearReserva() {
-  const { user } = useUser(); 
+export default function CrearReservaAdaptado({ edificio, salas }) {
+  const { user } = useUser();
 
-  // NORMALIZAR ROL SIEMPRE EN MINÚSCULAS
   const rol = user?.rol?.toLowerCase();
 
   const [nombreSala, setNombreSala] = useState("");
-  const [edificio, setEdificio] = useState("");
   const [fecha, setFecha] = useState("");
   const [idTurno, setIdTurno] = useState("");
   const [participantes, setParticipantes] = useState("");
@@ -18,18 +16,19 @@ export default function CrearReserva() {
 
   const hoy = new Date().toISOString().split("T")[0];
 
-  const rolNoPermitido = rol === "administrador" || rol === "bibliotecario"; 
+  const rolNoPermitido =
+    rol === "administrador" || rol === "bibliotecario";
 
   const crearReserva = async () => {
     setMensaje("");
     setError("");
 
     if (rolNoPermitido) {
-      setError("Solo los usuarios pueden crear reservas. Los administradores y bibliotecarios no tienen permitido reservar.");
+      setError("Solo los usuarios pueden crear reservas.");
       return;
     }
 
-    if (!nombreSala || !edificio || !fecha || !idTurno) {
+    if (!nombreSala || !fecha || !idTurno) {
       setError("Todos los campos son obligatorios.");
       return;
     }
@@ -39,13 +38,13 @@ export default function CrearReserva() {
       return;
     }
 
-    let participantesArray = [];
-    if (participantes.trim() !== "") {
-      participantesArray = participantes
-        .split(",")
-        .map((x) => parseInt(x.trim()))
-        .filter((x) => !isNaN(x));
-    }
+    let participantesArray =
+      participantes.trim() === ""
+        ? []
+        : participantes
+            .split(",")
+            .map((x) => parseInt(x.trim()))
+            .filter((x) => !isNaN(x));
 
     const token = localStorage.getItem("token");
 
@@ -54,15 +53,15 @@ export default function CrearReserva() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           nombre_sala: nombreSala,
-          edificio,
+          edificio: edificio, // <- AHORA EL EDIFICIO VIENE DEL PADRE
           fecha,
           id_turno: parseInt(idTurno),
-          participantes: participantesArray
-        })
+          participantes: participantesArray,
+        }),
       });
 
       const data = await res.json();
@@ -72,7 +71,6 @@ export default function CrearReserva() {
       } else {
         setMensaje(`Reserva creada correctamente. ID: ${data.id_reserva}`);
         setNombreSala("");
-        setEdificio("");
         setFecha("");
         setIdTurno("");
         setParticipantes("");
@@ -83,14 +81,12 @@ export default function CrearReserva() {
   };
 
   return (
-    <div style={{ marginTop: 30 }}>
+    <div style={{ marginTop: 40 }}>
       <h2>Crear Reserva</h2>
 
-      {/* Rol bloqueado */}
       {rolNoPermitido && (
-        <p style={{ color: "red", fontWeight: "bold", marginBottom: 15 }}>
-          🚫 Solo los usuarios pueden crear reservas.  
-          Tu rol actual es: <strong>{rol}</strong>
+        <p style={{ color: "red" }}>
+          🚫 No estás autorizado para crear reservas. Rol actual: <b>{rol}</b>
         </p>
       )}
 
@@ -100,22 +96,25 @@ export default function CrearReserva() {
           margin: "auto",
           display: "flex",
           flexDirection: "column",
-          gap: 10
+          gap: 10,
         }}
       >
-        <input
-          placeholder="Nombre de la sala"
+        {/* Selección de salas desde SalasPorEdificio */}
+        <select
           value={nombreSala}
           onChange={(e) => setNombreSala(e.target.value)}
           disabled={rolNoPermitido}
-        />
+        >
+          <option value="">Seleccione una sala</option>
 
-        <input
-          placeholder="Edificio"
-          value={edificio}
-          onChange={(e) => setEdificio(e.target.value)}
-          disabled={rolNoPermitido}
-        />
+          {salas.map((s, i) => (
+            <option key={i} value={s.nombre_sala}>
+              {s.nombre_sala}
+            </option>
+          ))}
+        </select>
+
+        {/* El edificio YA NO se ingresa, viene del padre */}
 
         <input
           type="date"
@@ -153,7 +152,6 @@ export default function CrearReserva() {
             color: "white",
             border: "none",
             borderRadius: 5,
-            cursor: rolNoPermitido ? "not-allowed" : "pointer"
           }}
         >
           Crear Reserva
