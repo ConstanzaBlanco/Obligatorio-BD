@@ -147,11 +147,12 @@ INSERT INTO turno (hora_inicio, hora_fin) VALUES
 INSERT INTO login (correo, contrasenia, rol) VALUES
 ('juan.perez@ucu.edu.uy', '123456', 'Usuario'),
 ('maria.gomez@ucu.edu.uy', 'abcdef', 'Usuario'),
-('ana.lopez@ucu.edu.uy', '$2b$12$FLBMHPrLRxW5odbuGVGUVezabc.i/EyC9XvhyZY4syAljzhEXrVHq', 'usuario'),
+('ana.lopez@ucu.edu.uy', '$2b$12$FLBMHPrLRxW5odbuGVGUVezabc.i/EyC9XvhyZY4syAljzhEXrVHq', 'Usuario'),
 ('carlos.mendez@ucu.edu.uy', 'cmz123', 'Usuario'),
 ('sofia.ruiz@ucu.edu.uy', 'sfrz', 'Usuario'),
 ('jorge.diaz@ucu.edu.uy', 'jd123', 'Usuario'),
-('admin@admin', '$2b$12$WCN.KjRl8ZbmK9OxwHtnGeqqx8tkwDppdosbevTQ7YLi4PTuz7reu', 'Administrador');
+('biblio@ucu.edu.uy', '$2b$12$AEoMbeFCBivFTp6T5B0d5uB6zanKNo3PsZTh9fehJKNZyZjYNWioG', 'Bibliotecario'),
+('admin@ucu.edu.uy', '$2b$12$AEoMbeFCBivFTp6T5B0d5uB6zanKNo3PsZTh9fehJKNZyZjYNWioG', 'Administrador');
 
 -- Participantes
 INSERT INTO participante (ci, nombre, apellido, email) VALUES
@@ -161,7 +162,8 @@ INSERT INTO participante (ci, nombre, apellido, email) VALUES
 (22222222, 'Carlos', 'Mendez', 'carlos.mendez@ucu.edu.uy'),
 (33333333, 'Sofia', 'Ruiz', 'sofia.ruiz@ucu.edu.uy'),
 (44444444, 'Jorge', 'Diaz', 'jorge.diaz@ucu.edu.uy'),
-(00000000, 'Admin', 'User', 'admin@admin');
+(99999999, 'Biblio', 'Tecario', 'biblio@ucu.edu.uy'),
+(00000000, 'Admin', 'User', 'admin@ucu.edu.uy');
 
 -- Programas académicos
 INSERT INTO programa_academico (nombre_programa, id_facultad, tipo) VALUES

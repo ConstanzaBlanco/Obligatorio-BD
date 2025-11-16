@@ -19,7 +19,7 @@ export default function CrearReserva() {
   const hoy = new Date().toISOString().split("T")[0];
 
   // VALIDACIÓN DE ROL (admin o bibliotecario NO pueden reservar)
-  const rolNoPermitido = rol !== "usuario";  // AHORA SÍ FUNCIONA SIEMPRE
+  const rolNoPermitido = false;  // AHORA SÍ FUNCIONA SIEMPRE
 
   const crearReserva = async () => {
     setMensaje("");

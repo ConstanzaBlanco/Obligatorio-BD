@@ -1,43 +1,40 @@
 import { useState } from "react";
 import axios from "axios";
-import { useUser } from "./components/UserContext";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context";
 
 export default function Login() {
   const [correo, setCorreo] = useState("");
   const [contrasenia, setContrasenia] = useState("");
   const [error, setError] = useState("");
-
-  const { setUser } = useUser(); //para guardar el usuario
+  const navigate = useNavigate();
+  const { login } = useAuth(); // <-- usamos tu contexto
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
+
     try {
-      // LOGIN
-      const res = await axios.post("http://localhost:8000/login", {
-        username: correo,
-        password: contrasenia,
-      });
-
-      // Guardar token
-      localStorage.setItem("token", res.data.access_token);
-
-      // Obtener usuario con /me
-      const me = await axios.get("http://localhost:8000/me", {
-        headers: {
-          Authorization: `Bearer ${res.data.access_token}`,
+      const res = await axios.post(
+        "http://localhost:8000/login",
+        {
+          username: correo,
+          password: contrasenia,
         },
-      });
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
-      // Guardar usuario en contexto
-      setUser({
-        token: res.data.access_token,
-        rol: res.data.rol,
-        ...me.data
-      });
+      const token = res.data.access_token;
 
-    } catch (el) {
-      setError("Credenciales inválidas. Inténtalo de nuevo.",el);
+      login(token); // <-- guarda token en contexto + localStorage
 
+      navigate("/"); // <-- redirige al home
+
+    } catch (err) {
+      console.error(err);
+      setError("Credenciales inválidas. Inténtalo de nuevo.");
     }
   };
 
@@ -53,6 +50,7 @@ export default function Login() {
           onChange={(e) => setCorreo(e.target.value)}
           required
         />
+
         <input
           type="password"
           placeholder="Contraseña"
