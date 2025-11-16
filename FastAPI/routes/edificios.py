@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from db.connector import getConnection
-from core.security import currentUser 
+from core.security import requireRole 
 
 router = APIRouter()
 
 @router.get("/edificios")
-def obtener_edificios(departamento: str = None, user = Depends(currentUser)):
+def obtener_edificios(departamento: str = None, user = Depends(requireRole("Administrador", "Usuario","Bibliotecario"))):
     try:
         cn = getConnection()
         cur = cn.cursor(dictionary=True)

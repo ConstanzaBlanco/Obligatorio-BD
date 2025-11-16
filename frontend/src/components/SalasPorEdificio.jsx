@@ -1,27 +1,32 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useUser } from "./UserContext";
+import CrearReserva from "./User/CrearReserva";
 
 export default function SalasPorEdificio() {
   const { nombreEdificio } = useParams();
+  const { user } = useUser();
+  const rol = user?.rol?.toLowerCase();
 
   const [salas, setSalas] = useState([]);
   const [mensaje, setMensaje] = useState("");
 
-  const [fecha, setFecha] = useState("");
-  const [turno, setTurno] = useState("");
+  // FILTROS
+  const [fechaFiltro, setFechaFiltro] = useState("");
+  const [turnoFiltro, setTurnoFiltro] = useState("");
 
+  // CARGAR SALAS
   const cargarSalas = async () => {
     try {
       const token = localStorage.getItem("token");
 
       let url = `http://localhost:8000/salasDisponibles?edificio=${nombreEdificio}`;
 
-      // agregar filtros si existen
-      if (fecha) url += `&fecha=${fecha}`;
-      if (turno) url += `&id_turno=${turno}`;
+      if (fechaFiltro) url += `&fecha=${fechaFiltro}`;
+      if (turnoFiltro) url += `&id_turno=${turnoFiltro}`;
 
       const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await res.json();
@@ -33,13 +38,11 @@ export default function SalasPorEdificio() {
         setSalas([]);
         setMensaje("No hay salas que cumplan el filtro.");
       }
-
     } catch (error) {
       setMensaje("Error al cargar salas.");
     }
   };
 
-  // cargar salas la primera vez
   useEffect(() => {
     cargarSalas();
   }, [nombreEdificio]);
@@ -50,16 +53,16 @@ export default function SalasPorEdificio() {
 
       {/* FILTROS */}
       <div style={{ marginBottom: 20 }}>
-        <input 
+        <input
           type="date"
-          value={fecha}
-          onChange={(e) => setFecha(e.target.value)}
+          value={fechaFiltro}
+          onChange={(e) => setFechaFiltro(e.target.value)}
           style={{ marginRight: 10 }}
         />
 
         <select
-          value={turno}
-          onChange={(e) => setTurno(e.target.value)}
+          value={turnoFiltro}
+          onChange={(e) => setTurnoFiltro(e.target.value)}
           style={{ marginRight: 10 }}
         >
           <option value="">Todos los turnos</option>
@@ -67,7 +70,6 @@ export default function SalasPorEdificio() {
           <option value="2">9:00 - 10:00</option>
           <option value="3">10:00 - 11:00</option>
           <option value="4">11:00 - 12:00</option>
-          <option value="5">12:00 - 13:00</option>
         </select>
 
         <button onClick={cargarSalas}>Aplicar filtros</button>
@@ -88,6 +90,7 @@ export default function SalasPorEdificio() {
               maxWidth: 400,
               margin: "10px auto",
               textAlign: "left",
+              cursor: "pointer",
             }}
           >
             <strong>{s.nombre_sala}</strong>
@@ -96,6 +99,9 @@ export default function SalasPorEdificio() {
           </li>
         ))}
       </ul>
+
+      {/*SOLO muestra el formulario si es usuario */}
+      <CrearReserva edificio={nombreEdificio} salas={salas} />
     </div>
   );
 }

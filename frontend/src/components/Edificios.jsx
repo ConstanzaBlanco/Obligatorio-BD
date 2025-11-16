@@ -7,7 +7,7 @@ export default function Edificios() {
   const [departamentos, setDepartamentos] = useState([]);
   const [mensaje, setMensaje] = useState("");
 
-  // 🔥 Cargar departamentos desde el backend
+  //Cargar departamentos desde el backend
   const cargarDepartamentos = async () => {
     try {
       const res = await fetch("http://localhost:8000/departamentos");

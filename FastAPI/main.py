@@ -27,6 +27,16 @@ from routes import removeSalas
 from routes import edificios
 from routes import salasDelEdificio
 from routes import departamentos
+from routes import createUser
+
+# --- ADMIN ---
+
+from routes import CreateBiblio
+from routes import changeRolOfUser
+from routes import deleteUser
+
+# --- NUEVO: FACULTAD ---
+from routes import facultad
 
 app = FastAPI()
 
@@ -75,3 +85,11 @@ app.include_router(removeSalas.router)
 app.include_router(edificios.router)
 app.include_router(salasDelEdificio.router)
 app.include_router(departamentos.router)
+app.include_router(createUser.router)
+# --- routers admin ---
+app.include_router(CreateBiblio.router)
+app.include_router(changeRolOfUser.router)
+app.include_router(deleteUser.router)
+
+# --- router facultad ---
+app.include_router(facultad.router)
