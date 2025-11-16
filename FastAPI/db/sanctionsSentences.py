@@ -1,7 +1,7 @@
 from db.connector import getConnection
 
-def getAllSanctions():
-    cn = getConnection()
+def getAllSanctions(roleDb):
+    cn = getConnection(roleDb)
     try:
         cur = cn.cursor(dictionary=True)
         cur.execute(""" select s.ci_participante, p.email, s.fecha_inicio, s.fecha_fin from sancion_participante as s 
@@ -10,8 +10,8 @@ def getAllSanctions():
     finally:
         cn.close()
 
-def createSanction(ci: int):
-    cn = getConnection()
+def createSanction(ci: int, roleDb):
+    cn = getConnection(roleDb)
     try:
         cur = cn.cursor()
         cur.execute("""

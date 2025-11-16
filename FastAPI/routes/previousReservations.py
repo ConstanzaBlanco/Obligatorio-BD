@@ -7,7 +7,8 @@ router = APIRouter()
 @router.get("/previousReservations")
 def previousReservations(user=Depends(currentUser)): 
     try:
-        cn = getConnection()
+        roleDb = user["rol"]
+        cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
 
         #Obtener el correo del usuario autenticado

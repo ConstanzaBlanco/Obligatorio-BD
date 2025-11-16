@@ -20,6 +20,7 @@ def login(payload: LoginRequest):
     print("Correo procesado:", repr(correo))
 
     user = getUser(correo)
+    roleDb = user["rol"]
 
     print("Resultado getUser():", user)
     print("--------------------------------")
@@ -37,7 +38,7 @@ def login(payload: LoginRequest):
         raise HTTPException(status_code=401, detail="Credenciales inválidas, la contraseña no coincide")
 
     # se actualiza la ultima conexion
-    updateLastAccess(correo)
+    updateLastAccess(correo, roleDb)
 
     # generamos el token pal front
     token = createToken(correo)

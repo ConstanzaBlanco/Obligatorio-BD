@@ -21,7 +21,8 @@ def salas_disponibles(
 
 ):
     try:
-        cn = getConnection()
+        roleDb = user["rol"]
+        cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
         """if not user:
             return {"error": "Usuario no autenticado"}"""

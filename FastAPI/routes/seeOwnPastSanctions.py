@@ -8,7 +8,8 @@ router = APIRouter()
 @router.get("/seeOwnPastSanctions")
 def seeOwnPastSanctions(user=Depends(currentUser)):
     try:
-        cn = getConnection()
+        roleDb = user["rol"]
+        cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
 
         correo = user["correo"]

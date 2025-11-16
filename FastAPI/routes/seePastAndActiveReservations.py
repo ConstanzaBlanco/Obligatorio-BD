@@ -6,7 +6,8 @@ router = APIRouter()
 @router.get("/seePastAndActiveReservations")
 def seePastAndActiveReservations():
     try:
-        cn = getConnection()
+        roleDb = user["rol"]
+        cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
 
         cur.execute("""

@@ -6,7 +6,8 @@ router = APIRouter()
 @router.get("/turnosPosibles")
 def turnosTotales(): 
     try:
-        cn = getConnection()
+        roleDb = user["rol"]
+        cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
 
         # Traemos los turnos  con un formato adecuado 

@@ -18,8 +18,8 @@ class ReservationRequest(BaseModel):
 @router.post("/reservar")
 def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
     try:
-
-        cn = getConnection()
+        roleDb = user["rol"]
+        cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
 
         # CI del usuario autenticado 

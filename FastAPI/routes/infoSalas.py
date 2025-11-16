@@ -6,5 +6,6 @@ router = APIRouter()
 
 @router.get("/infoRooms")
 def infoRooms(user = Depends(requireRole("Administrador"))):
-    items = getRooms()
+    roleDb = user["rol"]
+    items = getRooms(roleDb)
     return {"items": items, "total": len(items)}
