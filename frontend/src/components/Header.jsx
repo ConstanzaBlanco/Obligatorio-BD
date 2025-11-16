@@ -9,8 +9,8 @@ export default function Header() {
         marginBottom: 20,
       }}
     >
-      <Link to="/reservas" style={linkStyle}>
-        Reservas
+      <Link to="/mis-reservas" style={linkStyle}>
+        Mis Reservas
       </Link>
 
       <Link to="/edificios" style={linkStyle}>
@@ -27,6 +27,10 @@ export default function Header() {
 
       <Link to="/reservas-vencidas" style={linkStyle}>
         Reservas Vencidas
+      </Link>
+
+      <Link to="/crear-sala" style={linkStyle}>
+        Crear Sala
       </Link>
 
 

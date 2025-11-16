@@ -4,12 +4,13 @@ import { useUser } from "./components/UserContext";
 
 // Componentes
 import Header from "./components/Header";
-import Reservas from "./components/User/Reservas";
+import MisReservas from "./components/User/MisReservas";
 import Edificios from "./components/Edificios";
 import SalasPorEdificio from "./components/SalasPorEdificio";
 import CrearReserva from "./components/User/CrearReserva";
 import Sanciones from "./components/User/Sanciones";
 import ReservasVencidas from "./components/Bibliotecario/ReservasVencidas";
+import CrearSala from "./components/Admin/CrearSala";
 
 export default function App() {
   const { user, logout } = useUser();
@@ -43,12 +44,13 @@ export default function App() {
 
       {/* RUTAS */}
       <Routes>
-        <Route path="/reservas" element={<Reservas />} />
+        <Route path="/mis-reservas" element={<MisReservas />} />
         <Route path="/edificios" element={<Edificios />} />
         <Route path="/edificios/:nombreEdificio" element={<SalasPorEdificio />} />
         <Route path="/crear-reserva" element={<CrearReserva />} />
         <Route path="/sanciones" element={<Sanciones />} />
         <Route path="/reservas-vencidas" element={<ReservasVencidas />} />
+        <Route path="/crear-sala" element={<CrearSala />} />
 
 
         {/* Página por defecto */}
