@@ -22,7 +22,7 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         cn = getConnection()
         cur = cn.cursor(dictionary=True)
 
-        # CI del usuario autenticado (ANTES estaba hardcodeado)
+        # CI del usuario autenticado 
         ci = user["ci"]
 
         # Ver que el usuario no haya reservado ya 2 veces en ese dia
