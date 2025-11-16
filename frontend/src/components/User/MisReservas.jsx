@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export default function Reservas() {
+export default function MisReservas() {
   const [activas, setActivas] = useState([]);
   const [pasadas, setPasadas] = useState([]);
 
