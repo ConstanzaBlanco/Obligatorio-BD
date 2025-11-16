@@ -6,7 +6,7 @@ def getUser(correo: str):
     try:
         cur = cn.cursor(dictionary=True)
         cur.execute(
-            "SELECT correo, contrasenia, rol, last_access FROM login WHERE correo=%s AND (deleted_at IS NULL)",
+            "SELECT correo, contrasenia, rol, last_access FROM login WHERE correo=%s",
             (correo,),
         )
         return cur.fetchone()

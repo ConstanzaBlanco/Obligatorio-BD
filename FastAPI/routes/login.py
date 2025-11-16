@@ -12,14 +12,21 @@ class LoginRequest(BaseModel):
 
 @router.post("/login")
 def login(payload: LoginRequest):
-    correo = payload.username.strip().lower()  # normalizar correo
+    correo = payload.username
     password = payload.password
+
+    print("--------- LOGIN DEBUG ---------")
+    print("Correo recibido:", repr(payload.username))
+    print("Correo procesado:", repr(correo))
 
     user = getUser(correo)
 
+    print("Resultado getUser():", user)
+    print("--------------------------------")
+
     # Usuario no encontrado en la bd
     if not user:
-        raise HTTPException(status_code=401, detail="Credenciales inválidas")
+        raise HTTPException(status_code=401, detail="No se encontró el usuario")
 
     # el usario no tiene contraseña 
     if not user.get("contrasenia"):
@@ -27,7 +34,7 @@ def login(payload: LoginRequest):
 
     # mall la contra bro
     if not verifyPassword(password, user["contrasenia"]):
-        raise HTTPException(status_code=401, detail="Credenciales inválidas")
+        raise HTTPException(status_code=401, detail="Credenciales inválidas, la contraseña no coincide")
 
     # se actualiza la ultima conexion
     updateLastAccess(correo)
