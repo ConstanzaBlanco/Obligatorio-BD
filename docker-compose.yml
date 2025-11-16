@@ -29,13 +29,13 @@ services:
       DB_USER_INVITED: gestion_salas_user
       DB_PASSWORD_INVITED: shaw
 
-      DB_USER_USER: gestion_salas_Usuario
+      DB_USER_USER: Usuario
       DB_PASSWORD_USER: shaw
 
-      DB_USER_BIBLIO: gestion_salas_Bibliotecario
+      DB_USER_BIBLIO: Bibliotecario
       DB_PASSWORD_BIBLIO: shaw
 
-      DB_USER_ADMIN: gestion_salas_Administrador
+      DB_USER_ADMIN: Administrador
       DB_PASSWORD_ADMIN: shaw
 
 
