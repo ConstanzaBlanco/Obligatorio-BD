@@ -5,7 +5,7 @@ from core.security import requireRole
 router = APIRouter()
 
 @router.get("/edificios")
-def obtener_edificios(departamento: str = None, user = Depends(requireRole("Administrador"))):
+def obtener_edificios(departamento: str = None, user = Depends(requireRole("Administrador", "Usuario","Bibliotecario"))):
     try:
         cn = getConnection()
         cur = cn.cursor(dictionary=True)
