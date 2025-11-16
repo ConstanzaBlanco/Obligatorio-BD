@@ -7,7 +7,8 @@ router = APIRouter()
 @router.get("/dayReservations")
 def dayReservations(user=Depends(requireRole("Usuario"))): 
     try:
-        cn = getConnection()
+        roleDb = user["rol"]
+        cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
 
         # nos quedamos con el correo del usuario autenticado

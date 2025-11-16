@@ -1,7 +1,7 @@
 from db.connector import getConnection
 
-def getAllReservations():
-    cn = getConnection()
+def getAllReservations(roleDb):
+    cn = getConnection(roleDb)
     try:
         cur = cn.cursor(dictionary=True)
         cur.execute("""
@@ -16,8 +16,8 @@ def getAllReservations():
     finally:
         cn.close()
 
-def updateAssistUser(ci: int, reserveId: int, boolean: bool):
-    cn = getConnection()
+def updateAssistUser(ci: int, reserveId: int, boolean: bool, roleDb):
+    cn = getConnection(roleDb)
     try:
         cur = cn.cursor()
         cur.execute(
@@ -29,8 +29,8 @@ def updateAssistUser(ci: int, reserveId: int, boolean: bool):
     finally:
         cn.close()
 
-def getAllCisOfOneReservation(reserveId: int):
-    cn = getConnection()
+def getAllCisOfOneReservation(reserveId: int, roleDb):
+    cn = getConnection(roleDb)
     try:
         cur = cn.cursor(dictionary=True)
         cur.execute(
@@ -45,8 +45,8 @@ def getAllCisOfOneReservation(reserveId: int):
     finally:
         cn.close()
 
-def updateReserveToFinish(reserveId: int, state: str):
-    cn = getConnection()
+def updateReserveToFinish(reserveId: int, state: str, roleDb):
+    cn = getConnection(roleDb)
     try:
         cur = cn.cursor()
         cur.execute(

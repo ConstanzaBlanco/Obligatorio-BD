@@ -12,7 +12,8 @@ class RemoveSalaRequest(BaseModel):
 @router.delete("/removeSalas")
 def remove_sala(request: RemoveSalaRequest, user=Depends(requireRole("Administrador"))):
     try:
-        cn = getConnection()
+        roleDb = user["rol"]
+        cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
 
         # Verificar si la sala existe con su pareja de edificio

@@ -15,6 +15,7 @@ def update_reservation_state(
     payload: UpdateStateOfReservation,
     user=Depends(requireRole("Bibliotecario"))
 ):
+    roleDb = user["rol"]
 
     print("====== DEBUG ======")
     print("ROL DEL TOKEN:", user["rol"])
@@ -26,22 +27,22 @@ def update_reservation_state(
     attended_cis = payload.cis
 
 
-    existing_cis = getAllCisOfOneReservation(reserveId)
+    existing_cis = getAllCisOfOneReservation(reserveId, roleDb)
 
     if not existing_cis:
         raise HTTPException(status_code=404, detail="No existe la reserva o no tiene participantes asignados")
 
     if len(attended_cis) == 0:
-        return handle_non_assistance(reserveId, existing_cis)
+        return handle_non_assistance(reserveId, existing_cis, roleDb)
 
     for ci in attended_cis:
         if ci not in existing_cis:
             raise HTTPException(status_code=400, detail=f"El CI {ci} no pertenece a esta reserva")
 
     for ci in attended_cis:
-        updateAssistUser(ci, reserveId, True)
+        updateAssistUser(ci, reserveId, True, roleDb)
 
-    updateReserveToFinish(reserveId, 'finalizada')
+    updateReserveToFinish(reserveId, 'finalizada', roleDb)
 
     return {
         "success": True,
@@ -50,12 +51,12 @@ def update_reservation_state(
         "cis_que_asistieron": attended_cis
     }
 
-def handle_non_assistance(reserveId: int, existing_cis: list[int]):
+def handle_non_assistance(reserveId: int, existing_cis: list[int], roleDb):
     for ci in existing_cis:
-        updateAssistUser(ci, reserveId, False)
-        createSanction(ci)
+        updateAssistUser(ci, reserveId, False, roleDb)
+        createSanction(ci, roleDb)
 
-    updateReserveToFinish(reserveId, 'sin asistencia')
+    updateReserveToFinish(reserveId, 'sin asistencia', roleDb)
 
     return {
         "success": True,

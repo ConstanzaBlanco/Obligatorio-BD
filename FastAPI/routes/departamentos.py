@@ -5,8 +5,11 @@ router = APIRouter()
 
 @router.get("/departamentos")
 def obtener_departamentos():
+
+    roleDb = user["rol"]
+
     try:
-        cn = getConnection()
+        cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
 
         cur.execute("""

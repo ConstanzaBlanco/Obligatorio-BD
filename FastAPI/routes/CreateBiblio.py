@@ -22,6 +22,8 @@ def createUser(payload: CreateBiblioRequest, user = Depends(requireRole("Adminis
     lastName = payload.lastName
     password = payload.password
 
+    roleDb = user["rol"]
+
     # Validaciones
     if not isinstance(correo, str) or correo.strip() == "":
         raise HTTPException(status_code=400, detail="correo es requerido")
@@ -45,10 +47,10 @@ def createUser(payload: CreateBiblioRequest, user = Depends(requireRole("Adminis
     passwordHashed = hashPassword(password)
 
 
-    if insertBiblioLogin(correo, passwordHashed) == 0:
+    if insertBiblioLogin(correo, passwordHashed, roleDb) == 0:
         raise HTTPException(status_code=400, detail="Error al insertar en login")
 
-    if insertPaticipante(ci, name, lastName, correo) == 0:
+    if insertPaticipante(ci, name, lastName, correo, roleDb) == 0:
         raise HTTPException(status_code=400, detail="Error al insertar en participante")
 
     return {"status": "created"}

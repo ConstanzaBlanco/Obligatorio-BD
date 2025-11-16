@@ -15,6 +15,8 @@ def updateUserRole(payload: UpdateRolRequest, user = Depends(requireRole("Admini
     correo = payload.correo.strip().lower()
     rol = payload.rol.strip()
 
+    roleDb = user["rol"]
+
     # Validación de correo
     if correo.count("@") != 1:
         raise HTTPException(status_code=400, detail="correo inválido")
@@ -28,7 +30,7 @@ def updateUserRole(payload: UpdateRolRequest, user = Depends(requireRole("Admini
     if rol not in roles_validos:
         raise HTTPException(status_code=400, detail="rol inválido")
 
-    result = updateRolOfUser(correo, rol)
+    result = updateRolOfUser(correo, rol, roleDb)
     if result == 0:
         raise HTTPException(status_code=404, detail="usuario no encontrado")
 

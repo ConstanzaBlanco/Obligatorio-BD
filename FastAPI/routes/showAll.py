@@ -7,7 +7,8 @@ router = APIRouter()
 @router.get("/showAll")
 def showAll():
     try:
-        cn = getConnection()
+        roleDb = user["rol"]
+        cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
         cur.execute("SELECT * FROM reserva")
         resp = cur.fetchall()

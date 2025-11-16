@@ -23,10 +23,12 @@ class FacultadUpdate(BaseModel):
 def create_facultad(payload: FacultadCreate, user = Depends(requireRole("Administrador"))):
     nombre = payload.nombre.strip()
 
+    roleDb = user["rol"]
+
     if nombre == "":
         raise HTTPException(status_code=400, detail="Nombre requerido")
 
-    if createFacultad(nombre) == 0:
+    if createFacultad(nombre, roleDb) == 0:
         raise HTTPException(status_code=400, detail="Error al crear facultad")
 
     return {"status": "created", "nombre": nombre}
@@ -34,12 +36,14 @@ def create_facultad(payload: FacultadCreate, user = Depends(requireRole("Adminis
 
 @router.get("/all")
 def get_all(user = Depends(requireRole("Administrador"))):
-    return getFacultades()
+    roleDb = user["rol"]
+    return getFacultades(roleDb)
 
 
 @router.get("/{id_facultad}")
 def get_one(id_facultad: int, user = Depends(requireRole("Administrador"))):
-    fac = getOneFacultad(id_facultad)
+    roleDb = user["rol"]
+    fac = getOneFacultad(id_facultad, roleDb)
     if not fac:
         raise HTTPException(status_code=404, detail="Facultad no encontrada")
     return fac
@@ -47,13 +51,15 @@ def get_one(id_facultad: int, user = Depends(requireRole("Administrador"))):
 
 @router.put("/update/{id_facultad}")
 def update(id_facultad: int, payload: FacultadUpdate, user = Depends(requireRole("Administrador"))):
-    if updateFacultad(id_facultad, payload.nombre.strip()) == 0:
+    roleDb = user["rol"]
+    if updateFacultad(id_facultad, payload.nombre.strip(), roleDb) == 0:
         raise HTTPException(status_code=404, detail="Facultad no encontrada")
     return {"status": "updated"}
 
 
 @router.delete("/delete/{id_facultad}")
 def delete(id_facultad: int, user = Depends(requireRole("Administrador"))):
-    if deleteFacultad(id_facultad) == 0:
+    roleDb = user["rol"]
+    if deleteFacultad(id_facultad, roleDb) == 0:
         raise HTTPException(status_code=404, detail="Facultad no encontrada")
     return {"status": "deleted"}
