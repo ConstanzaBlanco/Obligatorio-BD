@@ -1,6 +1,10 @@
 import { Link } from "react-router-dom";
+import { useUser } from "./UserContext";
 
 export default function Header() {
+  const { user } = useUser();
+  const rol = user?.rol?.toLowerCase();
+
   return (
     <nav
       style={{
@@ -9,32 +13,44 @@ export default function Header() {
         marginBottom: 20,
       }}
     >
-      <Link to="/mis-reservas" style={linkStyle}>
-        Mis Reservas
-      </Link>
+      {/* ----------- USUARIO ----------- */}
+      {rol === "usuario" && (
+        <>
+          <Link to="/mis-reservas" style={linkStyle}>
+            Mis Reservas
+          </Link>
 
-      <Link to="/edificios" style={linkStyle}>
-        Edificios
-      </Link>
+          <Link to="/mis-sanciones" style={linkStyle}>
+            Mis Sanciones
+          </Link>
 
+          <Link to="/edificios" style={linkStyle}>
+            Edificios
+          </Link>
+        </>
+      )}
 
-      <Link to="/sanciones" style={linkStyle}>
-        Sanciones
-      </Link>
+      {/* ----------- BIBLIOTECARIO ----------- */}
+      {rol === "bibliotecario" && (
+        <>
+          <Link to="/reservas-vencidas" style={linkStyle}>
+            Reservas Vencidas
+          </Link>
 
-      <Link to="/reservas-vencidas" style={linkStyle}>
-        Reservas Vencidas
-      </Link>
+          <Link to="/edificios" style={linkStyle}>
+            Edificios
+          </Link>
+        </>
+      )}
 
-      <Link to="/crear-sala" style={linkStyle}>
-        Crear Sala
-      </Link>
-
-      <Link to="/remove-sala" style={linkStyle}>
-        Eliminar Sala
-      </Link>
-
-
+      {/* ----------- ADMINISTRADOR ----------- */}
+      {rol === "administrador" && (
+        <>
+          <Link to="/edificios" style={linkStyle}>
+            Edificios
+          </Link>
+        </>
+      )}
     </nav>
   );
 }

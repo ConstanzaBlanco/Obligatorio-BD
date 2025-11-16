@@ -1,10 +1,15 @@
 import { useState } from "react";
 import { useUser } from "../UserContext";
 
-export default function CrearReservaAdaptado({ edificio, salas }) {
-  const { user } = useUser();
+export default function CrearReserva({ edificio, salas }) {
 
+  const { user } = useUser();
   const rol = user?.rol?.toLowerCase();
+
+  // Si NO es usuario → no mostrar nada
+  if (rol !== "usuario") {
+    return null;
+  }
 
   const [nombreSala, setNombreSala] = useState("");
   const [fecha, setFecha] = useState("");
@@ -16,17 +21,9 @@ export default function CrearReservaAdaptado({ edificio, salas }) {
 
   const hoy = new Date().toISOString().split("T")[0];
 
-  const rolNoPermitido =
-    rol === "administrador" || rol === "bibliotecario";
-
   const crearReserva = async () => {
     setMensaje("");
     setError("");
-
-    if (rolNoPermitido) {
-      setError("Solo los usuarios pueden crear reservas.");
-      return;
-    }
 
     if (!nombreSala || !fecha || !idTurno) {
       setError("Todos los campos son obligatorios.");
@@ -57,7 +54,7 @@ export default function CrearReservaAdaptado({ edificio, salas }) {
         },
         body: JSON.stringify({
           nombre_sala: nombreSala,
-          edificio: edificio, // <- AHORA EL EDIFICIO VIENE DEL PADRE
+          edificio,
           fecha,
           id_turno: parseInt(idTurno),
           participantes: participantesArray,
@@ -75,20 +72,14 @@ export default function CrearReservaAdaptado({ edificio, salas }) {
         setIdTurno("");
         setParticipantes("");
       }
-    } catch (err) {
-      setError("Error al crear reserva. Intente nuevamente.");
+    } catch {
+      setError("Error al crear reserva.");
     }
   };
 
   return (
     <div style={{ marginTop: 40 }}>
-      <h2>Crear Reserva</h2>
-
-      {rolNoPermitido && (
-        <p style={{ color: "red" }}>
-          🚫 No estás autorizado para crear reservas. Rol actual: <b>{rol}</b>
-        </p>
-      )}
+      <h2>Crear Reserva en {edificio}</h2>
 
       <div
         style={{
@@ -99,14 +90,8 @@ export default function CrearReservaAdaptado({ edificio, salas }) {
           gap: 10,
         }}
       >
-        {/* Selección de salas desde SalasPorEdificio */}
-        <select
-          value={nombreSala}
-          onChange={(e) => setNombreSala(e.target.value)}
-          disabled={rolNoPermitido}
-        >
+        <select value={nombreSala} onChange={(e) => setNombreSala(e.target.value)}>
           <option value="">Seleccione una sala</option>
-
           {salas.map((s, i) => (
             <option key={i} value={s.nombre_sala}>
               {s.nombre_sala}
@@ -114,21 +99,14 @@ export default function CrearReservaAdaptado({ edificio, salas }) {
           ))}
         </select>
 
-        {/* El edificio YA NO se ingresa, viene del padre */}
-
         <input
           type="date"
           min={hoy}
           value={fecha}
           onChange={(e) => setFecha(e.target.value)}
-          disabled={rolNoPermitido}
         />
 
-        <select
-          value={idTurno}
-          onChange={(e) => setIdTurno(e.target.value)}
-          disabled={rolNoPermitido}
-        >
+        <select value={idTurno} onChange={(e) => setIdTurno(e.target.value)}>
           <option value="">Seleccione turno</option>
           <option value="1">08:00 - 09:00</option>
           <option value="2">09:00 - 10:00</option>
@@ -140,15 +118,13 @@ export default function CrearReservaAdaptado({ edificio, salas }) {
           placeholder="Participantes (CI separados por coma)"
           value={participantes}
           onChange={(e) => setParticipantes(e.target.value)}
-          disabled={rolNoPermitido}
         />
 
         <button
           onClick={crearReserva}
-          disabled={rolNoPermitido}
           style={{
             padding: 10,
-            backgroundColor: rolNoPermitido ? "gray" : "#007bff",
+            backgroundColor: "#007bff",
             color: "white",
             border: "none",
             borderRadius: 5,

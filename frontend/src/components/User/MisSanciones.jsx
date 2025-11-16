@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export default function Sanciones() {
+export default function MisSanciones() {
   const [activas, setActivas] = useState([]);
   const [pasadas, setPasadas] = useState([]);
   const [error, setError] = useState("");
