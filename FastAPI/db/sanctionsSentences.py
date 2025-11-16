@@ -15,8 +15,8 @@ def createSanction(ci: int):
     try:
         cur = cn.cursor()
         cur.execute("""
-            INSERT INTO sancion_participante (ci_participante, fecha_inicio, fecha_fin, created_at)
-            VALUES (%s, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 2 MONTH), NOW());
+            INSERT INTO sancion_participante (ci_participante, fecha_inicio, fecha_fin)
+            VALUES (%s, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 2 MONTH));
         """, (ci,))
         cn.commit()
         return cur.rowcount
