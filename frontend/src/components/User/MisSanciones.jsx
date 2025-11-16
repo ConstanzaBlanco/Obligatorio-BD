@@ -7,34 +7,57 @@ export default function MisSanciones() {
 
   const token = localStorage.getItem("token");
 
-  // Cargar sanciones activas
+  const formatFecha = (fecha) => {
+    try {
+      return new Date(fecha).toLocaleDateString("es-UY", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    } catch {
+      return fecha;
+    }
+  };
+
   const cargarActivas = async () => {
     try {
       const res = await fetch("http://localhost:8000/seeOwnActiveSanctions", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await res.json();
+
+      if (data.error) {
+        setError(data.error);
+        return;
+      }
+
       setActivas(data.sanciones || []);
     } catch (e) {
       setError("Error al cargar sanciones activas");
     }
   };
 
-  // Cargar sanciones pasadas
   const cargarPasadas = async () => {
     try {
       const res = await fetch("http://localhost:8000/seeOwnPastSanctions", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await res.json();
+
+      if (data.error) {
+        setError(data.error);
+        return;
+      }
+
       setPasadas(data.sanciones || []);
     } catch (e) {
       setError("Error al cargar sanciones pasadas");
     }
   };
 
+  // Cargar al montar
   useEffect(() => {
     cargarActivas();
     cargarPasadas();
@@ -42,17 +65,14 @@ export default function MisSanciones() {
 
   return (
     <div style={{ marginTop: 30 }}>
-      <h2>Mis Sanciones</h2>
+      <h2 style={{ textAlign: "center" }}>Mis Sanciones</h2>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p style={{ color: "red", textAlign: "center" }}>{error}</p>}
 
-
-      {/* SANCIONES ACTIVAS */}
-
-      <h3 style={{ color: "#dc3545" }}>⛔ Sanciones Activas</h3>
+      <h3 style={{ color: "#dc3545", textAlign: "center" }}>⛔ Sanciones Activas</h3>
 
       {activas.length === 0 ? (
-        <p>No tenés sanciones activas</p>
+        <p style={{ textAlign: "center" }}>No tenés sanciones activas</p>
       ) : (
         <ul style={{ listStyle: "none", padding: 0 }}>
           {activas.map((s, i) => (
@@ -65,23 +85,23 @@ export default function MisSanciones() {
                 borderRadius: 6,
                 maxWidth: 400,
                 margin: "auto",
-                textAlign: "left"
+                textAlign: "left",
+                background: "#fdecea",
               }}
             >
-              <p><strong>Motivo:</strong> {s.motivo}</p>
-              <p><strong>Fecha Inicio:</strong> {s.fecha_inicio}</p>
-              <p><strong>Fecha Fin:</strong> {s.fecha_fin}</p>
+              <p><strong>Fecha Inicio:</strong> {formatFecha(s.fecha_inicio)}</p>
+              <p><strong>Fecha Fin:</strong> {formatFecha(s.fecha_fin)}</p>
             </li>
           ))}
         </ul>
       )}
 
-     
-      {/* SANCIONES PASADAS */}
-      <h3 style={{ marginTop: 30, color: "#555" }}>Sanciones Pasadas</h3>
+      <h3 style={{ marginTop: 30, color: "#555", textAlign: "center" }}>
+        🕒 Sanciones Pasadas
+      </h3>
 
       {pasadas.length === 0 ? (
-        <p>No tenés sanciones pasadas.</p>
+        <p style={{ textAlign: "center" }}>No tenés sanciones pasadas.</p>
       ) : (
         <ul style={{ listStyle: "none", padding: 0 }}>
           {pasadas.map((s, i) => (
@@ -94,12 +114,12 @@ export default function MisSanciones() {
                 borderRadius: 6,
                 maxWidth: 400,
                 margin: "auto",
-                textAlign: "left"
+                textAlign: "left",
+                background: "#f4f4f4",
               }}
             >
-              <p><strong>Motivo:</strong> {s.motivo}</p>
-              <p><strong>Inicio:</strong> {s.fecha_inicio}</p>
-              <p><strong>Fin:</strong> {s.fecha_fin}</p>
+              <p><strong>Inicio:</strong> {formatFecha(s.fecha_inicio)}</p>
+              <p><strong>Fin:</strong> {formatFecha(s.fecha_fin)}</p>
             </li>
           ))}
         </ul>
