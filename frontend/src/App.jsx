@@ -9,6 +9,7 @@ import Edificios from "./components/Edificios";
 import SalasPorEdificio from "./components/SalasPorEdificio";
 import CrearReserva from "./components/User/CrearReserva";
 import Sanciones from "./components/User/Sanciones";
+import ReservasVencidas from "./components/Bibliotecario/ReservasVencidas";
 
 export default function App() {
   const { user, logout } = useUser();
@@ -47,6 +48,7 @@ export default function App() {
         <Route path="/edificios/:nombreEdificio" element={<SalasPorEdificio />} />
         <Route path="/crear-reserva" element={<CrearReserva />} />
         <Route path="/sanciones" element={<Sanciones />} />
+        <Route path="/reservas-vencidas" element={<ReservasVencidas />} />
 
 
         {/* Página por defecto */}
