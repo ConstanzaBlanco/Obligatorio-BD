@@ -25,6 +25,10 @@ export default function Header() {
         Sanciones
       </Link>
 
+      <Link to="/reservas-vencidas" style={linkStyle}>
+        Reservas Vencidas
+      </Link>
+
 
     </nav>
   );
