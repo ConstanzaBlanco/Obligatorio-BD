@@ -20,6 +20,7 @@ export default function Header() {
         {rol === "bibliotecario" && (
           <>
             <Link to="/reservas-vencidas" style={linkStyle}>Reservas Vencidas</Link>
+            <Link to="/reservas" style={linkStyle}>Reservas</Link>
             <Link to="/edificios" style={linkStyle}>Edificios</Link>
           </>
         )}
@@ -33,10 +34,12 @@ export default function Header() {
 
       {/* DERECHA */}
       <div style={rightSection}>
-              <button 
-        onClick={() => window.location.href = "/me"}
-        style={avatarBtn}
-      >👤</button>
+        <button 
+          onClick={() => window.location.href = "/me"}
+          style={avatarBtn}
+        >
+          👤
+        </button>
 
         <button onClick={logout} style={logoutBtn}>
           Cerrar sesión
@@ -90,7 +93,6 @@ const logoutBtn = {
   borderRadius: "6px",
   cursor: "pointer",
   fontSize: "14px",
-  transition: "0.2s ease",
 };
 
 const avatarBtn = {
@@ -104,10 +106,4 @@ const avatarBtn = {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  transition: "0.2s ease",
 };
-
-avatarBtn["&:hover"] = {
-  background: "#d1d1ff",
-};
-
