@@ -15,14 +15,7 @@ def login(payload: LoginRequest):
     correo = payload.username
     password = payload.password
 
-    print("--------- LOGIN DEBUG ---------")
-    print("Correo recibido:", repr(payload.username))
-    print("Correo procesado:", repr(correo))
-
     user = getUser(correo)
-
-    print("Resultado getUser():", user)
-    print("--------------------------------")
 
     # Usuario no encontrado en la bd
     if not user:
