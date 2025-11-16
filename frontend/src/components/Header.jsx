@@ -2,68 +2,108 @@ import { Link } from "react-router-dom";
 import { useUser } from "./UserContext";
 
 export default function Header() {
-  const { user } = useUser();
+  const { user, logout } = useUser();
   const rol = user?.rol?.toLowerCase();
 
   return (
-    <nav
-      style={{
-        padding: "10px",
-        borderBottom: "2px solid #ddd",
-        marginBottom: 20,
-      }}
-    >
-      {/* ----------- USUARIO ----------- */}
-      {rol === "usuario" && (
-        <>
-          <Link to="/mis-reservas" style={linkStyle}>
-            Mis Reservas
-          </Link>
+    <nav style={navStyle}>
+      {/* IZQUIERDA */}
+      <div style={leftSection}>
+        {rol === "usuario" && (
+          <>
+            <Link to="/mis-reservas" style={linkStyle}>Mis Reservas</Link>
+            <Link to="/mis-sanciones" style={linkStyle}>Mis Sanciones</Link>
+            <Link to="/edificios" style={linkStyle}>Reservar</Link>
+          </>
+        )}
 
-          <Link to="/mis-sanciones" style={linkStyle}>
-            Mis Sanciones
-          </Link>
+        {rol === "bibliotecario" && (
+          <>
+            <Link to="/reservas-vencidas" style={linkStyle}>Reservas Vencidas</Link>
+            <Link to="/reservas" style={linkStyle}>Reservas</Link>
+            <Link to="/edificios" style={linkStyle}>Edificios</Link>
+          </>
+        )}
 
-          <Link to="/edificios" style={linkStyle}>
-            Edificios
-          </Link>
-        </>
-      )}
+        {rol === "administrador" && (
+          <>
+            <Link to="/edificios" style={linkStyle}>Edificios</Link>
+          </>
+        )}
+      </div>
 
-      {/* ----------- BIBLIOTECARIO ----------- */}
-      {rol === "bibliotecario" && (
-        <>
-          <Link to="/reservas-vencidas" style={linkStyle}>
-            Reservas Vencidas
-          </Link>
+      {/* DERECHA */}
+      <div style={rightSection}>
+        <button 
+          onClick={() => window.location.href = "/me"}
+          style={avatarBtn}
+        >
+          👤
+        </button>
 
-          <Link to="/edificios" style={linkStyle}>
-            Edificios
-          </Link>
-
-          <Link to="/reservas" style={linkStyle}>
-            Reservas
-          </Link>
-
-
-        </>
-      )}
-
-      {/* ----------- ADMINISTRADOR ----------- */}
-      {rol === "administrador" && (
-        <>
-          <Link to="/edificios" style={linkStyle}>
-            Edificios
-          </Link>
-        </>
-      )}
+        <button onClick={logout} style={logoutBtn}>
+          Cerrar sesión
+        </button>
+      </div>
     </nav>
   );
 }
 
+/* ---------------- ESTILOS ---------------- */
+
+const navStyle = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  padding: "12px 25px",
+  background: "#ffffff",
+  borderBottom: "2px solid #e5e5e5",
+  boxShadow: "0 3px 12px rgba(0,0,0,0.08)",
+  position: "sticky",
+  top: 0,
+  zIndex: 999,
+};
+
+const leftSection = {
+  display: "flex",
+  alignItems: "center",
+  gap: "15px",
+};
+
+const rightSection = {
+  display: "flex",
+  alignItems: "center",
+  gap: "10px",
+};
+
 const linkStyle = {
-  marginRight: 15,
+  padding: "8px 12px",
+  borderRadius: "6px",
   textDecoration: "none",
   color: "#007bff",
-  fontWeight: "bold",
+  fontWeight: 600,
+  transition: "0.2s ease",
+};
+
+const logoutBtn = {
+  padding: "8px 14px",
+  backgroundColor: "#dc3545",
+  color: "white",
+  border: "none",
+  borderRadius: "6px",
+  cursor: "pointer",
+  fontSize: "14px",
+};
+
+const avatarBtn = {
+  width: "38px",
+  height: "38px",
+  borderRadius: "50%",
+  background: "#e6e6ff",
+  border: "1px solid #ccc",
+  cursor: "pointer",
+  fontSize: "18px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
 };

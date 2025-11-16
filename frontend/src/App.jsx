@@ -12,6 +12,7 @@ import ReservasVencidas from "./components/Bibliotecario/ReservasVencidas";
 import CrearSala from "./components/Admin/CrearSala";
 import RemoveSalas from "./components/Admin/RemoveSalas";
 import MisSanciones from "./components/User/MisSanciones";
+import Me from "./components/Me";
 import Reservas from "./components/Bibliotecario/Reservas";
 
 export default function App() {
@@ -54,8 +55,8 @@ export default function App() {
         <Route path="/reservas-vencidas" element={<ReservasVencidas />} />
         <Route path="/crear-sala" element={<CrearSala />} />
         <Route path="/remove-sala" element={<RemoveSalas />} />
+        <Route path="/me" element={<Me />} />
         <Route path="/reservas" element={<Reservas />} />
-
 
         {/* Página por defecto */}
         <Route path="*" element={<h3>Seleccione una opción del menú</h3>} />
