@@ -42,3 +42,67 @@ def updatePassword(correo: str, password: str):
         cn.commit()
     finally:
         cn.close()
+
+def updateRolOfUser(correo: str, rol: str):
+    cn = getConnection()
+    try:
+        cur = cn.cursor()
+        cur.execute(
+            "UPDATE login SET rol=%s WHERE correo=%s",
+            (rol, correo)
+        )
+        cn.commit()
+        return cur.rowcount
+    finally:
+        cn.close()
+
+def deleteUser(correo: str):
+    cn = getConnection()
+    try:
+        cur = cn.cursor()
+
+        # 1) Obtener CI del participante a partir del correo
+        cur.execute(
+            "SELECT ci FROM participante WHERE email = %s",
+            (correo,)
+        )
+        row = cur.fetchone()
+
+        # Si no hay participante, asumimos que no existe el usuario
+        if not row:
+            return 0
+
+        ci = row[0]
+
+        # 2) Borrar dependencias por CI (tablas hijas)
+        cur.execute(
+            "DELETE FROM reserva_participante WHERE ci_participante = %s",
+            (ci,)
+        )
+        cur.execute(
+            "DELETE FROM sancion_participante WHERE ci_participante = %s",
+            (ci,)
+        )
+        cur.execute(
+            "DELETE FROM participante_programa_academico WHERE ci_participante = %s",
+            (ci,)
+        )
+
+        # 3) Borrar participante
+        cur.execute(
+            "DELETE FROM participante WHERE ci = %s",
+            (ci,)
+        )
+
+        # 4) Borrar login
+        cur.execute(
+            "DELETE FROM login WHERE correo = %s",
+            (correo,)
+        )
+        login_rows = cur.rowcount  # 1 si se borró, 0 si no
+
+        cn.commit()
+        return login_rows
+
+    finally:
+        cn.close()
