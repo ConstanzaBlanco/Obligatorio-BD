@@ -118,7 +118,6 @@ function formatHora(segundos) {
             <p><strong>Hora:</strong> {formatHora(r.hora_inicio)} → {formatHora(r.hora_fin)}</p>
             <p><strong>Solicitada:</strong> {formatFechaCompleta(r.fecha_solicitud_reserva)}</p>
 
-
             <button
               onClick={() => cancelarReserva(r.id_reserva)}
               style={{
