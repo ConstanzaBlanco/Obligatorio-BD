@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends
 from core.security import requireRole
 from db.loginSentences import getOneUser
+from core.security import currentUser
 
 router = APIRouter()
 
 @router.get("/me")
-def home(userLogin=Depends(requireRole("Usuario"))):
+def home(userLogin=Depends(currentUser)):
     user = getOneUser(userLogin['correo'])
     return {
         "ci": user["ci"],

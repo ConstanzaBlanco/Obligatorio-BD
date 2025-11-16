@@ -151,8 +151,8 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
 
         # Hago la reserva
         cur.execute("""
-            INSERT INTO reserva (nombre_sala, edificio, fecha, id_turno, estado, created_at) 
-            VALUES (%s, %s, %s, %s, 'activa', NOW());
+            INSERT INTO reserva (nombre_sala, edificio, fecha, id_turno, estado) 
+            VALUES (%s, %s, %s, %s, 'activa');
         """, (request.nombre_sala, request.edificio, request.fecha, request.id_turno))
 
         cn.commit()
@@ -160,8 +160,8 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
 
         # Asocio el participante a la reserva
         cur.execute("""
-            INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia, created_at) 
-            VALUES (%s, %s, FALSE, NOW());
+            INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia) 
+            VALUES (%s, %s, FALSE);
         """, (ci, id_reserva))
 
         cn.commit()
@@ -169,8 +169,8 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         # Agrego a los otros participantes
         for ci_participantes in request.participantes:
             cur.execute("""
-                INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia, created_at)
-                VALUES (%s, %s, FALSE, NOW());
+                INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia)
+                VALUES (%s, %s, FALSE);
             """, (ci_participantes, id_reserva))
 
         cn.commit()
