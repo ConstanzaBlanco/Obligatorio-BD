@@ -33,6 +33,10 @@ export default function Header() {
         Crear Sala
       </Link>
 
+      <Link to="/remove-sala" style={linkStyle}>
+        Eliminar Sala
+      </Link>
+
 
     </nav>
   );
