@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom"; 
+import { Link } from "react-router-dom";
 
 export default function Edificios() {
   const [edificios, setEdificios] = useState([]);
@@ -7,63 +7,68 @@ export default function Edificios() {
   const [departamentos, setDepartamentos] = useState([]);
   const [mensaje, setMensaje] = useState("");
 
-  //Cargar departamentos desde el backend
+  // Cargar departamentos desde backend
   const cargarDepartamentos = async () => {
     try {
-      const res = await fetch("http://localhost:8000/departamentos");
-      const data = await res.json();
-
-      if (data.departamentos) {
-        setDepartamentos(data.departamentos);
-      }
-    } catch (err) {
-      console.log("Error cargando departamentos", err);
-    }
-  };
-
-  const cargarEdificios = async () => {
-    try {
-      let url = "http://localhost:8000/edificios";
-
-      if (departamento) {
-        url += `?departamento=${departamento}`;
-      }
-
       const token = localStorage.getItem("token");
 
-      const res = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      const res = await fetch("http://localhost:8000/departamentos", {
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       const data = await res.json();
 
-      if (data.edificios) {
-        setEdificios(data.edificios);
-        setMensaje("");
+      if (Array.isArray(data.departamentos)) {
+        setDepartamentos(data.departamentos);
       } else {
-        setEdificios([]);
-        setMensaje("No se encontraron edificios.");
+        setDepartamentos([]);
       }
 
     } catch (err) {
+      console.log("Error cargando departamentos:", err);
+    }
+  };
+
+  // Cargar edificios (con o sin filtro)
+  const cargarEdificios = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      let url = "http://localhost:8000/edificios";
+      if (departamento) url += `?departamento=${departamento}`;
+
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const data = await res.json();
+
+      setEdificios(data.edificios || []);
+      setMensaje("");
+
+    } catch (err) {
+      console.log("Error cargando edificios:", err);
       setMensaje("Error cargando edificios.");
       setEdificios([]);
     }
   };
 
-  // Cargar departamentos y edificios al inicio
+  // Cargar al montar la página
   useEffect(() => {
     cargarDepartamentos();
     cargarEdificios();
   }, []);
 
+  // EJECUTAR FILTRO AUTOMÁTICAMENTE AL CAMBIAR DEPARTAMENTO
+  useEffect(() => {
+    cargarEdificios();
+  }, [departamento]);
+
   return (
     <div style={{ marginTop: 30 }}>
       <h2>Listado de Edificios</h2>
 
-      {/* SELECTOR DINÁMICO DE DEPARTAMENTOS */}
+      {/* SELECT DE DEPARTAMENTOS */}
       <select
         value={departamento}
         onChange={(e) => setDepartamento(e.target.value)}
@@ -71,14 +76,12 @@ export default function Edificios() {
       >
         <option value="">Todos los departamentos</option>
 
-        {departamentos.map((dep, index) => (
-          <option key={index} value={dep}>
+        {departamentos.map((dep, i) => (
+          <option key={i} value={dep}>
             {dep}
           </option>
         ))}
       </select>
-
-      <button onClick={cargarEdificios}>Filtrar</button>
 
       {mensaje && <p style={{ color: "red" }}>{mensaje}</p>}
 
@@ -98,9 +101,8 @@ export default function Edificios() {
               textAlign: "left",
             }}
           >
-            {/* LINK A /edificios/NOMBRE */}
             <strong>
-              <Link 
+              <Link
                 to={`/edificios/${e.nombre_edificio}`}
                 style={{ textDecoration: "none", color: "#007bff" }}
               >

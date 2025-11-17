@@ -15,22 +15,28 @@ export default function CrearReserva({ edificio, salas }) {
   const [idTurno, setIdTurno] = useState("");
   const [participantes, setParticipantes] = useState("");
 
-  const [turnos, setTurnos] = useState([]); 
-
+  const [turnos, setTurnos] = useState([]);
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
 
   const hoy = new Date().toISOString().split("T")[0];
 
-  //Cargar turnos desde backend
+  // Cargar turnos desde backend
   useEffect(() => {
     const cargarTurnos = async () => {
       try {
-        const res = await fetch("http://localhost:8000/turnosPosibles");
+        const token = localStorage.getItem("token");
+
+        const res = await fetch("http://localhost:8000/turnosPosibles", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
         const data = await res.json();
+
         setTurnos(data.turnos_posibles || []);
-      } catch {
-        console.error("Error cargando turnos");
+
+      } catch (e) {
+        console.error("Error cargando turnos:", e);
       }
     };
 
@@ -122,7 +128,6 @@ export default function CrearReserva({ edificio, salas }) {
           onChange={(e) => setFecha(e.target.value)}
         />
 
-        {/*SELECT DINÁMICO DE TURNOS */}
         <select value={idTurno} onChange={(e) => setIdTurno(e.target.value)}>
           <option value="">Seleccione turno</option>
 
