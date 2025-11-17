@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends
 from db.connector import getConnection
 from core.security import currentUser
+from core.security import requireRole
 
 router = APIRouter()
 
 @router.get("/turnosPosibles")
-def turnosTotales(user=Depends(currentUser)): 
+def turnosTotales(user = Depends(requireRole("Usuario", "Bibliotecario", "Administrador"))): 
     try:
         roleDb = user["rol"]
         cn = getConnection(roleDb)
