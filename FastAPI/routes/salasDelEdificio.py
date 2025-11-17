@@ -10,7 +10,8 @@ def salas_del_edificio(
     id_turno: int = None      
 ):
     try:
-        cn = getConnection()
+        roleDb = user["rol"]
+        cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
 
         # Validar que exista el edificio

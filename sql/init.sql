@@ -214,3 +214,15 @@ INSERT INTO sancion_participante (ci_participante, fecha_inicio, fecha_fin) VALU
 (22222222, '2025-10-10', '2025-10-15'),
 (33333333, '2025-09-01', '2025-09-05'),
 (12345678, '2025-10-01', '2025-11-07');
+
+
+CREATE USER 'Administrador'@'%' IDENTIFIED BY 'shaw';
+CREATE USER 'Bibliotecario'@'%' IDENTIFIED BY 'shaw';
+CREATE USER 'Usuario'@'%' IDENTIFIED BY 'shaw';
+
+-- GRANT INSERT ON gestion_salas.login TO 'Administrador'@'%';
+-- GRANT INSERT ON gestion_salas.participante TO 'Administrador'@'%';
+
+GRANT ALL PRIVILEGES ON gestion_salas.* TO 'Administrador'@'%';
+GRANT ALL PRIVILEGES ON gestion_salas.* TO 'Bibliotecario'@'%';
+GRANT ALL PRIVILEGES ON gestion_salas.* TO 'Usuario'@'%';

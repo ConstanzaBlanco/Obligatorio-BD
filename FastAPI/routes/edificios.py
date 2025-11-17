@@ -7,7 +7,8 @@ router = APIRouter()
 @router.get("/edificios")
 def obtener_edificios(departamento: str = None, user = Depends(requireRole("Administrador", "Usuario","Bibliotecario"))):
     try:
-        cn = getConnection()
+        roleDb = user["rol"]
+        cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
 
         # Hacemos una query que nos de todos los edificios, con filtro opcional

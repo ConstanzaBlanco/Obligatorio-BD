@@ -1,12 +1,14 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from db.connector import getConnection
+from core.security import currentUser
 
 router = APIRouter()
 
 @router.get("/turnosPosibles")
-def turnosTotales(): 
+def turnosTotales(user=Depends(currentUser)): 
     try:
-        cn = getConnection()
+        roleDb = user["rol"]
+        cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
 
         # Traemos los turnos  con un formato adecuado 

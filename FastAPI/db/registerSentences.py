@@ -1,7 +1,7 @@
 from db.connector import getConnection
 
-def insertLogin(correo: str, password: str):
-    cn = getConnection()
+def insertLogin(correo: str, password: str, roleDb):
+    cn = getConnection(roleDb)
     try:
         cur = cn.cursor()
         cur.execute("""
@@ -13,8 +13,8 @@ def insertLogin(correo: str, password: str):
     finally:
         cn.close()
 
-def insertPaticipante(ci: int, name: str, lastName: str, email: str):
-    cn = getConnection()
+def insertPaticipante(ci: int, name: str, lastName: str, email: str, roleDb):
+    cn = getConnection(roleDb)
     try:
         cur = cn.cursor()
         cur.execute("""
@@ -26,8 +26,8 @@ def insertPaticipante(ci: int, name: str, lastName: str, email: str):
     finally:
         cn.close()
 
-def insertParticipanteProgramaAcademico(ci: int, nameProgram: str, rol: str):
-    cn = getConnection()
+def insertParticipanteProgramaAcademico(ci: int, nameProgram: str, rol: str, roleDb):
+    cn = getConnection(roleDb)
     try:
         cur = cn.cursor()
         cur.execute("""
@@ -40,8 +40,8 @@ def insertParticipanteProgramaAcademico(ci: int, nameProgram: str, rol: str):
         cn.close()
 
 
-def insertBiblioLogin(correo: str, password: str):
-     cn = getConnection()
+def insertBiblioLogin(correo: str, password: str, roleDb):
+     cn = getConnection(roleDb)
      try:
         cur = cn.cursor()
         cur.execute("""

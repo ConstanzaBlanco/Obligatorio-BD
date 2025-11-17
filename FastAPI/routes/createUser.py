@@ -54,13 +54,13 @@ def createUser(payload: CreateUserRequest):
     passwordHashed = hashPassword(password)
 
     # Inserts (si rowcount == 0 => error)
-    if insertLogin(correo, passwordHashed) == 0:
+    if insertLogin(correo, passwordHashed, "Invitado") == 0:
         raise HTTPException(status_code=400, detail="Error al insertar en login")
 
-    if insertPaticipante(ci, name, lastName, correo) == 0:
+    if insertPaticipante(ci, name, lastName, correo, "Invitado") == 0:
         raise HTTPException(status_code=400, detail="Error al insertar en participante")
 
-    if insertParticipanteProgramaAcademico(ci, academicProgram, rol) == 0:
+    if insertParticipanteProgramaAcademico(ci, academicProgram, rol, "Invitado") == 0:
         raise HTTPException(status_code=400, detail="Error al insertar en participante_programa_academico")
 
     return {"status": "created"}

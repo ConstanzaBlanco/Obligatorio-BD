@@ -17,11 +17,11 @@ def salas_disponibles(
     edificio: str = None,
     fecha: str = None,
     id_turno: int = None,
-    #user: dict = Depends(currentUser) 
-
+    user=Depends(currentUser)
 ):
     try:
-        cn = getConnection()
+        roleDb = user["rol"]
+        cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
         """if not user:
             return {"error": "Usuario no autenticado"}"""

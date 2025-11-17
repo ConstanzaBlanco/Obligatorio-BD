@@ -15,7 +15,8 @@ class CrearSalaRequest(BaseModel):
 @router.post("/salas")
 def crear_sala(request: CrearSalaRequest, user = Depends(requireRole("Administrador"))):
     try:
-        cn = getConnection()
+        roleDb = user["rol"]
+        cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
 
         # Validar tipo de sala, en coso de que ponga algo que no debería poder

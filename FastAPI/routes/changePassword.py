@@ -13,6 +13,7 @@ class changePassword(BaseModel):
 @router.patch("/changePassword")
 def changePasswd(payload: changePassword, userLogin = Depends(requireRole("Usuario"))):
     
+    roleDb = userLogin["rol"]
     # La contraseña nueva no puede ser igual a la actual
     if payload.newPassword == payload.currentPassword:
         raise HTTPException(status_code=400, detail="La nueva contraseña no puede ser igual a la actual")
@@ -25,7 +26,7 @@ def changePasswd(payload: changePassword, userLogin = Depends(requireRole("Usuar
     hashedPassword = hashPassword(payload.newPassword)
 
     # Actualizar en la bd
-    rows = updatePassword(userLogin['correo'], hashedPassword)
+    rows = updatePassword(userLogin['correo'], hashedPassword, roleDb)
 
     if rows == 0:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
