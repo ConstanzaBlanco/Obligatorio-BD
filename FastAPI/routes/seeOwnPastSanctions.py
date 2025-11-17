@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends
 from db.connector import getConnection
 from core.security import currentUser 
+from fastapi import HTTPException
 
 router = APIRouter()
 

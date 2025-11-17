@@ -11,7 +11,7 @@ class changePassword(BaseModel):
     newPassword: str
 
 @router.patch("/changePassword")
-def changePasswd(payload: changePassword, userLogin = Depends(requireRole("Usuario"))):
+def changePasswd(payload: changePassword, userLogin = Depends(requireRole("Usuario","Administrador","Bibliotecario"))):
     
     roleDb = userLogin["rol"]
     # La contraseña nueva no puede ser igual a la actual
