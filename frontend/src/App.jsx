@@ -1,5 +1,9 @@
 import { Routes, Route } from "react-router-dom";
-import Protected from "./Protected";
+
+import Protected from "./protect/Protected";
+import AdminOnly from "./protect/AdminOnly";
+import BiblioOnly from "./protect/BiblioOnly";
+
 import Login from "./Login";
 import Register from "./Register";
 import { useUser } from "./components/UserContext";
@@ -18,35 +22,26 @@ import Me from "./components/Me";
 import Reservas from "./components/Bibliotecario/Reservas";
 import Sanciones from "./components/Bibliotecario/Sanciones";
 import CreateBiblioUser from "./components/Admin/CrearBibliotecario";
-import Home from "./components/Home";
-
 
 export default function App() {
   const { user, logout } = useUser();
 
   return (
     <div style={{ textAlign: "center", marginTop: 40 }}>
-
       <Routes>
 
-        {/* Rutas públicas */}
-        {!user && (
-          <>
-            <Route path="/login" element={<Login />} />
-            <Route path="/registro" element={<Register />} />
-            <Route path="*" element={<Login />} />
-          </>
-        )}
+        {/* RUTAS PUBLICAS */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/registro" element={<Register />} />
 
-        {/* Rutas privadas */}
+        {/* RUTAS PRIVADAS (con tu estilo) */}
         {user && (
-          <>
-            {/* Header SIEMPRE visible para usuarios logueados */}
+          <Route element={<Protected />}>
             <Route
+              path="*"
               element={
                 <>
                   <Header />
-
                   <h2>Bienvenido/a {user.name}</h2>
                   <h3>Tu rol es: <strong>{user.rol}</strong></h3>
 
@@ -64,28 +59,33 @@ export default function App() {
                   >
                     Cerrar sesión
                   </button>
-
-                  {/* Acá se renderizan las rutas protegidas */}
-                  <Protected />
                 </>
               }
-            >
-              <Route path="/mis-reservas" element={<MisReservas />} />
-              <Route path="/edificios" element={<Edificios />} />
-              <Route path="/edificios/:nombreEdificio" element={<SalasPorEdificio />} />
-              <Route path="/crear-reserva" element={<CrearReserva />} />
-              <Route path="/mis-sanciones" element={<MisSanciones />} />
+            />
+
+            <Route path="/mis-reservas" element={<MisReservas />} />
+            <Route path="/edificios" element={<Edificios />} />
+            <Route path="/edificios/:nombreEdificio" element={<SalasPorEdificio />} />
+            <Route path="/crear-reserva" element={<CrearReserva />} />
+            <Route path="/mis-sanciones" element={<MisSanciones />} />
+            <Route path="/me" element={<Me />} />
+
+            <Route element={<BiblioOnly />}>
               <Route path="/reservas-vencidas" element={<ReservasVencidas />} />
-              <Route path="/crear-sala" element={<CrearSala />} />
-              <Route path="/remove-sala" element={<RemoveSalas />} />
-              <Route path="/me" element={<Me />} />
               <Route path="/reservas" element={<Reservas />} />
               <Route path="/sanciones" element={<Sanciones />} />
-              <Route path="/crearBibliotecario" element={<CreateBiblioUser />} />
-              <Route path="/" element={<Home/>}/>
             </Route>
-          </>
+
+            <Route element={<AdminOnly />}>
+              <Route path="/crear-sala" element={<CrearSala />} />
+              <Route path="/remove-sala" element={<RemoveSalas />} />
+              <Route path="/crearBibliotecario" element={<CreateBiblioUser />} />
+            </Route>
+          </Route>
         )}
+
+        {/* Si no hay user, cualquier ruta desconocida → login */}
+        {!user && <Route path="/" element={<Login />} />}
 
       </Routes>
     </div>
