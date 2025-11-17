@@ -17,8 +17,7 @@ def salas_disponibles(
     edificio: str = None,
     fecha: str = None,
     id_turno: int = None,
-    #user: dict = Depends(currentUser) 
-
+    user = Depends(currentUser())
 ):
     try:
         roleDb = user["rol"]

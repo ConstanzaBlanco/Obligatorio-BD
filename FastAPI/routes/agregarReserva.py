@@ -15,6 +15,7 @@ class ReservationRequest(BaseModel):
 
 #El base model lo que hace es definir el esquema del request q se espera y valido los tipos de datos e intenta convertirlos a tipos datos
 
+#Solamente Usuario
 @router.post("/reservar")
 def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
     try:

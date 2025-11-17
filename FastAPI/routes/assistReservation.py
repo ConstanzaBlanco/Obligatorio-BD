@@ -10,6 +10,7 @@ class UpdateStateOfReservation(BaseModel):
     reserveId: int
     cis: list[int]
 
+#Bibliotecario
 @router.post("/updateReservation")
 def update_reservation_state(
     payload: UpdateStateOfReservation,
