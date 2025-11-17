@@ -22,6 +22,7 @@ export default function Header() {
             <Link to="/reservas-vencidas" style={linkStyle}>Reservas Vencidas</Link>
             <Link to="/reservas" style={linkStyle}>Reservas</Link>
             <Link to="/edificios" style={linkStyle}>Edificios</Link>
+            <Link to="/sanciones" style={linkStyle}>Sanciones</Link>
           </>
         )}
 
