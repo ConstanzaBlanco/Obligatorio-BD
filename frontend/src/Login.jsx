@@ -1,12 +1,14 @@
 import { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { useUser } from "./components/UserContext";
 
 export default function Login() {
   const [correo, setCorreo] = useState("");
   const [contrasenia, setContrasenia] = useState("");
   const [error, setError] = useState("");
-
+  
+  const navigate = useNavigate();
   const { setUser } = useUser(); //para guardar el usuario
 
   const handleLogin = async (e) => {
@@ -36,7 +38,7 @@ export default function Login() {
       });
 
     } catch (el) {
-      setError("Credenciales inválidas. Inténtalo de nuevo.",el);
+      setError("Credenciales inválidas. Inténtalo de nuevo.", el);
 
     }
   };
@@ -44,6 +46,7 @@ export default function Login() {
   return (
     <div style={{ maxWidth: 300, margin: "50px auto" }}>
       <h2>Iniciar Sesión</h2>
+      <button type="submit" onClick={() => { navigate("/registro") }}>Registrarse</button>
 
       <form onSubmit={handleLogin}>
         <input
@@ -63,6 +66,7 @@ export default function Login() {
 
         <button type="submit">Entrar</button>
       </form>
+
 
       {error && <p style={{ color: "red" }}>{error}</p>}
     </div>

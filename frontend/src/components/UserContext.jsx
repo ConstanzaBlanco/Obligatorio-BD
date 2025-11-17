@@ -4,8 +4,8 @@ export const UserContext = createContext({
   user: null,
   token: null,
   loadingUser: true,
-  login: () => {},
-  logout: () => {},
+  login: () => { },
+  logout: () => { },
 });
 
 
@@ -52,7 +52,23 @@ export default function UserProvider({ children }) {
     setToken(newToken);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    const currentToken = localStorage.getItem("token");
+
+    try {
+      if (currentToken) {
+        await fetch("http://localhost:8000/logout", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${currentToken}`
+          }
+        });
+      }
+    } catch (err) {
+      console.error("Error al cerrar sesión en backend:", err);
+    }
+
+    // Limpiar FRONTEND siempre
     localStorage.removeItem("token");
     setToken(null);
     setUser(null);
