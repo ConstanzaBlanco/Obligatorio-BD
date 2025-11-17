@@ -1,10 +1,11 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from db.connector import getConnection
+from core.security import currentUser
 
 router = APIRouter()
 
 @router.get("/seePastAndActiveReservations")
-def seePastAndActiveReservations():
+def seePastAndActiveReservations(user=Depends(currentUser)):
     try:
         roleDb = user["rol"]
         cn = getConnection(roleDb)

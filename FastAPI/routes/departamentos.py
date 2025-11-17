@@ -1,10 +1,11 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from db.connector import getConnection
+from core.security import requireRole
 
 router = APIRouter()
 
 @router.get("/departamentos")
-def obtener_departamentos():
+def obtener_departamentos(user = Depends(requireRole("Administrador"))):
 
     roleDb = user["rol"]
 
