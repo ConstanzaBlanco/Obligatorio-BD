@@ -18,6 +18,8 @@ import Me from "./components/Me";
 import Reservas from "./components/Bibliotecario/Reservas";
 import Sanciones from "./components/Bibliotecario/Sanciones";
 import CreateBiblioUser from "./components/Admin/CrearBibliotecario";
+import Home from "./components/Home";
+
 
 export default function App() {
   const { user, logout } = useUser();
@@ -80,6 +82,7 @@ export default function App() {
               <Route path="/reservas" element={<Reservas />} />
               <Route path="/sanciones" element={<Sanciones />} />
               <Route path="/crearBibliotecario" element={<CreateBiblioUser />} />
+              <Route path="/" element={<Home/>}/>
             </Route>
           </>
         )}
