@@ -26,44 +26,48 @@ export default function App() {
     <div style={{ textAlign: "center", marginTop: 40 }}>
 
       <Routes>
+
+        {/* Rutas públicas */}
         {!user && (
           <>
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Register />} />
-
             <Route path="*" element={<Login />} />
           </>
         )}
 
+        {/* Rutas privadas */}
         {user && (
           <>
-            <Route element={<Protected />}>
-              <Route
-                path="*"
-                element={
-                  <>
-                    <Header />
-                    <h2>Bienvenido/a {user.name}</h2>
-                    <h3>Tu rol es: <strong>{user.rol}</strong></h3>
+            {/* Header SIEMPRE visible para usuarios logueados */}
+            <Route
+              element={
+                <>
+                  <Header />
 
-                    <button
-                      onClick={logout}
-                      style={{
-                        padding: "8px 14px",
-                        marginBottom: 25,
-                        backgroundColor: "#dc3545",
-                        color: "white",
-                        border: "none",
-                        borderRadius: 5,
-                        cursor: "pointer",
-                      }}
-                    >
-                      Cerrar sesión
-                    </button>
-                  </>
-                }
-              />
+                  <h2>Bienvenido/a {user.name}</h2>
+                  <h3>Tu rol es: <strong>{user.rol}</strong></h3>
 
+                  <button
+                    onClick={logout}
+                    style={{
+                      padding: "8px 14px",
+                      marginBottom: 25,
+                      backgroundColor: "#dc3545",
+                      color: "white",
+                      border: "none",
+                      borderRadius: 5,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Cerrar sesión
+                  </button>
+
+                  {/* Acá se renderizan las rutas protegidas */}
+                  <Protected />
+                </>
+              }
+            >
               <Route path="/mis-reservas" element={<MisReservas />} />
               <Route path="/edificios" element={<Edificios />} />
               <Route path="/edificios/:nombreEdificio" element={<SalasPorEdificio />} />
