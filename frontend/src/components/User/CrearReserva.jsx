@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "../UserContext";
 
 export default function CrearReserva({ edificio, salas }) {
@@ -6,7 +6,6 @@ export default function CrearReserva({ edificio, salas }) {
   const { user } = useUser();
   const rol = user?.rol?.toLowerCase();
 
-  // Si NO es usuario → no mostrar nada
   if (rol !== "usuario") {
     return null;
   }
@@ -16,10 +15,27 @@ export default function CrearReserva({ edificio, salas }) {
   const [idTurno, setIdTurno] = useState("");
   const [participantes, setParticipantes] = useState("");
 
+  const [turnos, setTurnos] = useState([]); 
+
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
 
   const hoy = new Date().toISOString().split("T")[0];
+
+  //Cargar turnos desde backend
+  useEffect(() => {
+    const cargarTurnos = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/turnosPosibles");
+        const data = await res.json();
+        setTurnos(data.turnos_posibles || []);
+      } catch {
+        console.error("Error cargando turnos");
+      }
+    };
+
+    cargarTurnos();
+  }, []);
 
   const crearReserva = async () => {
     setMensaje("");
@@ -106,12 +122,15 @@ export default function CrearReserva({ edificio, salas }) {
           onChange={(e) => setFecha(e.target.value)}
         />
 
+        {/*SELECT DINÁMICO DE TURNOS */}
         <select value={idTurno} onChange={(e) => setIdTurno(e.target.value)}>
           <option value="">Seleccione turno</option>
-          <option value="1">08:00 - 09:00</option>
-          <option value="2">09:00 - 10:00</option>
-          <option value="3">10:00 - 11:00</option>
-          <option value="4">11:00 - 12:00</option>
+
+          {turnos.map((t) => (
+            <option key={t.id_turno} value={t.id_turno}>
+              {t.hora_inicio.slice(0, 5)} - {t.hora_fin.slice(0, 5)}
+            </option>
+          ))}
         </select>
 
         <input

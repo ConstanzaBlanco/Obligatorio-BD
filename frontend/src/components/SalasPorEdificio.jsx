@@ -15,6 +15,24 @@ export default function SalasPorEdificio() {
   const [fechaFiltro, setFechaFiltro] = useState("");
   const [turnoFiltro, setTurnoFiltro] = useState("");
 
+  //turnos desde backend
+  const [turnos, setTurnos] = useState([]);
+
+  //Cargar turnos al montar
+  useEffect(() => {
+    const cargarTurnos = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/turnosPosibles");
+        const data = await res.json();
+        setTurnos(data.turnos_posibles || []);
+      } catch {
+        console.log("Error cargando turnos");
+      }
+    };
+
+    cargarTurnos();
+  }, []);
+
   // CARGAR SALAS
   const cargarSalas = async () => {
     try {
@@ -60,16 +78,19 @@ export default function SalasPorEdificio() {
           style={{ marginRight: 10 }}
         />
 
+        {/*SELECT DE TURNOS DINÁMICO */}
         <select
           value={turnoFiltro}
           onChange={(e) => setTurnoFiltro(e.target.value)}
           style={{ marginRight: 10 }}
         >
           <option value="">Todos los turnos</option>
-          <option value="1">8:00 - 9:00</option>
-          <option value="2">9:00 - 10:00</option>
-          <option value="3">10:00 - 11:00</option>
-          <option value="4">11:00 - 12:00</option>
+
+          {turnos.map((t) => (
+            <option key={t.id_turno} value={t.id_turno}>
+              {t.hora_inicio.slice(0, 5)} - {t.hora_fin.slice(0, 5)}
+            </option>
+          ))}
         </select>
 
         <button onClick={cargarSalas}>Aplicar filtros</button>
@@ -100,7 +121,7 @@ export default function SalasPorEdificio() {
         ))}
       </ul>
 
-      {/*SOLO muestra el formulario si es usuario */}
+      {/* SOLO usuario puede crear reservas */}
       <CrearReserva edificio={nombreEdificio} salas={salas} />
     </div>
   );

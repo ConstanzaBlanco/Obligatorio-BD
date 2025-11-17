@@ -14,6 +14,7 @@ import RemoveSalas from "./components/Admin/RemoveSalas";
 import MisSanciones from "./components/User/MisSanciones";
 import Me from "./components/Me";
 import Reservas from "./components/Bibliotecario/Reservas";
+import Sanciones from "./components/Bibliotecario/Sanciones";
 
 export default function App() {
   const { user, logout } = useUser();
@@ -57,6 +58,7 @@ export default function App() {
         <Route path="/remove-sala" element={<RemoveSalas />} />
         <Route path="/me" element={<Me />} />
         <Route path="/reservas" element={<Reservas />} />
+        <Route path="/sanciones" element={<Sanciones />} />
 
         {/* Página por defecto */}
         <Route path="*" element={<h3>Seleccione una opción del menú</h3>} />
