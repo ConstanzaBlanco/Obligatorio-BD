@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from db.connector import getConnection
+from core.security import requireRole
+
 
 router = APIRouter()
 
@@ -7,7 +9,8 @@ router = APIRouter()
 def salas_del_edificio(
     edificio: str,
     fecha: str = None,        
-    id_turno: int = None      
+    id_turno: int = None,
+    user = Depends(requireRole("Usuario", "Bibliotecario", "Administrador"))    
 ):
     try:
         roleDb = user["rol"]

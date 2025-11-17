@@ -5,7 +5,7 @@ from core.security import requireRole
 router = APIRouter()
 
 @router.get("/departamentos")
-def obtener_departamentos(user = Depends(requireRole("Administrador"))):
+def obtener_departamentos(user = Depends(requireRole("Administrador", "Bibliotecario", "Usuario"))):
 
     roleDb = user["rol"]
 
