@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from db.connector import getConnection
 from pydantic import BaseModel
-from core.security import currentUser  # Para obtener el usuario autenticado
+from core.security import currentUser  
+# Para obtener el usuario autenticado
+from core.security import requireRole
 
 router = APIRouter()
 
@@ -9,7 +11,7 @@ class CancelReservationRequest(BaseModel):
     id_reserva: int
 
 @router.patch("/cancelarReserva")
-def cancelar_reserva(request: CancelReservationRequest, user=Depends(currentUser)):
+def cancelar_reserva(request: CancelReservationRequest, user=Depends(requireRole("Usuario"))):
     try:
         roleDb = user["rol"]
         cn = getConnection(roleDb)
