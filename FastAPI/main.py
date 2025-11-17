@@ -28,7 +28,7 @@ from routes import edificios
 from routes import salasDelEdificio
 from routes import departamentos
 from routes import createUser
-
+from routes import logOut
 from routes import sanctionsActive
 from routes import sanctionsPast
 
@@ -91,6 +91,7 @@ app.include_router(departamentos.router)
 app.include_router(createUser.router)
 app.include_router(sanctionsActive.router)
 app.include_router(sanctionsPast.router)
+app.include_router(logOut.router)
 # --- routers admin ---
 app.include_router(CreateBiblio.router)
 app.include_router(changeRolOfUser.router)
