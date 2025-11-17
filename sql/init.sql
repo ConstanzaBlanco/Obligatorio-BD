@@ -7,7 +7,8 @@ CREATE TABLE login (
     correo VARCHAR(100) PRIMARY KEY,
     contrasenia VARCHAR(255) NOT NULL,
     rol ENUM('Usuario','Bibliotecario','Administrador') NULL DEFAULT NULL,
-    last_access DATETIME
+    last_access DATETIME,
+    current_jti VARCHAR(36) NULL
 );
 
 -- Tabla de facultad

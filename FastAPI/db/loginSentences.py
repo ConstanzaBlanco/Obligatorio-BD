@@ -6,7 +6,7 @@ def getUser(correo: str):
     try:
         cur = cn.cursor(dictionary=True)
         cur.execute(
-            "SELECT correo, contrasenia, rol, last_access FROM login WHERE correo=%s",
+            "SELECT * FROM login WHERE correo=%s",
             (correo,),
         )
         return cur.fetchone()
@@ -107,5 +107,31 @@ def deleteUser(correo: str, roleDb):
         cn.commit()
         return login_rows
 
+    finally:
+        cn.close()
+
+def updateTokenJti(correo: str, jti: str):
+    cn = getConnection()
+    try:
+        cur = cn.cursor()
+        cur.execute(
+            "UPDATE login SET current_jti=%s WHERE correo=%s",
+            (jti, correo)
+        )
+        cn.commit()
+        return cur.rowcount
+    finally:
+        cn.close()
+
+def clearTokenJti(correo: str):
+    cn = getConnection()
+    try:
+        cur = cn.cursor()
+        cur.execute(
+            "UPDATE login SET current_jti = NULL WHERE correo=%s",
+            (correo,)
+        )
+        cn.commit()
+        return cur.rowcount
     finally:
         cn.close()
