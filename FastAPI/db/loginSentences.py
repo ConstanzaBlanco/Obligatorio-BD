@@ -122,3 +122,16 @@ def updateTokenJti(correo: str, jti: str):
         return cur.rowcount
     finally:
         cn.close()
+
+def clearTokenJti(correo: str):
+    cn = getConnection()
+    try:
+        cur = cn.cursor()
+        cur.execute(
+            "UPDATE login SET current_jti = NULL WHERE correo=%s",
+            (correo,)
+        )
+        cn.commit()
+        return cur.rowcount
+    finally:
+        cn.close()
