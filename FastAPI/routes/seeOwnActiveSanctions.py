@@ -6,7 +6,8 @@ router = APIRouter()
 @router.get("/seeOwnActiveSanctions")
 def seeOwnActiveSanctions(user=Depends(currentUser)):
     try:
-        cn = getConnection()
+        roleDb = user["rol"]
+        cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
 
         correo = user["correo"]

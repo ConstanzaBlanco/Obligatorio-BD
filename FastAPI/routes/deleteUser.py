@@ -8,6 +8,7 @@ router = APIRouter()
 @router.delete("/deleteUser/{correo}")
 def deleteUserEndpoint(correo: str, user = Depends(requireRole("Administrador"))):
     correo = correo.strip().lower()
+    roleDb = user["rol"]
 
     # Validar correo
     if correo.count("@") != 1:
@@ -18,7 +19,7 @@ def deleteUserEndpoint(correo: str, user = Depends(requireRole("Administrador"))
         raise HTTPException(status_code=400, detail="correo inválido")
 
     # Ejecutar delete físico o lógico según tu función
-    result = deleteUser(correo)
+    result = deleteUser(correo, roleDb)
 
     if result == 0:
         raise HTTPException(status_code=404, detail="usuario no encontrado o ya eliminado")

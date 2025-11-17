@@ -11,7 +11,8 @@ class CancelReservationRequest(BaseModel):
 @router.patch("/cancelarReserva")
 def cancelar_reserva(request: CancelReservationRequest, user=Depends(currentUser)):
     try:
-        cn = getConnection()
+        roleDb = user["rol"]
+        cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
 
         # Obtener el CI del usuario autenticado 

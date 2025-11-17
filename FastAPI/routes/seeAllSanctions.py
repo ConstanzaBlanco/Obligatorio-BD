@@ -6,5 +6,6 @@ router = APIRouter()
 
 @router.get("/allSanctions")
 def allSanctions(user=Depends(requireRole("Bibliotecario", "Administrador"))):
-    items = getAllSanctions()
+    roleDb = user["rol"]
+    items = getAllSanctions(roleDb)
     return {"items": items}

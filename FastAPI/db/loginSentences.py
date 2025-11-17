@@ -2,7 +2,7 @@ from db.connector import getConnection
 from datetime import datetime
 
 def getUser(correo: str):
-    cn = getConnection()
+    cn = getConnection("Invitado")
     try:
         cur = cn.cursor(dictionary=True)
         cur.execute(
@@ -25,17 +25,20 @@ def getOneUser(correo: str):
     finally:
         cn.close()
 
-def updateLastAccess(correo: str):
-    cn = getConnection()
+def updateLastAccess(correo: str, roleDb: str):
+    cn = getConnection(roleDb)
     try:
         cur = cn.cursor()
-        cur.execute("UPDATE login SET last_access=%s WHERE correo=%s", (datetime.now(), correo))
+        cur.execute(
+            "UPDATE login SET last_access=%s WHERE correo=%s",
+            (datetime.now(), correo)
+        )
         cn.commit()
     finally:
         cn.close()
 
-def updatePassword(correo: str, password: str):
-    cn = getConnection()
+def updatePassword(correo: str, password: str, roleDb):
+    cn = getConnection(roleDb)
     try:
         cur = cn.cursor()
         cur.execute("UPDATE login SET contrasenia=%s WHERE correo=%s", (password, correo))
@@ -43,8 +46,8 @@ def updatePassword(correo: str, password: str):
     finally:
         cn.close()
 
-def updateRolOfUser(correo: str, rol: str):
-    cn = getConnection()
+def updateRolOfUser(correo: str, rol: str, roleDb):
+    cn = getConnection(roleDb)
     try:
         cur = cn.cursor()
         cur.execute(
@@ -56,8 +59,8 @@ def updateRolOfUser(correo: str, rol: str):
     finally:
         cn.close()
 
-def deleteUser(correo: str):
-    cn = getConnection()
+def deleteUser(correo: str, roleDb):
+    cn = getConnection(roleDb)
     try:
         cur = cn.cursor()
 

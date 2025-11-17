@@ -1,8 +1,8 @@
 from db.connector import getConnection
 from datetime import datetime
 
-def createFacultad(nombre: str):
-    cn = getConnection()
+def createFacultad(nombre: str, roleDb):
+    cn = getConnection(roleDb)
     try:
         cur = cn.cursor()
         cur.execute("""
@@ -15,8 +15,8 @@ def createFacultad(nombre: str):
         cn.close()
 
 
-def getFacultades():
-    cn = getConnection()
+def getFacultades(roleDb):
+    cn = getConnection(roleDb)
     try:
         cur = cn.cursor(dictionary=True)
         cur.execute("SELECT * FROM facultad")
@@ -25,8 +25,8 @@ def getFacultades():
         cn.close()
 
 
-def getOneFacultad(id_facultad: int):
-    cn = getConnection()
+def getOneFacultad(id_facultad: int, roleDb):
+    cn = getConnection(roleDb)
     try:
         cur = cn.cursor(dictionary=True)
         cur.execute(
@@ -38,8 +38,8 @@ def getOneFacultad(id_facultad: int):
         cn.close()
 
 
-def updateFacultad(id_facultad: int, nombre: str):
-    cn = getConnection()
+def updateFacultad(id_facultad: int, nombre: str, roleDb):
+    cn = getConnection(roleDb)
     try:
         cur = cn.cursor()
         cur.execute("""
@@ -53,8 +53,8 @@ def updateFacultad(id_facultad: int, nombre: str):
         cn.close()
 
 
-def deleteFacultad(id_facultad: int):
-    cn = getConnection()
+def deleteFacultad(id_facultad: int, roleDb):
+    cn = getConnection(roleDb)
     try:
         cur = cn.cursor()
         cur.execute(
