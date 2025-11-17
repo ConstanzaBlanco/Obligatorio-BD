@@ -1,30 +1,34 @@
-import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { useUser } from "./UserContext";
+import { useParams } from "react-router-dom";
 import CrearReserva from "./User/CrearReserva";
 
 export default function SalasPorEdificio() {
+
   const { nombreEdificio } = useParams();
-  const { user } = useUser();
-  const rol = user?.rol?.toLowerCase();
 
   const [salas, setSalas] = useState([]);
-  const [mensaje, setMensaje] = useState("");
-
-  // FILTROS
-  const [fechaFiltro, setFechaFiltro] = useState("");
-  const [turnoFiltro, setTurnoFiltro] = useState("");
-
-  //turnos desde backend
   const [turnos, setTurnos] = useState([]);
 
-  //Cargar turnos al montar
+  const [fecha, setFecha] = useState("");
+  const [idTurno, setIdTurno] = useState("");
+
+  const [mensaje, setMensaje] = useState("");
+
+  const hoy = new Date().toISOString().split("T")[0];
+
+  // Cargar turnos del backend
   useEffect(() => {
     const cargarTurnos = async () => {
       try {
-        const res = await fetch("http://localhost:8000/turnosPosibles");
+        const token = localStorage.getItem("token");
+
+        const res = await fetch("http://localhost:8000/turnosPosibles", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
         const data = await res.json();
         setTurnos(data.turnos_posibles || []);
+
       } catch {
         console.log("Error cargando turnos");
       }
@@ -33,96 +37,115 @@ export default function SalasPorEdificio() {
     cargarTurnos();
   }, []);
 
-  // CARGAR SALAS
-  const cargarSalas = async () => {
-    try {
-      const token = localStorage.getItem("token");
-
-      let url = `http://localhost:8000/salasDisponibles?edificio=${nombreEdificio}`;
-
-      if (fechaFiltro) url += `&fecha=${fechaFiltro}`;
-      if (turnoFiltro) url += `&id_turno=${turnoFiltro}`;
-
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const data = await res.json();
-
-      if (data.salas_disponibles) {
-        setSalas(data.salas_disponibles);
-        setMensaje("");
-      } else {
-        setSalas([]);
-        setMensaje("No hay salas que cumplan el filtro.");
-      }
-    } catch (error) {
-      setMensaje("Error al cargar salas.");
-    }
-  };
-
+  // Cargar salas (con o sin filtros)
   useEffect(() => {
+    const cargarSalas = async () => {
+      try {
+        const token = localStorage.getItem("token");
+
+        // Construir URL con filtros dinámicos
+        let url = `http://localhost:8000/salasDelEdificio?edificio=${nombreEdificio}`;
+
+        if (fecha) url += `&fecha=${fecha}`;
+        if (idTurno) url += `&id_turno=${idTurno}`;
+
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        const data = await res.json();
+
+        if (Array.isArray(data.salas)) {
+          setSalas(data.salas);
+          setMensaje("");
+        } 
+        else if (data.mensaje) {
+          setSalas([]);
+          setMensaje(data.mensaje);
+        } 
+        else {
+          setSalas([]);
+          setMensaje("No hay salas disponibles.");
+        }
+
+      } catch {
+        setMensaje("Error cargando salas.");
+      }
+    };
+
     cargarSalas();
-  }, [nombreEdificio]);
+  }, [nombreEdificio, fecha, idTurno]); // <--- FILTRO AUTOMÁTICO
 
   return (
     <div style={{ marginTop: 30 }}>
-      <h2>Salas en {nombreEdificio}</h2>
+      <h2 style={{ textAlign: "center" }}>
+        Salas del edificio <b>{nombreEdificio}</b>
+      </h2>
 
-      {/* FILTROS */}
-      <div style={{ marginBottom: 20 }}>
-        <input
+      {/* FILTRO FECHA Y TURNO */}
+      <div style={{
+        maxWidth: 400,
+        margin: "auto",
+        display: "flex",
+        flexDirection: "column",
+        gap: 10,
+        marginTop: 20
+      }}>
+        
+        <input 
           type="date"
-          value={fechaFiltro}
-          onChange={(e) => setFechaFiltro(e.target.value)}
-          style={{ marginRight: 10 }}
+          min={hoy}
+          value={fecha}
+          onChange={(e) => setFecha(e.target.value)}
         />
 
-        {/*SELECT DE TURNOS DINÁMICO */}
-        <select
-          value={turnoFiltro}
-          onChange={(e) => setTurnoFiltro(e.target.value)}
-          style={{ marginRight: 10 }}
-        >
-          <option value="">Todos los turnos</option>
-
+        <select value={idTurno} onChange={(e) => setIdTurno(e.target.value)}>
+          <option value="">Seleccionar turno</option>
           {turnos.map((t) => (
             <option key={t.id_turno} value={t.id_turno}>
-              {t.hora_inicio.slice(0, 5)} - {t.hora_fin.slice(0, 5)}
+              {t.hora_inicio.slice(0,5)} - {t.hora_fin.slice(0,5)}
             </option>
           ))}
         </select>
-
-        <button onClick={cargarSalas}>Aplicar filtros</button>
       </div>
 
-      {mensaje && <p style={{ color: "red" }}>{mensaje}</p>}
+      {mensaje && (
+        <p style={{ color: "red", textAlign: "center", marginTop: 10 }}>{mensaje}</p>
+      )}
 
-      {/* LISTA DE SALAS */}
-      <ul style={{ listStyle: "none", padding: 0 }}>
+      {/* TARJETAS DE SALAS */}
+      <div style={{
+        display: "flex",
+        flexWrap: "wrap",
+        justifyContent: "center",
+        gap: 20,
+        marginTop: 20
+      }}>
         {salas.map((s, i) => (
-          <li
+          <div
             key={i}
             style={{
-              border: "1px solid gray",
-              padding: 12,
-              borderRadius: 6,
-              marginBottom: 10,
-              maxWidth: 400,
-              margin: "10px auto",
+              border: "1px solid #ccc",
+              background: "#fafafa",
+              padding: 15,
+              borderRadius: 10,
+              width: 300,
               textAlign: "left",
-              cursor: "pointer",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
             }}
           >
-            <strong>{s.nombre_sala}</strong>
-            <p>Capacidad: {s.capacidad}</p>
-            <p>Tipo: {s.tipo_sala}</p>
-          </li>
-        ))}
-      </ul>
+            <h3 style={{ marginBottom: 10 }}>{s.nombre_sala}</h3>
 
-      {/* SOLO usuario puede crear reservas */}
-      <CrearReserva edificio={nombreEdificio} salas={salas} />
+            <p><strong>Capacidad:</strong> {s.capacidad} personas</p>
+            <p><strong>Tipo:</strong> {s.tipo_sala}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* FORMULARIO DE RESERVA */}
+      <div style={{ marginTop: 40 }}>
+        <CrearReserva edificio={nombreEdificio} salas={salas} />
+      </div>
     </div>
   );
 }
