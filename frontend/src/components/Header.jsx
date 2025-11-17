@@ -29,6 +29,7 @@ export default function Header() {
         {rol === "administrador" && (
           <>
             <Link to="/edificios" style={linkStyle}>Edificios</Link>
+            <Link to="/crearBibliotecario" style={linkStyle}>Crear Bibliotecario</Link>
           </>
         )}
       </div>
