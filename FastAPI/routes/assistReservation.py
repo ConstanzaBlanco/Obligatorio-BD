@@ -23,6 +23,8 @@ def update_reservation_state(
     print("CIS RECIBIDOS:", payload.cis)
     print("RESERVE ID:", payload.reserveId)
     print("====================")
+    print("Token recibido:", user)
+
 
     reserveId = payload.reserveId
     attended_cis = payload.cis

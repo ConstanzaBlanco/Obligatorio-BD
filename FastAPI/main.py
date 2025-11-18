@@ -28,7 +28,9 @@ from routes import reservasPasadas
 from routes import getUsers
 from routes import quitarSancion
 from routes import academicProgram
-
+from routes import crearEdificio
+from routes import eliminarEdificio
+from routes import editarEdificio
 
 # --- ADMIN ---
 
@@ -45,13 +47,19 @@ from fastapi.middleware.cors import CORSMiddleware
 
 
 # --- Habilitar CORS ---
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # --- Endpoints ---
 
@@ -87,7 +95,9 @@ app.include_router(reservasPasadas.router)
 app.include_router(getUsers.router)
 app.include_router(quitarSancion.router)
 app.include_router(academicProgram.router)
-
+app.include_router(crearEdificio.router)
+app.include_router(eliminarEdificio.router)
+app.include_router(editarEdificio.router)
 # --- routers admin ---
 app.include_router(CreateBiblio.router)
 app.include_router(changeRolOfUser.router)
