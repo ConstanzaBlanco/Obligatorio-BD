@@ -31,6 +31,7 @@ export default function Header() {
           <>
             <Link to="/edificios" style={linkStyle}>Edificios</Link>
             <Link to="/facultad" style={linkStyle}>Facultades</Link>
+            <Link to="/programa" style={linkStyle}>Programa</Link>
             <Link to="/crearBibliotecario" style={linkStyle}>Crear Bibliotecario</Link>
             <Link to="/eliminarBibliotecario" style={linkStyle}>Eliminar Bibliotecario</Link>
             <Link to="/eliminarUsuario" style={linkStyle}>Eliminar Usuario</Link>
