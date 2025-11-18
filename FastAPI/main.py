@@ -30,7 +30,7 @@ from routes import crearEdificio
 from routes import eliminarEdificio
 from routes import editarEdificio
 from routes import crearSala
-from routes import toggleHabilitacionSala
+from routes import modificarSala
 # --- ADMIN ---
 
 from routes import CreateBiblio
@@ -96,7 +96,7 @@ app.include_router(crearEdificio.router)
 app.include_router(eliminarEdificio.router)
 app.include_router(editarEdificio.router)
 app.include_router(crearSala.router)
-app.include_router(toggleHabilitacionSala.router)
+app.include_router(modificarSala.router)
 # --- routers admin ---
 app.include_router(CreateBiblio.router)
 app.include_router(changeRolOfUser.router)

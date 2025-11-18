@@ -17,12 +17,63 @@ export default function SalasPorEdificio() {
 
   const [mensaje, setMensaje] = useState("");
 
-  // -------- FORM CREAR SALA --------
   const [nombreSala, setNombreSala] = useState("");
   const [capacidad, setCapacidad] = useState("");
   const [tipo, setTipo] = useState("");
 
   const hoy = new Date().toISOString().split("T")[0];
+
+  // --- MODAL ---
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editNombreSala, setEditNombreSala] = useState("");
+  const [editCapacidad, setEditCapacidad] = useState("");
+  const [editTipoSala, setEditTipoSala] = useState("");
+  const [editHabilitada, setEditHabilitada] = useState(true);
+
+  // Abrir modal y cargar datos
+  const abrirModal = (sala) => {
+    setEditNombreSala(sala.nombre_sala);
+    setEditCapacidad(sala.capacidad);
+    setEditTipoSala(sala.tipo_sala);
+    setEditHabilitada(sala.habilitada === 1 || sala.habilitada === true);
+    setModalOpen(true);
+  };
+
+  // Guardar cambios del modal — ARREGLADO
+  const guardarCambios = async () => {
+    const token = localStorage.getItem("token");
+
+    try {
+      const res = await fetch("http://localhost:8000/modificarSala", {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          nombre_sala: editNombreSala,
+          edificio: nombreEdificio,
+          capacidad: Number(editCapacidad),
+          tipo_sala: editTipoSala,
+          habilitada: editHabilitada
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMensaje(data.detail || "Error modificando sala.");
+        return;
+      }
+
+      setMensaje("Sala modificada correctamente.");
+      setModalOpen(false);
+      cargarSalas();
+
+    } catch {
+      setMensaje("Error modificando sala.");
+    }
+  };
 
   // ===================================
   // CARGAR TURNOS
@@ -55,7 +106,6 @@ export default function SalasPorEdificio() {
       const token = localStorage.getItem("token");
 
       let url = `http://localhost:8000/salasDelEdificio?edificio=${nombreEdificio}`;
-
       if (fecha) url += `&fecha=${fecha}`;
       if (idTurno) url += `&id_turno=${idTurno}`;
 
@@ -86,38 +136,7 @@ export default function SalasPorEdificio() {
   }, [nombreEdificio, fecha, idTurno]);
 
   // ===================================
-  // TOGGLE HABILITADA (ADMIN)
-  // ===================================
-  const toggleHabilitada = async (nombreSala) => {
-  const token = localStorage.getItem("token");
-
-  try {
-    const res = await fetch(
-      `http://localhost:8000/toggleHabilitacionSala?nombre_sala=${encodeURIComponent(nombreSala)}&edificio=${encodeURIComponent(nombreEdificio)}`,
-      {
-        method: "PATCH",
-        headers: { Authorization: `Bearer ${token}` }
-      }
-    );
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      setMensaje(data.detail || "No se pudo cambiar el estado de la sala.");
-      return;
-    }
-
-    setMensaje(data.mensaje);
-    cargarSalas();
-
-  } catch {
-    setMensaje("Error cambiando estado de sala.");
-  }
-};
-
-
-  // ===================================
-  // CREAR SALA (ADMIN)
+  // CREAR SALA
   // ===================================
   const crearSala = async (e) => {
     e.preventDefault();
@@ -151,7 +170,6 @@ export default function SalasPorEdificio() {
       setNombreSala("");
       setCapacidad("");
       setTipo("");
-
       cargarSalas();
 
     } catch {
@@ -159,15 +177,9 @@ export default function SalasPorEdificio() {
     }
   };
 
-  // ===================================
-  // SEPARAR SALAS POR ESTADO
-  // ===================================
   const salasHabilitadas = salas.filter(s => s.habilitada === 1 || s.habilitada === true);
   const salasDeshabilitadas = salas.filter(s => !s.habilitada);
 
-  // ===================================
-  // RENDER
-  // ===================================
   return (
     <div style={{ marginTop: 30 }}>
       <h2 style={{ textAlign: "center" }}>
@@ -237,12 +249,11 @@ export default function SalasPorEdificio() {
             <p><strong>Tipo:</strong> {s.tipo_sala}</p>
             <p><strong>Estado:</strong> Habilitada</p>
 
-            {/* Toggle habilitada (solo admin) */}
             {rol === "administrador" && (
               <button
-                onClick={() => toggleHabilitada(s.nombre_sala)}
+                onClick={() => abrirModal(s)}
                 style={{
-                  backgroundColor: "#6c757d",
+                  backgroundColor: "#007bff",
                   color: "white",
                   border: "none",
                   padding: "8px 12px",
@@ -251,16 +262,15 @@ export default function SalasPorEdificio() {
                   cursor: "pointer"
                 }}
               >
-                Deshabilitar
+                Editar
               </button>
             )}
-
           </div>
         ))}
       </div>
 
       {/* ============================= */}
-      {/*     SALAS DESHABILITADAS      */}
+      {/* SALAS DESHABILITADAS */}
       {/* ============================= */}
       {(rol === "administrador" || rol === "bibliotecario") && (
         <>
@@ -291,12 +301,11 @@ export default function SalasPorEdificio() {
                 <p><strong>Tipo:</strong> {s.tipo_sala}</p>
                 <p><strong>Estado:</strong> No habilitada</p>
 
-                {/* Solo admin puede habilitar */}
                 {rol === "administrador" && (
                   <button
-                    onClick={() => toggleHabilitada(s.nombre_sala)}
+                    onClick={() => abrirModal(s)}
                     style={{
-                      backgroundColor: "#28a745",
+                      backgroundColor: "#007bff",
                       color: "white",
                       border: "none",
                       padding: "8px 12px",
@@ -305,7 +314,7 @@ export default function SalasPorEdificio() {
                       cursor: "pointer"
                     }}
                   >
-                    Habilitar
+                    Editar
                   </button>
                 )}
               </div>
@@ -361,11 +370,82 @@ export default function SalasPorEdificio() {
           </form>
         </div>
       )}
+
+      {/* ======================= */}
+      {/* MODAL EDITAR */}
+      {/* ======================= */}
+      {modalOpen && (
+        <div style={modalOverlay}>
+          <div style={modalBox}>
+            <h3>Editar sala</h3>
+
+            <input
+              type="number"
+              min="1"
+              max="200"
+              value={editCapacidad}
+              onChange={(e) => setEditCapacidad(e.target.value)}
+              style={inputStyle}
+            />
+
+            <select
+              value={editTipoSala}
+              onChange={(e) => setEditTipoSala(e.target.value)}
+              style={inputStyle}
+            >
+              <option value="libre">Libre</option>
+              <option value="posgrado">Posgrado</option>
+              <option value="docente">Docente</option>
+            </select>
+
+            <select
+              value={editHabilitada ? "true" : "false"}
+              onChange={(e) => setEditHabilitada(e.target.value === "true")}
+              style={inputStyle}
+            >
+              <option value="true">Habilitada</option>
+              <option value="false">Deshabilitada</option>
+            </select>
+
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                onClick={() => setModalOpen(false)}
+                style={{
+                  backgroundColor: "#6c757d",
+                  color: "white",
+                  padding: 10,
+                  border: "none",
+                  borderRadius: 6,
+                  cursor: "pointer",
+                  flex: 1
+                }}
+              >
+                Cerrar
+              </button>
+
+              <button
+                onClick={guardarCambios}
+                style={{
+                  backgroundColor: "#28a745",
+                  color: "white",
+                  padding: 10,
+                  border: "none",
+                  borderRadius: 6,
+                  cursor: "pointer",
+                  flex: 1
+                }}
+              >
+                Guardar cambios
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
 
-/* ESTILOS */
 const inputStyle = {
   width: "100%",
   padding: "8px",
@@ -382,4 +462,25 @@ const btnCrear = {
   border: "none",
   borderRadius: 6,
   cursor: "pointer",
+};
+
+const modalOverlay = {
+  position: "fixed",
+  top: 0,
+  left: 0,
+  width: "100vw",
+  height: "100vh",
+  backgroundColor: "rgba(0,0,0,0.6)",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  zIndex: 1000
+};
+
+const modalBox = {
+  backgroundColor: "white",
+  padding: 20,
+  borderRadius: 10,
+  width: 350,
+  boxShadow: "0 3px 10px rgba(0,0,0,0.3)"
 };
