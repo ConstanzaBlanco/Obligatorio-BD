@@ -6,7 +6,7 @@ router = APIRouter()
 
 
 @router.delete("/deleteUser/{correo}")
-def deleteUserEndpoint(correo: str, user = Depends(requireRole("Administrador"))):
+def deleteUserEndpoint(correo: str, user = Depends(requireRole("Administrador", "Bibliotecario"))):
     correo = correo.strip().lower()
     roleDb = user["rol"]
 
