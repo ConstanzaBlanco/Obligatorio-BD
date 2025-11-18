@@ -27,6 +27,7 @@ from routes import reservasActivas
 from routes import reservasPasadas
 from routes import getUsers
 from routes import quitarSancion
+from routes import academicProgram
 
 
 # --- ADMIN ---
@@ -85,6 +86,7 @@ app.include_router(reservasActivas.router)
 app.include_router(reservasPasadas.router)
 app.include_router(getUsers.router)
 app.include_router(quitarSancion.router)
+app.include_router(academicProgram.router)
 
 # --- routers admin ---
 app.include_router(CreateBiblio.router)
