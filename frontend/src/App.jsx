@@ -27,6 +27,7 @@ import DeleteBiblio from "./components/Admin/DeleteBiblio";
 import DeleteUser from "./components/Bibliotecario/DeleteUser";
 import AdminOrBiblioOnly from "./protect/AdminOrBiblioOnly";
 import FacultadManager from "./components/Admin/Facultad";
+import ProgramaManager from "./components/Admin/ProgramaAcademico";
 
 export default function App() {
   const { user, logout } = useUser();
@@ -87,6 +88,7 @@ export default function App() {
                 <Route path="/crearBibliotecario" element={<CreateBiblioUser />} />
                 <Route path="/eliminarBibliotecario" element={<DeleteBiblio />} />
                 <Route path="/facultad" element={<FacultadManager />} />
+                <Route path="/programa" element={<ProgramaManager />} />
               </Route>
 
               <Route element={<AdminOrBiblioOnly />}>
