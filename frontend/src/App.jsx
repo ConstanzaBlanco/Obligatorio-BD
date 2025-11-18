@@ -8,8 +8,9 @@ import Login from "./Login";
 import Register from "./Register";
 import { useUser } from "./components/UserContext";
 
+import PrivateLayout from "./protect/PrivateLayout"; // <-- AGREGADO
+
 // Componentes privados
-import Header from "./components/Header";
 import MisReservas from "./components/User/MisReservas";
 import Edificios from "./components/Edificios";
 import SalasPorEdificio from "./components/SalasPorEdificio";
@@ -22,6 +23,9 @@ import Me from "./components/Me";
 import Reservas from "./components/Bibliotecario/Reservas";
 import Sanciones from "./components/Bibliotecario/Sanciones";
 import CreateBiblioUser from "./components/Admin/CrearBibliotecario";
+import DeleteBiblio from "./components/Admin/DeleteBiblio";
+import DeleteUser from "./components/Bibliotecario/DeleteUser";
+import AdminOrBiblioOnly from "./protect/AdminOrBiblioOnly";
 
 export default function App() {
   const { user, logout } = useUser();
@@ -30,62 +34,74 @@ export default function App() {
     <div style={{ textAlign: "center", marginTop: 40 }}>
       <Routes>
 
-        {/* RUTAS PUBLICAS */}
+        {/* PUBLICAS */}
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Register />} />
+        {!user && <Route path="*" element={<Login />} />}
 
-        {/* RUTAS PRIVADAS (con tu estilo) */}
+        {/* PRIVADAS */}
         {user && (
           <Route element={<Protected />}>
-            <Route
-              path="*"
-              element={
-                <>
-                  <Header />
-                  <h2>Bienvenido/a {user.name}</h2>
-                  <h3>Tu rol es: <strong>{user.rol}</strong></h3>
 
-                  <button
-                    onClick={logout}
-                    style={{
-                      padding: "8px 14px",
-                      marginBottom: 25,
-                      backgroundColor: "#dc3545",
-                      color: "white",
-                      border: "none",
-                      borderRadius: 5,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Cerrar sesión
-                  </button>
-                </>
-              }
-            />
+            {/* SOLO HEADER GLOBAL */}
+            <Route element={<PrivateLayout />}>
 
-            <Route path="/mis-reservas" element={<MisReservas />} />
-            <Route path="/edificios" element={<Edificios />} />
-            <Route path="/edificios/:nombreEdificio" element={<SalasPorEdificio />} />
-            <Route path="/crear-reserva" element={<CrearReserva />} />
-            <Route path="/mis-sanciones" element={<MisSanciones />} />
-            <Route path="/me" element={<Me />} />
+              {/* INICIO — SOLO ACÁ MOSTRAMOS EL BLOQUE DE BIENVENIDA */}
+              <Route
+                path="/"
+                element={
+                  <>
+                    <h2>Bienvenido/a {user.name}</h2>
+                    <h3>Tu rol es: <strong>{user.rol}</strong></h3>
 
-            <Route element={<BiblioOnly />}>
-              <Route path="/reservas-vencidas" element={<ReservasVencidas />} />
-              <Route path="/reservas" element={<Reservas />} />
-              <Route path="/sanciones" element={<Sanciones />} />
-            </Route>
+                    <button
+                      onClick={logout}
+                      style={{
+                        padding: "8px 14px",
+                        marginBottom: 25,
+                        backgroundColor: "#dc3545",
+                        color: "white",
+                        border: "none",
+                        borderRadius: 5,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Cerrar sesión
+                    </button>
+                  </>
+                }
+              />
 
-            <Route element={<AdminOnly />}>
-              <Route path="/crear-sala" element={<CrearSala />} />
-              <Route path="/remove-sala" element={<RemoveSalas />} />
-              <Route path="/crearBibliotecario" element={<CreateBiblioUser />} />
+              {/* Rutas normales */}
+              <Route path="/mis-reservas" element={<MisReservas />} />
+              <Route path="/edificios" element={<Edificios />} />
+              <Route path="/edificios/:nombreEdificio" element={<SalasPorEdificio />} />
+              <Route path="/crear-reserva" element={<CrearReserva />} />
+              <Route path="/mis-sanciones" element={<MisSanciones />} />
+              <Route path="/me" element={<Me />} />
+
+              {/* BIBLIO */}
+              <Route element={<BiblioOnly />}>
+                <Route path="/reservas-vencidas" element={<ReservasVencidas />} />
+                <Route path="/reservas" element={<Reservas />} />
+                <Route path="/sanciones" element={<Sanciones />} />
+              </Route>
+
+              {/* ADMIN */}
+              <Route element={<AdminOnly />}>
+                <Route path="/crear-sala" element={<CrearSala />} />
+                <Route path="/remove-sala" element={<RemoveSalas />} />
+                <Route path="/crearBibliotecario" element={<CreateBiblioUser />} />
+                <Route path="/eliminarBibliotecario" element={<DeleteBiblio />} />
+              </Route>
+
+              <Route element={<AdminOrBiblioOnly />}>
+                <Route path="/eliminarUsuario" element={<DeleteUser />} />
+              </Route>
+
             </Route>
           </Route>
         )}
-
-        {/* Si no hay user, cualquier ruta desconocida → login */}
-        {!user && <Route path="/" element={<Login />} />}
 
       </Routes>
     </div>

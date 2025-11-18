@@ -23,6 +23,7 @@ export default function Header() {
             <Link to="/reservas" style={linkStyle}>Reservas</Link>
             <Link to="/edificios" style={linkStyle}>Edificios</Link>
             <Link to="/sanciones" style={linkStyle}>Sanciones</Link>
+            <Link to="/eliminarUsuario" style={linkStyle}>Eliminar Usuario</Link>
           </>
         )}
 
@@ -30,6 +31,8 @@ export default function Header() {
           <>
             <Link to="/edificios" style={linkStyle}>Edificios</Link>
             <Link to="/crearBibliotecario" style={linkStyle}>Crear Bibliotecario</Link>
+            <Link to="/eliminarBibliotecario" style={linkStyle}>Eliminar Bibliotecario</Link>
+            <Link to="/eliminarUsuario" style={linkStyle}>Eliminar Usuario</Link>
           </>
         )}
       </div>
