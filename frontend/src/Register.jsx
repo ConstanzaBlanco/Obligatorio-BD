@@ -54,7 +54,6 @@ export default function Register() {
 
   return (
     <>
-      {/* -------------- CSS dentro del mismo archivo -------------- */}
       <style>{`
         .register-container {
           display: flex;

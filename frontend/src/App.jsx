@@ -26,6 +26,7 @@ import CreateBiblioUser from "./components/Admin/CrearBibliotecario";
 import DeleteBiblio from "./components/Admin/DeleteBiblio";
 import DeleteUser from "./components/Bibliotecario/DeleteUser";
 import AdminOrBiblioOnly from "./protect/AdminOrBiblioOnly";
+import FacultadManager from "./components/Admin/Facultad";
 
 export default function App() {
   const { user, logout } = useUser();
@@ -33,20 +34,15 @@ export default function App() {
   return (
     <div style={{ textAlign: "center", marginTop: 40 }}>
       <Routes>
-
-        {/* PUBLICAS */}
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Register />} />
         {!user && <Route path="*" element={<Login />} />}
 
-        {/* PRIVADAS */}
         {user && (
           <Route element={<Protected />}>
 
-            {/* SOLO HEADER GLOBAL */}
             <Route element={<PrivateLayout />}>
 
-              {/* INICIO — SOLO ACÁ MOSTRAMOS EL BLOQUE DE BIENVENIDA */}
               <Route
                 path="/"
                 element={
@@ -72,7 +68,6 @@ export default function App() {
                 }
               />
 
-              {/* Rutas normales */}
               <Route path="/mis-reservas" element={<MisReservas />} />
               <Route path="/edificios" element={<Edificios />} />
               <Route path="/edificios/:nombreEdificio" element={<SalasPorEdificio />} />
@@ -80,19 +75,18 @@ export default function App() {
               <Route path="/mis-sanciones" element={<MisSanciones />} />
               <Route path="/me" element={<Me />} />
 
-              {/* BIBLIO */}
               <Route element={<BiblioOnly />}>
                 <Route path="/reservas-vencidas" element={<ReservasVencidas />} />
                 <Route path="/reservas" element={<Reservas />} />
                 <Route path="/sanciones" element={<Sanciones />} />
               </Route>
 
-              {/* ADMIN */}
               <Route element={<AdminOnly />}>
                 <Route path="/crear-sala" element={<CrearSala />} />
                 <Route path="/remove-sala" element={<RemoveSalas />} />
                 <Route path="/crearBibliotecario" element={<CreateBiblioUser />} />
                 <Route path="/eliminarBibliotecario" element={<DeleteBiblio />} />
+                <Route path="/facultad" element={<FacultadManager />} />
               </Route>
 
               <Route element={<AdminOrBiblioOnly />}>

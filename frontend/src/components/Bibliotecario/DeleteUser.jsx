@@ -59,14 +59,12 @@ export default function DeleteUser() {
     }
   };
 
-  // Cargar usuarios cuando entra
   useEffect(() => {
     loadUsers();
   }, []);
 
   return (
     <>
-      {/* --------- CSS STYLE --------- */}
       <style>{`
         .delete-users-container {
           max-width: 800px;
