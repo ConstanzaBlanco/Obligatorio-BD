@@ -13,7 +13,7 @@ class ReservationRequest(BaseModel):
     id_turno: int
     participantes: list[int]
 
-#Solamente Usuario
+# Solamente Usuario
 @router.post("/reservar")
 def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
     try:
@@ -24,7 +24,7 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         # CI del usuario autenticado 
         ci = user["ci"]
 
-        # Ver que el usuario no haya reservado ya 2 veces en ese dia
+        # Ver que el usuario no haya reservado ya 2 veces en ese día
         cur.execute(
             """
             SELECT COUNT(*) AS reservas_diarias
@@ -56,7 +56,26 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         sala = cur.fetchone()
         if not sala:
             return {"error": "No se encontró la sala o edificio especificado"}
+
+
+        # VALIDACIÓN: edificio habilitado
+       
+        cur.execute("""
+            SELECT habilitado
+            FROM edificio
+            WHERE nombre_edificio = %s
+        """, (request.edificio,))
+
+        edif = cur.fetchone()
+
+        if not edif:
+            return {"error": "El edificio no existe"}
+
+        if edif["habilitado"] == 0:
+            return {"error": "El edificio no está habilitado para reservas en este momento"}
         
+
+
         # Bloquear si la sala está deshabilitada
         if sala["habilitada"] == 0:
             return {"error": "La sala no está habilitada para reservas en este momento"}

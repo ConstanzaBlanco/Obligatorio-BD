@@ -44,15 +44,15 @@ CREATE TABLE participante_programa_academico (
     FOREIGN KEY (nombre_programa) REFERENCES programa_academico(nombre_programa)
 );
 
--- Tabla de edificio
+-- Tabla de edificio 
 CREATE TABLE edificio (
     nombre_edificio VARCHAR(100) PRIMARY KEY,
     id_facultad INT NOT NULL,
     direccion VARCHAR(200),
     departamento VARCHAR(100),
+    habilitado BOOLEAN NOT NULL DEFAULT TRUE,   
     FOREIGN KEY (id_facultad) REFERENCES facultad(id_facultad)
 );
-
 
 -- Tabla de Sala
 CREATE TABLE sala (
@@ -104,8 +104,6 @@ CREATE TABLE sancion_participante (
     FOREIGN KEY (ci_participante) REFERENCES participante(ci)
 );
 
--- Insertar datos re chetos
-
 -- Facultades
 INSERT INTO facultad (nombre) VALUES
 ('Ingenieria'),
@@ -113,16 +111,15 @@ INSERT INTO facultad (nombre) VALUES
 ('Derecho'),
 ('Economia');
 
--- Edificios
-INSERT INTO edificio (nombre_edificio, id_facultad, direccion, departamento) VALUES
-('Central', 1, 'Av. Principal 123', 'Montevideo'),
-('Sur', 2, 'Calle Secundaria 45', 'Canelones'),
-('Norte', 3, 'Av. Legal 456', 'Maldonado'),
-('Este', 4, 'Calle Financiera 89', 'Colonia');
+-- Edificios 
+INSERT INTO edificio (nombre_edificio, id_facultad, direccion, departamento, habilitado) VALUES
+('Central', 1, 'Av. Principal 123', 'Montevideo', TRUE),
+('Sur', 2, 'Calle Secundaria 45', 'Canelones', TRUE),
+('Norte', 3, 'Av. Legal 456', 'Maldonado', TRUE),
+('Este', 4, 'Calle Financiera 89', 'Colonia', TRUE);
 
--- ============================================
--- INSERT SALAS (AGREGADO habilitada = TRUE)
--- ============================================
+
+-- INSERT SALAS
 INSERT INTO sala (nombre_sala, edificio, capacidad, tipo_sala, habilitada) VALUES
 ('Sala A', 'Central', 10, 'libre', TRUE),
 ('Sala B', 'Sur', 20, 'posgrado', TRUE),
@@ -217,7 +214,7 @@ INSERT INTO sancion_participante (ci_participante, fecha_inicio, fecha_fin) VALU
 (87654321, '2025-12-01', '2025-12-05'),
 (11111111, '2025-10-20', '2025-10-25'),
 (22222222, '2025-10-10', '2025-10-15'),
-(33333333, '2025-09-01', '2025-09-05'),
+(33333333', '2025-09-01', '2025-09-05'),
 (12345678, '2025-10-01', '2025-11-07');
 
 CREATE USER 'Administrador'@'%' IDENTIFIED BY 'shaw';
