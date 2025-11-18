@@ -14,12 +14,10 @@ import PrivateLayout from "./protect/PrivateLayout"; // <-- AGREGADO
 import MisReservas from "./components/User/MisReservas";
 import Edificios from "./components/Edificios";
 import SalasPorEdificio from "./components/SalasPorEdificio";
-import CrearReserva from "./components/User/CrearReserva";
 import ReservasVencidas from "./components/Bibliotecario/ReservasVencidas";
-import CrearSala from "./components/Admin/CrearSala";
-import RemoveSalas from "./components/Admin/RemoveSalas";
 import MisSanciones from "./components/User/MisSanciones";
 import Me from "./components/Me";
+import CrearReserva from "./components/User/CrearReserva";
 import Reservas from "./components/Bibliotecario/Reservas";
 import Sanciones from "./components/Bibliotecario/Sanciones";
 import CreateBiblioUser from "./components/Admin/CrearBibliotecario";
@@ -83,8 +81,6 @@ export default function App() {
               </Route>
 
               <Route element={<AdminOnly />}>
-                <Route path="/crear-sala" element={<CrearSala />} />
-                <Route path="/remove-sala" element={<RemoveSalas />} />
                 <Route path="/crearBibliotecario" element={<CreateBiblioUser />} />
                 <Route path="/eliminarBibliotecario" element={<DeleteBiblio />} />
                 <Route path="/facultad" element={<FacultadManager />} />

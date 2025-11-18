@@ -2,22 +2,21 @@ from fastapi import APIRouter, Depends, HTTPException
 from db.connector import getConnection
 from core.security import requireRole
 
-
 router = APIRouter()
 
 @router.get("/salasDelEdificio")
 def salas_del_edificio(
     edificio: str,
-    fecha: str = None,        
+    fecha: str = None,
     id_turno: int = None,
-    user = Depends(requireRole("Usuario", "Bibliotecario", "Administrador"))    
+    user = Depends(requireRole("Usuario", "Bibliotecario", "Administrador"))
 ):
     try:
         roleDb = user["rol"]
         cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
 
-        # Validar que exista el edificio
+        # Validar edificio
         cur.execute("""
             SELECT 1
             FROM edificio
@@ -27,15 +26,28 @@ def salas_del_edificio(
         if not cur.fetchone():
             raise HTTPException(status_code=404, detail="El edificio no existe")
 
-        # queri base
+       
+        #    QUERY BASE
+        
         query = """
-            SELECT s.nombre_sala, s.capacidad, s.tipo_sala
+            SELECT 
+                s.nombre_sala,
+                s.capacidad,
+                s.tipo_sala,
+                s.habilitada
             FROM sala s
             WHERE s.edificio = %s
         """
         params = [edificio]
 
-        # filtro de fecha y turno juntos
+        
+        # FILTRO: usuarios solo ven salas habilitadas, admin y biblio ven ambas
+        
+        if roleDb == "Usuario":
+            query += " AND s.habilitada = TRUE"
+
+        
+        # FILTROS DE FECHA/TURNO
         if fecha and id_turno:
             query += """
                 AND (s.nombre_sala, s.edificio) NOT IN (
@@ -49,7 +61,6 @@ def salas_del_edificio(
             """
             params.extend([edificio, fecha, id_turno])
 
-        # filtro de solo fecha
         elif fecha:
             query += """
                 AND (s.nombre_sala, s.edificio) NOT IN (
@@ -62,7 +73,6 @@ def salas_del_edificio(
             """
             params.extend([edificio, fecha])
 
-        # filtro de solo id_turno
         elif id_turno:
             query += """
                 AND (s.nombre_sala, s.edificio) NOT IN (
@@ -75,7 +85,7 @@ def salas_del_edificio(
             """
             params.extend([edificio, id_turno])
 
-        # Ejecutar la queri
+        
         cur.execute(query, tuple(params))
         salas = cur.fetchall()
 
@@ -88,7 +98,7 @@ def salas_del_edificio(
                 "fecha": fecha,
                 "id_turno": id_turno
             },
-            "salas": salas
+            "salas": salas  
         }
 
     except HTTPException:
