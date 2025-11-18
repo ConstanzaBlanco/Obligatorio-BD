@@ -25,6 +25,7 @@ from routes import sanctionsActive
 from routes import sanctionsPast
 from routes import reservasActivas
 from routes import reservasPasadas
+from routes import quitarSancion
 
 # --- ADMIN ---
 
@@ -80,6 +81,7 @@ app.include_router(sanctionsPast.router)
 app.include_router(logOut.router)
 app.include_router(reservasActivas.router)
 app.include_router(reservasPasadas.router)
+app.include_router(quitarSancion.router)
 # --- routers admin ---
 app.include_router(CreateBiblio.router)
 app.include_router(changeRolOfUser.router)
