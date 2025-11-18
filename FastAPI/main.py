@@ -93,3 +93,4 @@ app.include_router(deleteUser.router)
 
 # --- router facultad ---
 app.include_router(facultad.router)
+

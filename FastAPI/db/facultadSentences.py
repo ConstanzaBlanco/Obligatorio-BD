@@ -6,9 +6,9 @@ def createFacultad(nombre: str, roleDb):
     try:
         cur = cn.cursor()
         cur.execute("""
-            INSERT INTO facultad (nombre, created_at)
-            VALUES (%s, %s)
-        """, (nombre, datetime.now()))
+            INSERT INTO facultad (nombre)
+            VALUES (%s)
+        """, (nombre,))
         cn.commit()
         return cur.rowcount
     finally:
