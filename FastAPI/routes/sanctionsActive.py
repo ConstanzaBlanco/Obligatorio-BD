@@ -1,21 +1,38 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
+from db.connector import getConnection
 from core.security import requireRole
-from db.connector import getConnection  
+from datetime import date
 
 router = APIRouter()
 
 @router.get("/sanctionsActive")
 def sanctions_active(user=Depends(requireRole("Bibliotecario", "Administrador"))):
-    cn = getConnection()
+
+    roleDb = user["rol"]
+    cn = getConnection(roleDb)
+    cur = cn.cursor(dictionary=True)
+
     try:
-        cur = cn.cursor(dictionary=True)
         cur.execute("""
-            SELECT s.ci_participante, p.email, s.fecha_inicio, s.fecha_fin 
-            FROM sancion_participante AS s
-            JOIN participante p ON p.ci = s.ci_participante
-            WHERE s.fecha_fin >= CURDATE()
-            ORDER BY s.fecha_fin ASC;
+            SELECT 
+                sp.ci_participante,
+                sp.fecha_inicio,
+                sp.fecha_fin,
+                p.email
+            FROM sancion_participante sp
+            JOIN participante p ON p.ci = sp.ci_participante
+            WHERE sp.fecha_fin IS NULL 
+               OR sp.fecha_fin >= CURDATE()
+            ORDER BY sp.fecha_inicio DESC
         """)
-        return {"sanciones_activas": cur.fetchall()}
+
+        sanciones = cur.fetchall()
+
+        return {"sanciones_activas": sanciones}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
     finally:
+        cur.close()
         cn.close()
