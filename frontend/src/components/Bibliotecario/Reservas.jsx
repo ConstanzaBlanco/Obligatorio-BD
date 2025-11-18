@@ -99,7 +99,7 @@ export default function Reservas() {
               <p><b>Edificio:</b> {r.edificio}</p>
               <p><b>Fecha:</b> {r.fecha}</p>
 
-              {/* 👉 Hora formateada */}
+              {/* Hora formateada */}
               <p><b>Turno:</b> {formatHora(r.hora_inicio)} - {formatHora(r.hora_fin)}</p>
 
               <p><b>Estado:</b> {r.estado_reserva}</p>
@@ -137,7 +137,7 @@ export default function Reservas() {
               <p><b>Edificio:</b> {r.edificio}</p>
               <p><b>Fecha:</b> {r.fecha}</p>
 
-              {/* 👉 Hora formateada */}
+              {/* Hora formateada */}
               <p><b>Turno:</b> {formatHora(r.hora_inicio)} - {formatHora(r.hora_fin)}</p>
 
               <p><b>Estado:</b> {r.estado_reserva}</p>

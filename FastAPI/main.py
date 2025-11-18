@@ -11,11 +11,9 @@ from routes import seeOwnActiveReservations
 from routes import agregarReserva
 from routes import cancelarReserva
 from routes import seePastAndActiveReservations
-from routes import createSalas
 from routes import assistReservation
 from routes import agregarReserva
 from routes import cancelarReserva
-from routes import removeSalas
 from routes import edificios
 from routes import salasDelEdificio
 from routes import departamentos
@@ -31,7 +29,8 @@ from routes import academicProgram
 from routes import crearEdificio
 from routes import eliminarEdificio
 from routes import editarEdificio
-
+from routes import crearSala
+from routes import toggleHabilitacionSala
 # --- ADMIN ---
 
 from routes import CreateBiblio
@@ -80,9 +79,7 @@ app.include_router(agregarReserva.router)
 app.include_router(cancelarReserva.router)
 app.include_router(seePastAndActiveReservations.router)
 app.include_router(seeOwnPastSanctions.router)
-app.include_router(createSalas.router)
 app.include_router(assistReservation.router)
-app.include_router(removeSalas.router)
 app.include_router(edificios.router)
 app.include_router(salasDelEdificio.router)
 app.include_router(departamentos.router)
@@ -98,6 +95,8 @@ app.include_router(academicProgram.router)
 app.include_router(crearEdificio.router)
 app.include_router(eliminarEdificio.router)
 app.include_router(editarEdificio.router)
+app.include_router(crearSala.router)
+app.include_router(toggleHabilitacionSala.router)
 # --- routers admin ---
 app.include_router(CreateBiblio.router)
 app.include_router(changeRolOfUser.router)

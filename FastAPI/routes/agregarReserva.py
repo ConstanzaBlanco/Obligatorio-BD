@@ -13,8 +13,6 @@ class ReservationRequest(BaseModel):
     id_turno: int
     participantes: list[int]
 
-#El base model lo que hace es definir el esquema del request q se espera y valido los tipos de datos e intenta convertirlos a tipos datos
-
 #Solamente Usuario
 @router.post("/reservar")
 def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
@@ -43,10 +41,14 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
             return {"error": "Ya reservaste 2 horas en este día"}
 
         
-        # Sala y edificio existentes ANDA
+        # Sala y edificio existentes, ver si la sala está habilitada
         cur.execute("""
             SELECT 
-                s.nombre_sala, s.edificio, s.tipo_sala, s.capacidad
+                s.nombre_sala, 
+                s.edificio, 
+                s.tipo_sala, 
+                s.capacidad,
+                s.habilitada
             FROM sala s
             WHERE s.nombre_sala = %s AND s.edificio = %s;
         """, (request.nombre_sala, request.edificio))
@@ -55,8 +57,12 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         if not sala:
             return {"error": "No se encontró la sala o edificio especificado"}
         
+        # Bloquear si la sala está deshabilitada
+        if sala["habilitada"] == 0:
+            return {"error": "La sala no está habilitada para reservas en este momento"}
+        
 
-        # Verificar que los participantes existan ANDA
+        # Verificar que los participantes existan
         for participanteCi in request.participantes:
             cur.execute("SELECT ci FROM participante WHERE ci = %s", (participanteCi,))
             if not cur.fetchone():
@@ -64,15 +70,14 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
             
         # Verificar que la cantidad de participantes no supere el límite de la sala
         capacidad_maxima = sala['capacidad']
-        total_participantes = 1 + len(request.participantes)  # Incluye al que la
+        total_participantes = 1 + len(request.participantes)
 
         if total_participantes > capacidad_maxima:
             return {"error": "La cantidad de participantes excede la capacidad máxima de la sala"}
         
-        # ID turno existente ANDA
+        # Verificar ID turno
         cur.execute("""
-            SELECT 
-                id_turno
+            SELECT id_turno
             FROM turno t
             WHERE t.id_turno = %s;
         """, (request.id_turno,))
@@ -81,8 +86,7 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         if not resp:
             return {"error": "No se encontró el turno especificado"}
         
-        # Verificar tipo de sala y tipo del participante ANDA
-
+        # Verificar tipo de sala y tipo del participante
         if sala['tipo_sala'] == 'posgrado':
             cur.execute("""
                 SELECT 
@@ -108,7 +112,7 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
             if not resp:
                 return {"error": "El participante no tiene permiso para reservar esta sala"}
             
-        # Verificar si la sala ya está reservada y activa en la fecha y turno 
+        # Verificar si la sala ya está reservada y activa
         cur.execute("""
             SELECT estado
             FROM reserva
@@ -123,7 +127,7 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
             return {"error": "La sala ya está reservada en esa fecha y turno"}
 
         
-        # Verificar si el participante está sancionado ANDA
+        # Verificar si el participante está sancionado
         cur.execute("""
             SELECT s.ci_participante 
             FROM sancion_participante AS s
@@ -135,7 +139,7 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         if resp:
             return {"error": "El participante se encuentra sancionado y no puede realizar reservas"}
 
-        # Ya tiene 3 reservas esta semana
+        # Verificar reservas semanales
         cur.execute("""
             SELECT 
                 COUNT(r.id_reserva) AS cantidad_reservas
@@ -150,7 +154,7 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         if resp['cantidad_reservas'] >= 3:
             return {"error": "El participante ya tiene 3 reservas en la semana actual"}
 
-        # Hago la reserva
+        # Crear la reserva
         cur.execute("""
             INSERT INTO reserva (nombre_sala, edificio, fecha, id_turno, estado) 
             VALUES (%s, %s, %s, %s, 'activa');
@@ -159,7 +163,7 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         cn.commit()
         id_reserva = cur.lastrowid
 
-        # Asocio el participante a la reserva
+        # Asociar participante principal
         cur.execute("""
             INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia) 
             VALUES (%s, %s, FALSE);
@@ -167,7 +171,7 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
 
         cn.commit()
 
-        # Agrego a los otros participantes
+        # Asociar otros participantes
         for ci_participantes in request.participantes:
             cur.execute("""
                 INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia)

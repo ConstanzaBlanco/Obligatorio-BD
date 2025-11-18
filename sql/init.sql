@@ -53,12 +53,14 @@ CREATE TABLE edificio (
     FOREIGN KEY (id_facultad) REFERENCES facultad(id_facultad)
 );
 
--- Tabla de sala
+
+-- Tabla de Sala
 CREATE TABLE sala (
     nombre_sala VARCHAR(100),
     edificio VARCHAR(100),
     capacidad INT NOT NULL,
     tipo_sala ENUM('libre','posgrado','docente') NOT NULL,
+    habilitada BOOLEAN NOT NULL DEFAULT TRUE,
     PRIMARY KEY (nombre_sala, edificio),
     FOREIGN KEY (edificio) REFERENCES edificio(nombre_edificio)
 );
@@ -118,13 +120,15 @@ INSERT INTO edificio (nombre_edificio, id_facultad, direccion, departamento) VAL
 ('Norte', 3, 'Av. Legal 456', 'Maldonado'),
 ('Este', 4, 'Calle Financiera 89', 'Colonia');
 
--- Salas
-INSERT INTO sala (nombre_sala, edificio, capacidad, tipo_sala) VALUES
-('Sala A', 'Central', 10, 'libre'),
-('Sala B', 'Sur', 20, 'posgrado'),
-('Sala C', 'Norte', 15, 'docente'),
-('Sala D', 'Este', 25, 'libre'),
-('Sala E', 'Central', 12, 'posgrado');
+-- ============================================
+-- INSERT SALAS (AGREGADO habilitada = TRUE)
+-- ============================================
+INSERT INTO sala (nombre_sala, edificio, capacidad, tipo_sala, habilitada) VALUES
+('Sala A', 'Central', 10, 'libre', TRUE),
+('Sala B', 'Sur', 20, 'posgrado', TRUE),
+('Sala C', 'Norte', 15, 'docente', TRUE),
+('Sala D', 'Este', 25, 'libre', TRUE),
+('Sala E', 'Central', 12, 'posgrado', TRUE);
 
 -- Turnos
 INSERT INTO turno (hora_inicio, hora_fin) VALUES
@@ -216,13 +220,9 @@ INSERT INTO sancion_participante (ci_participante, fecha_inicio, fecha_fin) VALU
 (33333333, '2025-09-01', '2025-09-05'),
 (12345678, '2025-10-01', '2025-11-07');
 
-
 CREATE USER 'Administrador'@'%' IDENTIFIED BY 'shaw';
 CREATE USER 'Bibliotecario'@'%' IDENTIFIED BY 'shaw';
 CREATE USER 'Usuario'@'%' IDENTIFIED BY 'shaw';
-
--- GRANT INSERT ON gestion_salas.login TO 'Administrador'@'%';
--- GRANT INSERT ON gestion_salas.participante TO 'Administrador'@'%';
 
 GRANT ALL PRIVILEGES ON gestion_salas.* TO 'Administrador'@'%';
 GRANT ALL PRIVILEGES ON gestion_salas.* TO 'Bibliotecario'@'%';
