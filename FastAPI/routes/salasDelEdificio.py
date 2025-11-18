@@ -16,19 +16,24 @@ def salas_del_edificio(
         cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
 
-        # Validar edificio
+        # ===============================
+        # VALIDAR EDIFICIO + SABER SI ESTÁ HABILITADO
+        # ===============================
         cur.execute("""
-            SELECT 1
+            SELECT habilitado
             FROM edificio
             WHERE nombre_edificio = %s
         """, (edificio,))
         
-        if not cur.fetchone():
+        edif = cur.fetchone()
+        if not edif:
             raise HTTPException(status_code=404, detail="El edificio no existe")
 
-       
-        #    QUERY BASE
-        
+        # Usuarios NO ven salas si el edificio está deshabilitado
+        if roleDb == "Usuario" and not bool(edif["habilitado"]):
+            return {"mensaje": "Este edificio está deshabilitado para reservas"}
+
+
         query = """
             SELECT 
                 s.nombre_sala,
@@ -40,14 +45,14 @@ def salas_del_edificio(
         """
         params = [edificio]
 
-        
-        # FILTRO: usuarios solo ven salas habilitadas, admin y biblio ven ambas
-        
+        # usuario ve solo salas habilitadas
+
         if roleDb == "Usuario":
             query += " AND s.habilitada = TRUE"
 
-        
-        # FILTROS DE FECHA/TURNO
+
+        # Filtros fecha y turno
+
         if fecha and id_turno:
             query += """
                 AND (s.nombre_sala, s.edificio) NOT IN (
@@ -85,7 +90,7 @@ def salas_del_edificio(
             """
             params.extend([edificio, id_turno])
 
-        
+
         cur.execute(query, tuple(params))
         salas = cur.fetchall()
 
@@ -94,11 +99,12 @@ def salas_del_edificio(
 
         return {
             "edificio": edificio,
+            "habilitado": edif["habilitado"],
             "filtros_usados": {
                 "fecha": fecha,
                 "id_turno": id_turno
             },
-            "salas": salas  
+            "salas": salas
         }
 
     except HTTPException:
