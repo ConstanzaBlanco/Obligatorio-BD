@@ -6,7 +6,6 @@ export default function PrivateLayout() {
     <>
       <Header />
 
-      {/* contenido de la ruta */}
       <Outlet />
     </>
   );
