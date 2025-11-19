@@ -27,10 +27,11 @@ CREATE TABLE programa_academico (
 
 -- Tabla de participante
 CREATE TABLE participante (
-    ci BIGINT PRIMARY KEY,
+    ci BIGINT,
     nombre VARCHAR(50) NOT NULL,
     apellido VARCHAR(50) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
+    PRIMARY KEY (ci, email),
     FOREIGN KEY (email) REFERENCES login(correo)
 );
 
