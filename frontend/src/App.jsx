@@ -21,8 +21,7 @@ import CrearReserva from "./components/User/CrearReserva";
 import Reservas from "./components/Bibliotecario/Reservas";
 import Sanciones from "./components/Bibliotecario/Sanciones";
 import CreateBiblioUser from "./components/Admin/CrearBibliotecario";
-import DeleteBiblio from "./components/Admin/DeleteBiblio";
-import DeleteUser from "./components/Bibliotecario/DeleteUser";
+import Usuarios from "./components/Admin/Usuarios";
 import AdminOrBiblioOnly from "./protect/AdminOrBiblioOnly";
 import FacultadManager from "./components/Admin/Facultad";
 import ProgramaManager from "./components/Admin/ProgramaAcademico";
@@ -82,13 +81,12 @@ export default function App() {
 
               <Route element={<AdminOnly />}>
                 <Route path="/crearBibliotecario" element={<CreateBiblioUser />} />
-                <Route path="/eliminarBibliotecario" element={<DeleteBiblio />} />
                 <Route path="/facultad" element={<FacultadManager />} />
                 <Route path="/programa" element={<ProgramaManager />} />
               </Route>
 
               <Route element={<AdminOrBiblioOnly />}>
-                <Route path="/eliminarUsuario" element={<DeleteUser />} />
+                <Route path="/users" element={<Usuarios />} />
               </Route>
 
             </Route>
