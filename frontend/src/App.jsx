@@ -25,6 +25,7 @@ import Usuarios from "./components/Admin/Usuarios";
 import AdminOrBiblioOnly from "./protect/AdminOrBiblioOnly";
 import FacultadManager from "./components/Admin/Facultad";
 import ProgramaManager from "./components/Admin/ProgramaAcademico";
+import Home from "./components/Home";
 
 export default function App() {
   const { user, logout } = useUser();
@@ -43,27 +44,7 @@ export default function App() {
 
               <Route
                 path="/"
-                element={
-                  <>
-                    <h2>Bienvenido/a {user.name}</h2>
-                    <h3>Tu rol es: <strong>{user.rol}</strong></h3>
-
-                    <button
-                      onClick={logout}
-                      style={{
-                        padding: "8px 14px",
-                        marginBottom: 25,
-                        backgroundColor: "#dc3545",
-                        color: "white",
-                        border: "none",
-                        borderRadius: 5,
-                        cursor: "pointer",
-                      }}
-                    >
-                      Cerrar sesión
-                    </button>
-                  </>
-                }
+                element={<Home />}
               />
 
               <Route path="/mis-reservas" element={<MisReservas />} />
