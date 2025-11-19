@@ -9,6 +9,7 @@ export default function Header() {
     <nav style={navStyle}>
       {/* IZQUIERDA */}
       <div style={leftSection}>
+        <Link to="/" style={linkStyle}>Home</Link>
         {rol === "usuario" && (
           <>
             <Link to="/mis-reservas" style={linkStyle}>Mis Reservas</Link>
@@ -23,7 +24,7 @@ export default function Header() {
             <Link to="/reservas" style={linkStyle}>Reservas</Link>
             <Link to="/edificios" style={linkStyle}>Edificios</Link>
             <Link to="/sanciones" style={linkStyle}>Sanciones</Link>
-            <Link to="/eliminarUsuario" style={linkStyle}>Eliminar Usuario</Link>
+            <Link to="/users" style={linkStyle}>Usuario</Link>
           </>
         )}
 
@@ -32,9 +33,7 @@ export default function Header() {
             <Link to="/edificios" style={linkStyle}>Edificios</Link>
             <Link to="/facultad" style={linkStyle}>Facultades</Link>
             <Link to="/programa" style={linkStyle}>Programa</Link>
-            <Link to="/crearBibliotecario" style={linkStyle}>Crear Bibliotecario</Link>
-            <Link to="/eliminarBibliotecario" style={linkStyle}>Eliminar Bibliotecario</Link>
-            <Link to="/eliminarUsuario" style={linkStyle}>Eliminar Usuario</Link>
+            <Link to="/users" style={linkStyle}>Usuarios</Link>
           </>
         )}
       </div>
