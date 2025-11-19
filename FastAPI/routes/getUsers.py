@@ -1,36 +1,42 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from db.connector import getConnection
+from core.security import requireRole
 
 router = APIRouter()
 
-VALID_ROLES = ["Usuario", "Bibliotecario"]
+@router.get("/users")
+def getUsersByRole(user=Depends(requireRole("Administrador", "Bibliotecario"))):
 
-@router.get("/users/{rol}")
-def getUsersByRole(rol: str):
-    # Normalizamos el rol
-    rol = rol.capitalize()
-
-    if rol not in VALID_ROLES:
+    # Determinar roles visibles según la credencial
+    if user["rol"] == "Administrador":
+        allowed_roles = ["Usuario", "Bibliotecario"]
+    elif user["rol"] == "Bibliotecario":
+        allowed_roles = ["Usuario"]
+    else:
         raise HTTPException(
-            status_code=400, 
-            detail=f"Rol inválido. Roles válidos: {VALID_ROLES}"
+            status_code=403,
+            detail="No tienes permisos para ver usuarios."
         )
 
     conn = getConnection()
     cursor = conn.cursor(dictionary=True)
 
-    cursor.execute(
-        "SELECT correo, rol, last_access FROM login WHERE rol = %s",
-        (rol,)
-    )
-    
+    # SQL dinámico según roles permitidos
+    query = f"""
+        SELECT correo, rol, last_access
+        FROM login
+        WHERE rol IN ({','.join(['%s'] * len(allowed_roles))})
+    """
+
+    cursor.execute(query, tuple(allowed_roles))
     users = cursor.fetchall()
 
     cursor.close()
     conn.close()
 
     return {
-        "rol": rol,
+        "credencial": user["rol"],
+        "mostrar_roles": allowed_roles,
         "cantidad": len(users),
         "usuarios": users
     }
