@@ -16,9 +16,6 @@ export default function Register() {
 
   const navigate = useNavigate();
 
-  // ---------------------------------------------------------
-  // 🟦 Cargar lista de programas desde el backend
-  // ---------------------------------------------------------
   useEffect(() => {
     const fetchPrograms = async () => {
       try {
@@ -33,9 +30,6 @@ export default function Register() {
     fetchPrograms();
   }, []);
 
-  // ---------------------------------------------------------
-  // 🟦 Handle register
-  // ---------------------------------------------------------
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
@@ -159,9 +153,6 @@ export default function Register() {
         }
       `}</style>
 
-      {/* ------------------------------------------------- */}
-      {/* HTML */}
-      {/* ------------------------------------------------- */}
       <div className="register-container">
         <div className="register-card">
 
