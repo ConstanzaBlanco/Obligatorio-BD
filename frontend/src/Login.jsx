@@ -36,6 +36,7 @@ export default function Login() {
         rol: res.data.rol,
         ...me.data
       });
+      navigate("/")
 
     } catch (el) {
       setError("Credenciales inválidas. Inténtalo de nuevo.", el);
