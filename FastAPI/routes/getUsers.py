@@ -7,7 +7,6 @@ router = APIRouter()
 @router.get("/users")
 def getUsersByRole(user=Depends(requireRole("Administrador", "Bibliotecario"))):
 
-    # Determinar roles visibles según la credencial
     if user["rol"] == "Administrador":
         allowed_roles = ["Usuario", "Bibliotecario"]
     elif user["rol"] == "Bibliotecario":
@@ -21,7 +20,6 @@ def getUsersByRole(user=Depends(requireRole("Administrador", "Bibliotecario"))):
     conn = getConnection()
     cursor = conn.cursor(dictionary=True)
 
-    # SQL dinámico según roles permitidos
     query = f"""
         SELECT correo, rol, last_access
         FROM login
