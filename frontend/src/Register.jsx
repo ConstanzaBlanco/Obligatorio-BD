@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Register() {
@@ -9,11 +9,33 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [academicProgram, setAcademicProgram] = useState("");
 
+  const [programs, setPrograms] = useState([]);
+
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
 
   const navigate = useNavigate();
 
+  // ---------------------------------------------------------
+  // 🟦 Cargar lista de programas desde el backend
+  // ---------------------------------------------------------
+  useEffect(() => {
+    const fetchPrograms = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/createUser/programs");
+        const data = await res.json();
+        setPrograms(data.programs || []);
+      } catch (err) {
+        console.error("Error cargando programas", err);
+      }
+    };
+
+    fetchPrograms();
+  }, []);
+
+  // ---------------------------------------------------------
+  // 🟦 Handle register
+  // ---------------------------------------------------------
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
@@ -84,7 +106,8 @@ export default function Register() {
           color: #333;
         }
 
-        .register-form input {
+        .register-form input,
+        .register-form select {
           width: 100%;
           margin-bottom: 12px;
           padding: 12px;
@@ -92,9 +115,15 @@ export default function Register() {
           border: 1px solid #ccc;
           font-size: 14px;
           transition: all 0.2s ease;
+          background: #fff;
         }
 
-        .register-form input:focus {
+        .register-form select {
+          cursor: pointer;
+        }
+
+        .register-form input:focus,
+        .register-form select:focus {
           border-color: #0066ff;
           outline: none;
           box-shadow: 0 0 4px rgba(0, 102, 255, 0.3);
@@ -130,7 +159,9 @@ export default function Register() {
         }
       `}</style>
 
-      {/* -------------- HTML del formulario -------------- */}
+      {/* ------------------------------------------------- */}
+      {/* HTML */}
+      {/* ------------------------------------------------- */}
       <div className="register-container">
         <div className="register-card">
 
@@ -178,13 +209,19 @@ export default function Register() {
               required
             />
 
-            <input
-              type="text"
-              placeholder="Programa académico"
+            <select
               value={academicProgram}
               onChange={(e) => setAcademicProgram(e.target.value)}
               required
-            />
+            >
+              <option value="">Selecciona un programa académico</option>
+
+              {programs.map((p, i) => (
+                <option key={i} value={p.nombre_programa}>
+                  {p.nombre_programa}
+                </option>
+              ))}
+            </select>
 
             <button type="submit" className="btn-register">
               Registrarse

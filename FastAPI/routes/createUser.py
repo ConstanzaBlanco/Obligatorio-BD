@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from core.passwordHash import hashPassword
 from db.registerSentences import insertLogin, insertPaticipante, insertParticipanteProgramaAcademico
+from db.connector import getConnection
 
 router = APIRouter()
 
@@ -64,3 +65,17 @@ def createUser(payload: CreateUserRequest):
         raise HTTPException(status_code=400, detail="Error al insertar en participante_programa_academico")
 
     return {"status": "created"}
+
+
+@router.get("/createUser/programs")
+def getPrograms():
+    conn = getConnection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("SELECT nombre_programa FROM programa_academico")
+    programs = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return {"programs": programs}
