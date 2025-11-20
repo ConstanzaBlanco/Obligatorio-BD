@@ -25,7 +25,9 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         # CI del usuario autenticado 
         ci = user["ci"]
 
-        # Ver que el usuario no haya reservado ya 2 veces en ese dia
+
+        # LIMITE DE 2 HORAS POR DÍA -> SOLO SI NO ES EXCEPCIÓN
+
         cur.execute(
             """
             SELECT COUNT(*) AS reservas_diarias
@@ -38,10 +40,12 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         )
 
         row = cur.fetchone()
-        if row and row["reservas_diarias"] >= 2:
-            return {"error": "Ya reservaste 2 horas en este día"}
 
-        
+        # Aún no sabemos si es excepción, Lo validamos después
+        limite_diario_superado = row and row["reservas_diarias"] >= 2
+
+
+
         # Sala y edificio existentes, ver si la sala está habilitada
         cur.execute("""
             SELECT 
@@ -87,9 +91,8 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         if not resp:
             return {"error": "No se encontró el turno especificado"}
 
-        # -------------------------------------------------------
-        # 🔥 VALIDAR QUE HOY NO RESERVE TURNOS QUE YA PASARON
-        # -------------------------------------------------------
+
+        # VALIDAR QUE HOY NO RESERVE TURNOS QUE YA PASARON
         hoy = datetime.now().date()
 
         if request.fecha == hoy.strftime("%Y-%m-%d"):
@@ -104,34 +107,60 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
 
             if hora_actual > hora_turno:
                 return {"error": "No podés reservar un turno que ya pasó hoy."}
-        # -------------------------------------------------------
 
-        
-        # Verificar tipo de sala y tipo del participante
+
+
+        # DETERMINAR SI ESTE USUARIO TIENE EXCEPCIÓN DE LÍMITES
+
+        es_excepcion = False
+
+        # Sala de posgrado, excepción si es posgrado o docente
         if sala['tipo_sala'] == 'posgrado':
             cur.execute("""
-                SELECT 
-                    pa.tipo
+                SELECT pa.tipo
                 FROM participante_programa_academico ppa
-                JOIN programa_academico pa ON (ppa.nombre_programa = pa.nombre_programa)  
+                JOIN programa_académico pa ON ppa.nombre_programa = pa.nombre_programa
                 WHERE ppa.ci_participante = %s AND pa.tipo = 'posgrado';
             """, (ci,))
+            if cur.fetchone():
+                es_excepcion = True
 
-            resp2 = cur.fetchall()
-            if not resp2:
-                return {"error": "El participante no tiene permiso para reservar esta sala"}
-            
+            # Un docente también puede reservar sala de posgrado sin límites
+            if not es_excepcion:
+                cur.execute("""
+                    SELECT 1
+                    FROM participante_programa_academico
+                    WHERE ci_participante = %s AND rol = 'docente';
+                """, (ci,))
+                if cur.fetchone():
+                    es_excepcion = True
+        
+        # Sala de docente -> excepción solo si es docente
         elif sala['tipo_sala'] == 'docente':
             cur.execute("""
-                SELECT 
-                    ppa.rol
-                FROM participante_programa_academico ppa
-                WHERE ppa.ci_participante = %s AND ppa.rol = 'docente';
+                SELECT 1
+                FROM participante_programa_academico
+                WHERE ci_participante = %s AND rol = 'docente';
             """, (ci,))
+            if cur.fetchone():
+                es_excepcion = True
 
-            resp2 = cur.fetchall()
-            if not resp2:
-                return {"error": "El participante no tiene permiso para reservar esta sala"}
+
+
+
+        # APLICAR LÍMITE DIARIO SOLO SI NO ES EXCEPCIÓN
+
+        if limite_diario_superado and not es_excepcion:
+            return {"error": "Ya reservaste 2 horas en este día"}
+
+
+
+        # Verificar tipo de sala y tipo del participante (permisos normales)
+        if sala['tipo_sala'] == 'posgrado' and not es_excepcion:
+            return {"error": "El participante no tiene permiso para reservar esta sala"}
+            
+        elif sala['tipo_sala'] == 'docente' and not es_excepcion:
+            return {"error": "El participante no tiene permiso para reservar esta sala"}
             
         # Verificar si la sala ya está reservada y activa
         cur.execute("""
@@ -160,22 +189,25 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         if resp3:
             return {"error": "El participante se encuentra sancionado y no puede realizar reservas"}
 
-        # -------------------------------------------------------
-        # 🔥 VALIDACIÓN: NO MÁS DE 3 RESERVAS POR SEMANA (lunes–domingo)
-        # -------------------------------------------------------
-        cur.execute("""
-            SELECT COUNT(*) AS cantidad_reservas
-            FROM reserva r
-            JOIN reserva_participante rp ON r.id_reserva = rp.id_reserva
-            WHERE YEARWEEK(r.fecha, 1) = YEARWEEK(%s, 1)
-              AND rp.ci_participante = %s
-              AND r.estado != 'cancelada';
-        """, (request.fecha, ci))
 
-        resp4 = cur.fetchone()
-        if resp4['cantidad_reservas'] >= 3:
-            return {"error": "Ya tenés 3 reservas esta semana"}
-        # -------------------------------------------------------
+
+        # VALIDACIÓN: NO MÁS DE 3 RESERVAS POR SEMANA (si no es excepción)
+
+        if not es_excepcion:
+            cur.execute("""
+                SELECT COUNT(*) AS cantidad_reservas
+                FROM reserva r
+                JOIN reserva_participante rp ON r.id_reserva = rp.id_reserva
+                WHERE YEARWEEK(r.fecha, 1) = YEARWEEK(%s, 1)
+                  AND rp.ci_participante = %s
+                  AND r.estado != 'cancelada';
+            """, (request.fecha, ci))
+
+            resp4 = cur.fetchone()
+            if resp4['cantidad_reservas'] >= 3:
+                return {"error": "Ya tenés 3 reservas esta semana"}
+
+
 
         # Crear la reserva (incluyendo creador)
         cur.execute("""
