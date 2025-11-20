@@ -99,6 +99,18 @@ export default function CrearReserva({ edificio, salas }) {
     }
   };
 
+useEffect(() => {
+  async function verHoraSist() {
+    const resHora = await fetch("http://localhost:8000/hora-servidor");
+    const dataHora = await resHora.json();
+    const horaServidor = new Date(dataHora.hora_servidor);
+    console.log("HORA SERVIDOR:", horaServidor);
+  }
+  verHoraSist();
+}, []);
+
+
+
   return (
     <div style={{ marginTop: 40 }}>
       <h2>Crear Reserva en {edificio}</h2>
