@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 export default function ReservasVencidas() {
   const [reservas, setReservas] = useState([]);
   const [mensaje, setMensaje] = useState("");
+  const [checks, setChecks] = useState({}); // guardar CIs tildados
 
   const token = localStorage.getItem("token");
 
@@ -31,32 +32,22 @@ export default function ReservasVencidas() {
     cargarReservas();
   }, []);
 
-  // Acción para marcar finalizada
-  const marcarFinalizada = async (idReserva, cis) => {
-    try {
-      const res = await fetch("http://localhost:8000/updateReservation", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          reserveId: idReserva,
-          cis: cis  // todos los participantes asistieron
-        })
-      });
-
-      await res.json();
-      cargarReservas(); // recargar la lista
-    } catch (err) {
-      console.error(err);
-      setMensaje("Error al actualizar reserva.");
-    }
+  // Manejo de checkboxes
+  const toggleCheck = (idReserva, ci) => {
+    setChecks(prev => {
+      const actuales = prev[idReserva] || [];
+      if (actuales.includes(ci)) {
+        return { ...prev, [idReserva]: actuales.filter(x => x !== ci) };
+      }
+      return { ...prev, [idReserva]: [...actuales, ci] };
+    });
   };
 
-  // Acción para marcar sin asistencia
-  const marcarSinAsistencia = async (idReserva) => {
+  // Acción final: enviar asistencias o sancionar a todos
+  const finalizarReserva = async (idReserva) => {
     try {
+      const cisSeleccionados = checks[idReserva] || [];
+
       const res = await fetch("http://localhost:8000/updateReservation", {
         method: "POST",
         headers: {
@@ -65,7 +56,7 @@ export default function ReservasVencidas() {
         },
         body: JSON.stringify({
           reserveId: idReserva,
-          cis: [] // NADIE asistió
+          cis: cisSeleccionados  // si está vacío → backend sanciona a todos
         })
       });
 
@@ -87,38 +78,35 @@ export default function ReservasVencidas() {
       {reservas.length === 0 && <p>No hay reservas vencidas pendientes.</p>}
 
       <ul style={{ listStyle: "none", padding: 0 }}>
-        {reservas.map((r, i) => (
-          <li key={i} style={cardStyle}>
+        {reservas.map((r) => (
+          <li key={r.id_reserva} style={cardStyle}>
             <strong>{r.nombre_sala} - {r.edificio}</strong>
-
-            <p>
-              <strong>Participantes:</strong><br />
-              {r.ci_participantes.join(", ")}
-            </p>
 
             <p><strong>Fecha:</strong> {r.fecha}</p>
             <p><strong>Hora fin:</strong> {r.hora_fin}</p>
             <p><strong>Estado actual:</strong> {r.estado}</p>
             <p><strong>ID reserva:</strong> {r.id_reserva}</p>
 
+            <p><strong>Participantes (tildar los que asistieron):</strong></p>
+
+            {r.ci_participantes.map((ci) => (
+              <label key={ci} style={{ display: "block", marginBottom: 5 }}>
+                <input
+                  type="checkbox"
+                  checked={checks[r.id_reserva]?.includes(ci) || false}
+                  onChange={() => toggleCheck(r.id_reserva, ci)}
+                />
+                {" "}
+                {ci}
+              </label>
+            ))}
 
             <button
-              onClick={() => marcarFinalizada(r.id_reserva, r.ci_participantes)}
+              onClick={() => finalizarReserva(r.id_reserva)}
               style={btnOk}
             >
-              Finalizada
+              Finalizar reserva
             </button>
-
-            <button
-                onClick={() => {
-                        console.log("ID RESERVA ENVIADO:", r.id_reserva);
-                        marcarSinAsistencia(r.id_reserva);
-                        }}
-                style={btnFail}
-                >
-                Sin asistencia
-            </button>
-
           </li>
         ))}
       </ul>
@@ -137,20 +125,11 @@ const cardStyle = {
 };
 
 const btnOk = {
-  backgroundColor: "#28a745",
+  backgroundColor: "#007bff",
   color: "white",
   border: "none",
   padding: "8px 12px",
-  marginRight: 10,
-  borderRadius: 5,
-  cursor: "pointer"
-};
-
-const btnFail = {
-  backgroundColor: "#dc3545",
-  color: "white",
-  border: "none",
-  padding: "8px 12px",
+  marginTop: 10,
   borderRadius: 5,
   cursor: "pointer"
 };
