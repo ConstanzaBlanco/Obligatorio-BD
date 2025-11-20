@@ -30,9 +30,9 @@ def updateLastAccess(correo: str, roleDb: str):
     try:
         cur = cn.cursor()
         cur.execute(
-            "UPDATE login SET last_access=%s WHERE correo=%s",
-            (datetime.now(), correo)
-        )
+            "UPDATE login SET last_access=NOW() WHERE correo=%s",
+            (correo,)
+            )
         cn.commit()
     finally:
         cn.close()
