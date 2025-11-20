@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 
 export default function MisReservas() {
-  const [reservas, setReservas] = useState([]);
+  const [misReservas, setMisReservas] = useState([]);
+  const [reservasParticipando, setReservasParticipando] = useState([]);
   const [error, setError] = useState("");
 
   const token = localStorage.getItem("token");
@@ -18,17 +19,48 @@ function formatFechaCompleta(fechaStr) {
   });
 }
 
-// Convierte "2025-11-16" → "16/11/2025"
+// Pasa de "2025-11-16" → "16/11/2025"
 function formatFecha(fechaStr) {
   const fecha = new Date(fechaStr);
   return fecha.toLocaleDateString("es-UY");
 }
 
-// Convierte 32400 (segundos) → "09:00"
-function formatHora(segundos) {
-  const h = Math.floor(segundos / 3600);
-  const m = Math.floor((segundos % 3600) / 60);
-  return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+function formatHora(hora) {
+
+
+  //Funcionn horrible que no pude hacer solo :(
+  if (hora === null || hora === undefined || hora === "") return "";
+
+  // Si ya es string con formato HH:MM:SS o HH:MM
+  if (typeof hora === "string") {
+    const parts = hora.split(":");
+    if (parts.length >= 2) return `${parts[0]}:${parts[1]}`;
+    return hora;
+  }
+
+  // Si es número 
+  if (typeof hora === "number") {
+    const h = Math.floor(hora / 3600);
+    const m = Math.floor((hora % 3600) / 60);
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  }
+
+  // Si es un objeto 
+  if (typeof hora === "object") {
+    const h = hora.hour ?? hora.H ?? hora.h ?? null;
+    const m = hora.minute ?? hora.min ?? hora.M ?? null;
+    if (h !== null && m !== null) return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    //si puede lo pasa a string
+    try {
+      const s = String(hora);
+      if (s && typeof s === "string") return s;
+    } catch (e) {
+      return "";
+    }
+  }
+
+  // Último recurso
+  return String(hora);
 }
 
 
@@ -76,7 +108,8 @@ function formatHora(segundos) {
       const data = await res.json();
 
       if (res.ok) {
-        setReservas(data.reservas_activas_del_usuario || []);
+        setMisReservas(data.mis_reservas_creadas || []);
+        setReservasParticipando(data.reservas_donde_participo || []);
       } else {
         setError(data.detail || "Error al cargar reservas");
       }
@@ -97,43 +130,71 @@ function formatHora(segundos) {
 
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      {reservas.length === 0 && (
+      {misReservas.length === 0 && reservasParticipando.length === 0 && (
         <p>No tenés reservas activas.</p>
       )}
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
-        {reservas.map((r) => (
-          <div
-            key={r.id_reserva}
-            style={{
-              border: "1px solid #ccc",
-              borderRadius: 8,
-              padding: 16,
-              width: 260,
-              background: "#fafafa"
-            }}
-          >
-            <h4>{r.nombre_sala} - {r.edificio}</h4>
-            <p><strong>Fecha:</strong> {formatFecha(r.fecha)}</p>
-            <p><strong>Hora:</strong> {formatHora(r.hora_inicio)} → {formatHora(r.hora_fin)}</p>
-            <p><strong>Solicitada:</strong> {formatFechaCompleta(r.fecha_solicitud_reserva)}</p>
+      {misReservas.length > 0 && (
+        <>
+          <h3>Reservas que creaste</h3>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
+            {misReservas.map((r) => (
+              <div
+                key={`creada-${r.id_reserva}`}
+                style={{
+                  border: "1px solid #ccc",
+                  borderRadius: 8,
+                  padding: 16,
+                  width: 260,
+                  background: "#fff6f6"
+                }}
+              >
+                <h4>{r.nombre_sala} - {r.edificio}</h4>
+                <p><strong>Fecha:</strong> {formatFecha(r.fecha)}</p>
+                <p><strong>Hora:</strong> {formatHora(r.hora_inicio)} → {formatHora(r.hora_fin)}</p>
 
-            <button
-              onClick={() => cancelarReserva(r.id_reserva)}
-              style={{
-                marginTop: 10,
-                padding: "8px 12px",
-                background: "#d9534f",
-                color: "white",
-                border: "none",
-                borderRadius: 6,
-                cursor: "pointer"
-              }}
-            >Cancelar</button>
-
+                <button
+                  onClick={() => cancelarReserva(r.id_reserva)}
+                  style={{
+                    marginTop: 10,
+                    padding: "8px 12px",
+                    background: "#d9534f",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 6,
+                    cursor: "pointer"
+                  }}
+                >Cancelar</button>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      )}
+
+      {reservasParticipando.length > 0 && (
+        <>
+          <h3>Reservas donde participás</h3>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
+            {reservasParticipando.map((r) => (
+              <div
+                key={`part-${r.id_reserva}`}
+                style={{
+                  border: "1px solid #ccc",
+                  borderRadius: 8,
+                  padding: 16,
+                  width: 260,
+                  background: "#f6fff6"
+                }}
+              >
+                <h4>{r.nombre_sala} - {r.edificio}</h4>
+                <p><strong>Fecha:</strong> {formatFecha(r.fecha)}</p>
+                <p><strong>Hora:</strong> {formatHora(r.hora_inicio)} → {formatHora(r.hora_fin)}</p>
+                <p style={{ fontSize: 13, color: '#666' }}><strong>Estado invitación:</strong> {r.estado_invitacion || 'aceptada'}</p>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

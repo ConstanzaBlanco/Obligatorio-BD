@@ -20,14 +20,13 @@ def cancelar_reserva(request: CancelReservationRequest, user=Depends(requireRole
         # Obtener el CI del usuario autenticado 
         ci = user["ci"]  
 
-        # Verifico que la reserva exista y esté asociada al participante
+        # Verifico que la reserva exista y obtener datos (incluye creador)
         cur.execute("""
-            SELECT r.id_reserva, r.estado, r.fecha, t.hora_inicio
+            SELECT r.id_reserva, r.estado, r.fecha, t.hora_inicio, r.creador
             FROM reserva r
-            JOIN reserva_participante rp ON r.id_reserva = rp.id_reserva
             JOIN turno t ON t.id_turno = r.id_turno
-            WHERE r.id_reserva = %s AND rp.ci_participante = %s;
-        """, (request.id_reserva, ci))
+            WHERE r.id_reserva = %s;
+        """, (request.id_reserva,))
 
         reserva = cur.fetchone()
         if not reserva:
@@ -39,6 +38,10 @@ def cancelar_reserva(request: CancelReservationRequest, user=Depends(requireRole
                 status_code=400,
                 detail=f"La reserva no puede cancelarse porque su estado actual es '{reserva['estado']}'"
             )
+
+        # Sólo el creador puede cancelar la reserva
+        if reserva.get("creador") != ci:
+            raise HTTPException(status_code=403, detail="Solo el creador de la reserva puede cancelarla")
 
         # Bloqueo de cancelación según fecha y hora
         cur.execute("SELECT NOW() AS now")
