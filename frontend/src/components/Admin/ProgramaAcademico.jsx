@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 export default function ProgramaManager() {
 
   const [programas, setProgramas] = useState([]);
+  const [facultades, setFacultades] = useState([]);
   const [nombrePrograma, setNombrePrograma] = useState("");
   const [idFacultad, setIdFacultad] = useState("");
   const [tipo, setTipo] = useState("");
@@ -28,16 +29,15 @@ export default function ProgramaManager() {
 
       if (!res.ok) {
         setError(data.detail || "Error al obtener programas");
-        setProgramas([]);
         return;
       }
 
       setError("");
-      setProgramas(data || []);
+      setProgramas(data.programas || []);
+      setFacultades(data.facultades || []);
 
     } catch {
       setError("Error de conexión");
-      setProgramas([]);
     }
   };
 
@@ -164,14 +164,20 @@ export default function ProgramaManager() {
           required
         />
 
-        <input
-          type="number"
-          placeholder="ID Facultad"
+        <select
+          style={styles.input}
           value={idFacultad}
           onChange={(e) => setIdFacultad(e.target.value)}
-          style={styles.input}
           required
-        />
+        >
+          <option value="">Seleccionar facultad</option>
+
+          {facultades.map(f => (
+            <option key={f.id_facultad} value={f.id_facultad}>
+              {f.nombre}
+            </option>
+          ))}
+        </select>
 
         <select
           value={tipo}
@@ -194,7 +200,7 @@ export default function ProgramaManager() {
         <thead>
           <tr>
             <th>Programa</th>
-            <th>ID Facultad</th>
+            <th>Facultad</th>
             <th>Tipo</th>
             <th style={{ width: 180 }}>Acciones</th>
           </tr>
@@ -207,13 +213,19 @@ export default function ProgramaManager() {
 
               <td>
                 {editNombre === p.nombre_programa ? (
-                  <input
+                  <select
                     style={styles.inputSmall}
                     value={editIdFacultad}
                     onChange={(e) => setEditIdFacultad(e.target.value)}
-                  />
+                  >
+                    {facultades.map(f => (
+                      <option key={f.id_facultad} value={f.id_facultad}>
+                        {f.nombre}
+                      </option>
+                    ))}
+                  </select>
                 ) : (
-                  p.id_facultad
+                  facultades.find(f => f.id_facultad === p.id_facultad)?.nombre || "Desconocido"
                 )}
               </td>
 
