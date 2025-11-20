@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends
 from db.connector import getConnection
 from core.security import currentUser
 from pydantic import BaseModel
-from core.security import requireRole 
+from core.security import requireRole
+from datetime import datetime, timedelta, time
 
 router = APIRouter()
 
@@ -77,7 +78,7 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         
         # Verificar ID turno
         cur.execute("""
-            SELECT id_turno
+            SELECT id_turno, hora_inicio
             FROM turno t
             WHERE t.id_turno = %s;
         """, (request.id_turno,))
@@ -85,6 +86,26 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         resp = cur.fetchone()
         if not resp:
             return {"error": "No se encontró el turno especificado"}
+
+        # -------------------------------------------------------
+        # 🔥 VALIDAR QUE HOY NO RESERVE TURNOS QUE YA PASARON
+        # -------------------------------------------------------
+        hoy = datetime.now().date()
+
+        if request.fecha == hoy.strftime("%Y-%m-%d"):
+            hora_actual = datetime.now().time()
+            hora_turno = resp["hora_inicio"]
+
+            # Convertir TIME MySQL -> time
+            if isinstance(hora_turno, timedelta):
+                hora_turno = (datetime.min + hora_turno).time()
+            elif isinstance(hora_turno, str):
+                hora_turno = datetime.strptime(hora_turno, "%H:%M:%S").time()
+
+            if hora_actual > hora_turno:
+                return {"error": "No podés reservar un turno que ya pasó hoy."}
+        # -------------------------------------------------------
+
         
         # Verificar tipo de sala y tipo del participante
         if sala['tipo_sala'] == 'posgrado':
@@ -96,8 +117,8 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
                 WHERE ppa.ci_participante = %s AND pa.tipo = 'posgrado';
             """, (ci,))
 
-            resp = cur.fetchall()
-            if not resp:
+            resp2 = cur.fetchall()
+            if not resp2:
                 return {"error": "El participante no tiene permiso para reservar esta sala"}
             
         elif sala['tipo_sala'] == 'docente':
@@ -108,8 +129,8 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
                 WHERE ppa.ci_participante = %s AND ppa.rol = 'docente';
             """, (ci,))
 
-            resp = cur.fetchall()
-            if not resp:
+            resp2 = cur.fetchall()
+            if not resp2:
                 return {"error": "El participante no tiene permiso para reservar esta sala"}
             
         # Verificar si la sala ya está reservada y activa
@@ -135,24 +156,26 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
             AND CURDATE() BETWEEN s.fecha_inicio AND s.fecha_fin;
         """, (ci,))
         
-        resp = cur.fetchall()
-        if resp:
+        resp3 = cur.fetchall()
+        if resp3:
             return {"error": "El participante se encuentra sancionado y no puede realizar reservas"}
 
-        # Verificar reservas semanales
+        # -------------------------------------------------------
+        # 🔥 VALIDACIÓN: NO MÁS DE 3 RESERVAS POR SEMANA (lunes–domingo)
+        # -------------------------------------------------------
         cur.execute("""
-            SELECT 
-                COUNT(r.id_reserva) AS cantidad_reservas
+            SELECT COUNT(*) AS cantidad_reservas
             FROM reserva r
             JOIN reserva_participante rp ON r.id_reserva = rp.id_reserva
-            WHERE DATEDIFF(CURRENT_DATE, DATE(r.fecha)) <= 7
-            AND rp.ci_participante = %s
-            AND r.estado != 'cancelada';
-        """, (ci,))
-        
-        resp = cur.fetchone()
-        if resp['cantidad_reservas'] >= 3:
-            return {"error": "El participante ya tiene 3 reservas en la semana actual"}
+            WHERE YEARWEEK(r.fecha, 1) = YEARWEEK(%s, 1)
+              AND rp.ci_participante = %s
+              AND r.estado != 'cancelada';
+        """, (request.fecha, ci))
+
+        resp4 = cur.fetchone()
+        if resp4['cantidad_reservas'] >= 3:
+            return {"error": "Ya tenés 3 reservas esta semana"}
+        # -------------------------------------------------------
 
         # Crear la reserva (incluyendo creador)
         cur.execute("""
@@ -163,7 +186,7 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         cn.commit()
         id_reserva = cur.lastrowid
 
-        # Asociar participante principal (creador) con estado 'creador'
+        # Asociar participante principal (creador)
         cur.execute("""
             INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia, estado_invitacion) 
             VALUES (%s, %s, FALSE, 'creador');
@@ -171,7 +194,7 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
 
         cn.commit()
 
-        # Asociar otros participantes con estado 'pendiente' (invitaciones)
+        # Asociar otros participantes
         for ci_participantes in request.participantes:
             cur.execute("""
                 INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia, estado_invitacion)
