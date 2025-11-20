@@ -8,7 +8,6 @@ from db.academicProgramSentences import (
     deletePrograma
 )
 from core.security import requireRole
-from core.invalidInput import isInvalidInput
 
 router = APIRouter(prefix="/programa", tags=["Programa Académico"])
 
@@ -28,9 +27,6 @@ class ProgramaUpdate(BaseModel):
 def create_programa(payload: ProgramaCreate, user = Depends(requireRole("Administrador"))):
     nombre = payload.nombre_programa.strip()
     tipo = payload.tipo.lower()
-
-    if isInvalidInput(nombre) or isInvalidInput(tipo):
-        raise HTTPException(status_code=401, detail="Error: credenciales inválidas")
 
     if tipo not in ("grado", "posgrado"):
         raise HTTPException(status_code=400, detail="Tipo inválido")
@@ -67,9 +63,6 @@ def get_one_programa(nombre_programa: str, user = Depends(requireRole("Administr
 def update_programa(nombre_programa: str, payload: ProgramaUpdate, user = Depends(requireRole("Administrador"))):
     tipo = payload.tipo.lower()
 
-    if isInvalidInput(tipo):
-        raise HTTPException(status_code=401, detail="Error: credenciales inválidas")
-
     if tipo not in ("grado", "posgrado"):
         raise HTTPException(status_code=400, detail="Tipo inválido")
 
@@ -83,10 +76,6 @@ def update_programa(nombre_programa: str, payload: ProgramaUpdate, user = Depend
 
 @router.delete("/delete/{nombre_programa}")
 def delete_programa(nombre_programa: str, user = Depends(requireRole("Administrador"))):
-
-    if isInvalidInput(nombre_programa):
-        raise HTTPException(status_code=401, detail="Error: credenciales inválidas")
-
     roleDb = user["rol"]
 
     if deletePrograma(nombre_programa, roleDb) == 0:

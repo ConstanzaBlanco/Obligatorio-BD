@@ -3,7 +3,6 @@ from pydantic import BaseModel
 from core.passwordHash import hashPassword
 from db.registerSentences import insertLogin, insertPaticipante, insertBiblioLogin
 from core.security import requireRole
-from core.invalidInput import isInvalidInput
 
 router = APIRouter()
 
@@ -22,9 +21,6 @@ def createUser(payload: CreateBiblioRequest, user = Depends(requireRole("Adminis
     name = payload.name
     lastName = payload.lastName
     password = payload.password
-
-    if isInvalidInput(correo) or isInvalidInput(ci) or isInvalidInput(name) or isInvalidInput(lastName) or isInvalidInput(password):
-        raise HTTPException(status_code=401, detail="Error: credenciales inválidas")
 
     roleDb = user["rol"]
 

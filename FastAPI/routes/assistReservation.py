@@ -3,7 +3,6 @@ from pydantic import BaseModel
 from core.security import requireRole
 from db.reservationSentences import updateAssistUser, getAllCisOfOneReservation, updateReserveToFinish
 from db.sanctionsSentences import createSanction
-from core.invalidInput import isInvalidInput
 
 router = APIRouter()
 
@@ -17,16 +16,6 @@ def update_reservation_state(
     payload: UpdateStateOfReservation,
     user=Depends(requireRole("Bibliotecario"))
 ):
-    if isInvalidInput(payload.reserveId):
-        raise HTTPException(status_code=401, detail="Error: credenciales inválidas")
-    
-    if not isinstance(payload.cis, list):
-        raise HTTPException(status_code=400, detail="cis debe ser una lista")
-
-    for ci in payload.cis:
-        if not isinstance(ci, int) or ci <= 0:
-            raise HTTPException(status_code=400, detail=f"CI inválido: {ci}")
-        
     roleDb = user["rol"]
 
     print("====== DEBUG ======")

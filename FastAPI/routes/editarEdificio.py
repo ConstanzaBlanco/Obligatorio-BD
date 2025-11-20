@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from db.connector import getConnection
 from core.security import requireRole
-from core.invalidInput import isInvalidInput
 
 router = APIRouter()
 
@@ -18,10 +17,6 @@ def editar_edificio(data: EditarEdificioRequest, user=Depends(requireRole("Admin
     cur = cn.cursor(dictionary=True)
 
     try:
-        if isInvalidInput(data.nombre_original) or isInvalidInput(data.id_facultad) or isInvalidInput(data.habilitado):
-            raise HTTPException(status_code=401, detail="Error: credenciales inválidas")
-
-
         # Obtener edificio
         cur.execute("SELECT * FROM edificio WHERE nombre_edificio = %s", (data.nombre_original,))
         edif = cur.fetchone()

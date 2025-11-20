@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from db.connector import getConnection
 from core.security import requireRole
-from core.invalidInput import isInvalidInput
 
 router = APIRouter()
 
@@ -14,9 +13,6 @@ class CrearSalaRequest(BaseModel):
 
 @router.post("/crearSala")
 def crear_sala(data: CrearSalaRequest, user=Depends(requireRole("Administrador"))):
-    if isInvalidInput(data.nombre_sala) or isInvalidInput(data.capacidad) or isInvalidInput(data.tipo_sala) or isInvalidInput(data.edificio):
-        raise HTTPException(status_code=401, detail="Error: credenciales inválidas")
-
     roleDb = user["rol"]
 
     if data.tipo_sala not in ["libre", "posgrado", "docente"]:
