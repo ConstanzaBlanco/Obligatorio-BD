@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from db.connector import getConnection
 from core.security import requireRole
+from core.invalidInput import isInvalidInput
 
 router = APIRouter()
 
@@ -9,6 +10,9 @@ def quitar_sancion(
     ci: int = Query(...),
     user=Depends(requireRole("Bibliotecario", "Administrador"))
 ):
+    
+    if isInvalidInput(ci):
+        raise HTTPException(status_code=401, detail="Error: credenciales inválidas")
 
     roleDb = user["rol"]
     cn = getConnection(roleDb)

@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from db.connector import getConnection
 from core.security import currentUser
 from pydantic import BaseModel
 from core.security import requireRole 
+from core.invalidInput import isInvalidInput
 
 router = APIRouter()
 
@@ -17,6 +18,16 @@ class ReservationRequest(BaseModel):
 @router.post("/reservar")
 def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
     try:
+        if isInvalidInput(request.nombre_sala) or isInvalidInput(request.edificio) or isInvalidInput(request.fecha) or isInvalidInput(request.id_turno):
+            raise HTTPException(status_code=401, detail="Error: credenciales inválidas")
+        
+        if not isinstance(request.participantes, list):
+            raise HTTPException(status_code=400, detail="Personas debe ser una lista")
+
+        for participante in request.participantes:
+            if not isinstance(participante, int) or participante <= 0:
+                raise HTTPException(status_code=400, detail=f"Persona inválido: {participante}")
+
         roleDb = user["rol"]
         cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
