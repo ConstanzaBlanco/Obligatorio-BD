@@ -31,6 +31,8 @@ from routes import eliminarEdificio
 from routes import editarEdificio
 from routes import crearSala
 from routes import modificarSala
+
+from routes import invitaciones
 from routes import estadisticas
 from routes import eliminarSala
 from routes import horaServidor
@@ -100,6 +102,7 @@ app.include_router(eliminarEdificio.router)
 app.include_router(editarEdificio.router)
 app.include_router(crearSala.router)
 app.include_router(modificarSala.router)
+app.include_router(invitaciones.router)
 app.include_router(eliminarSala.router)
 app.include_router(horaServidor.router)
 # --- routers admin ---
