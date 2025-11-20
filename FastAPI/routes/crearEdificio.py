@@ -5,7 +5,7 @@ from core.security import requireRole
 
 router = APIRouter()
 
-# --- Modelo que coincide EXACTAMENTE con el JSON del front ---
+
 class EdificioCreate(BaseModel):
     nombre_edificio: str
     direccion: str
@@ -30,15 +30,15 @@ def crear_edificio(
         if not fac:
             raise HTTPException(status_code=404, detail="La facultad no existe.")
 
-        # Insertar edificio
+        # Insertar edificio 
         cur.execute("""
-            INSERT INTO edificio (nombre_edificio, id_facultad, direccion, departamento)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO edificio (nombre_edificio, id_facultad, direccion, departamento, habilitado)
+            VALUES (%s, %s, %s, %s, TRUE)
         """, (data.nombre_edificio, data.id_facultad, data.direccion, data.departamento))
 
         cn.commit()
 
-        return {"mensaje": "Edificio creado correctamente"}
+        return {"mensaje": "Edificio creado correctamente", "habilitado": True}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

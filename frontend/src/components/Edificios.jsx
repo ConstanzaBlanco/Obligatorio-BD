@@ -12,19 +12,32 @@ export default function Edificios() {
   const [facultades, setFacultades] = useState([]);
   const [mensaje, setMensaje] = useState("");
 
+  //  CREAR EDIFICIO (FORM) 
   const [nuevoNombre, setNuevoNombre] = useState("");
   const [nuevaDireccion, setNuevaDireccion] = useState("");
   const [nuevoDepartamento, setNuevoDepartamento] = useState("");
   const [idFacultad, setIdFacultad] = useState("");
 
-  // ========= MODAL ===============
+  // MODAL 
   const [showModal, setShowModal] = useState(false);
   const [edificioAEditar, setEdificioAEditar] = useState(null);
-  const [editIdFacultad, setEditIdFacultad] = useState("");
 
-  // ========= GUARDAR CAMBIOS ==========
+  const [editIdFacultad, setEditIdFacultad] = useState("");
+  const [editHabilitado, setEditHabilitado] = useState("");
+
   const guardarCambios = async () => {
     const token = localStorage.getItem("token");
+
+    const body = {
+      nombre_original: edificioAEditar.nombre_edificio,
+    };
+
+    if (editIdFacultad !== "") {
+      body.id_facultad = parseInt(editIdFacultad);
+    }
+    if (editHabilitado !== "") {
+      body.habilitado = editHabilitado === "true";
+    }
 
     try {
       const res = await fetch("http://localhost:8000/editarEdificio", {
@@ -33,11 +46,7 @@ export default function Edificios() {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          nombre_original: edificioAEditar.nombre_edificio,
-          nuevo_nombre: edificioAEditar.nombre_edificio, // NO SE CAMBIA
-          id_facultad: parseInt(editIdFacultad),
-        }),
+        body: JSON.stringify(body),
       });
 
       const data = await res.json();
@@ -50,15 +59,12 @@ export default function Edificios() {
       setMensaje("Edificio actualizado correctamente.");
       setShowModal(false);
       cargarEdificios();
-
     } catch {
       setMensaje("Error al editar edificio.");
     }
   };
 
-  // ============================
   // Cargar departamentos
-  // ============================
   const cargarDepartamentos = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -70,9 +76,7 @@ export default function Edificios() {
     } catch {}
   };
 
-  // ============================
   // Cargar facultades
-  // ============================
   const cargarFacultades = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -84,9 +88,7 @@ export default function Edificios() {
     } catch {}
   };
 
-  // ============================
   // Cargar edificios
-  // ============================
   const cargarEdificios = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -116,9 +118,7 @@ export default function Edificios() {
     cargarEdificios();
   }, [departamentoFiltro]);
 
-  // ======================
   // ELIMINAR (ADMIN)
-  // ======================
   const eliminarEdificio = async (nombre_edificio) => {
     if (!window.confirm(`¿Seguro que deseas eliminar "${nombre_edificio}"?`)) return;
 
@@ -147,9 +147,7 @@ export default function Edificios() {
     }
   };
 
-  // ======================
   // CREAR (ADMIN)
-  // ======================
   const crearEdificio = async (e) => {
     e.preventDefault();
     setMensaje("");
@@ -190,9 +188,19 @@ export default function Edificios() {
     }
   };
 
-  // ======================
-  // RENDER
-  // ======================
+
+  //   FILTRAR DEPARTAMENTOS
+  const departamentosFiltrados = departamentos.filter(dep => {
+    const edificiosDelDep = edificios.filter(e => e.departamento === dep);
+
+    if (edificiosDelDep.length === 0) return false;
+
+    const todosDeshabilitados = edificiosDelDep.every(e => e.habilitado === false);
+    if (todosDeshabilitados) return false;
+
+    return true;
+  });
+
   return (
     <div style={{ marginTop: 30 }}>
       <h2>Listado de Edificios</h2>
@@ -204,7 +212,7 @@ export default function Edificios() {
         style={{ marginRight: 10, padding: 5 }}
       >
         <option value="">Todos los departamentos</option>
-        {departamentos.map((dep, i) => (
+        {departamentosFiltrados.map((dep, i) => (
           <option key={i} value={dep}>{dep}</option>
         ))}
       </select>
@@ -214,7 +222,14 @@ export default function Edificios() {
       {/* LISTA */}
       <ul style={{ listStyle: "none", padding: 0, marginTop: 20 }}>
         {edificios.map((e, i) => (
-          <li key={i} style={itemStyle}>
+          <li
+            key={i}
+            style={{
+              ...itemStyle,
+              backgroundColor: e.habilitado ? "white" : "#e5e5e5",
+              opacity: e.habilitado ? 1 : 0.7,
+            }}
+          >
             <strong>
               <Link
                 to={`/edificios/${e.nombre_edificio}`}
@@ -227,6 +242,7 @@ export default function Edificios() {
             <p>Dirección: {e.direccion}</p>
             <p>Departamento: {e.departamento}</p>
             <p>ID Facultad: {e.id_facultad}</p>
+            <p><strong>Estado:</strong> {e.habilitado ? "Habilitado" : "Deshabilitado"}</p>
 
             {rol === "administrador" && (
               <>
@@ -235,10 +251,11 @@ export default function Edificios() {
                   onClick={() => {
                     setEdificioAEditar(e);
                     setEditIdFacultad(e.id_facultad);
+                    setEditHabilitado(e.habilitado ? "true" : "false");
                     setShowModal(true);
                   }}
                 >
-                  Editar Facultad
+                  Editar Edificio
                 </button>
 
                 <button
@@ -253,9 +270,7 @@ export default function Edificios() {
         ))}
       </ul>
 
-      {/* ========================== */}
-      {/*       FORM CREAR          */}
-      {/* ========================== */}
+      {/* FORM CREAR EDIFICIO */}
       {rol === "administrador" && (
         <>
           <h3 style={{ marginTop: 40 }}>Crear Nuevo Edificio</h3>
@@ -288,7 +303,6 @@ export default function Edificios() {
               style={inputStyle}
             />
 
-            {/* SELECT FACULTAD */}
             <select
               required
               size="5"
@@ -309,27 +323,37 @@ export default function Edificios() {
         </>
       )}
 
-      {/* ========================== */}
-      {/*       MODAL EDITAR         */}
-      {/* ========================== */}
+      {/* MODAL EDITAR */}
       {showModal && (
         <div style={modalOverlay}>
           <div style={modalContent}>
-            <h3>Editar Facultad del Edificio</h3>
+            <h3>Editar Edificio</h3>
 
             <p><strong>{edificioAEditar?.nombre_edificio}</strong></p>
 
+            <label>Facultad:</label>
             <select
               value={editIdFacultad}
               onChange={(e) => setEditIdFacultad(e.target.value)}
               style={inputStyle}
             >
-              <option value="">Seleccione facultad...</option>
+              <option value="">(sin cambios)</option>
               {facultades.map((f) => (
                 <option key={f.id_facultad} value={f.id_facultad}>
                   {f.nombre}
                 </option>
               ))}
+            </select>
+
+            <label>Estado del edificio:</label>
+            <select
+              value={editHabilitado}
+              onChange={(e) => setEditHabilitado(e.target.value)}
+              style={inputStyle}
+            >
+              <option value="">(sin cambios)</option>
+              <option value="true">Habilitado</option>
+              <option value="false">Deshabilitado</option>
             </select>
 
             <div style={{ marginTop: 15 }}>
@@ -344,12 +368,11 @@ export default function Edificios() {
           </div>
         </div>
       )}
-
     </div>
   );
 }
 
-/* ESTILOS */
+
 const itemStyle = {
   border: "1px solid #ccc",
   padding: 12,
@@ -367,17 +390,6 @@ const inputStyle = {
   padding: 8,
   borderRadius: 6,
   border: "1px solid #ccc",
-};
-
-const btnCrear = {
-  marginTop: 10,
-  padding: "8px 12px",
-  backgroundColor: "#28a745",
-  color: "white",
-  border: "none",
-  borderRadius: 6,
-  cursor: "pointer",
-  width: "100%",
 };
 
 const btnEliminar = {
@@ -418,6 +430,17 @@ const btnGuardar = {
   borderRadius: 6,
   border: "none",
   cursor: "pointer",
+};
+
+const btnCrear = {
+  marginTop: 10,
+  padding: "8px 12px",
+  backgroundColor: "#28a745",
+  color: "white",
+  border: "none",
+  borderRadius: 6,
+  cursor: "pointer",
+  width: "100%",
 };
 
 const modalOverlay = {

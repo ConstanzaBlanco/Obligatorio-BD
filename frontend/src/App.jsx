@@ -22,11 +22,11 @@ import CrearReserva from "./components/User/CrearReserva";
 import Reservas from "./components/Bibliotecario/Reservas";
 import Sanciones from "./components/Bibliotecario/Sanciones";
 import CreateBiblioUser from "./components/Admin/CrearBibliotecario";
-import DeleteBiblio from "./components/Admin/DeleteBiblio";
-import DeleteUser from "./components/Bibliotecario/DeleteUser";
+import Usuarios from "./components/Admin/Usuarios";
 import AdminOrBiblioOnly from "./protect/AdminOrBiblioOnly";
 import FacultadManager from "./components/Admin/Facultad";
 import ProgramaManager from "./components/Admin/ProgramaAcademico";
+import Home from "./components/Home";
 
 export default function App() {
   const { user, logout } = useUser();
@@ -45,27 +45,7 @@ export default function App() {
 
               <Route
                 path="/"
-                element={
-                  <>
-                    <h2>Bienvenido/a {user.name}</h2>
-                    <h3>Tu rol es: <strong>{user.rol}</strong></h3>
-
-                    <button
-                      onClick={logout}
-                      style={{
-                        padding: "8px 14px",
-                        marginBottom: 25,
-                        backgroundColor: "#dc3545",
-                        color: "white",
-                        border: "none",
-                        borderRadius: 5,
-                        cursor: "pointer",
-                      }}
-                    >
-                      Cerrar sesión
-                    </button>
-                  </>
-                }
+                element={<Home />}
               />
 
               <Route path="/mis-reservas" element={<MisReservas />} />
@@ -84,13 +64,12 @@ export default function App() {
 
               <Route element={<AdminOnly />}>
                 <Route path="/crearBibliotecario" element={<CreateBiblioUser />} />
-                <Route path="/eliminarBibliotecario" element={<DeleteBiblio />} />
                 <Route path="/facultad" element={<FacultadManager />} />
                 <Route path="/programa" element={<ProgramaManager />} />
               </Route>
 
               <Route element={<AdminOrBiblioOnly />}>
-                <Route path="/eliminarUsuario" element={<DeleteUser />} />
+                <Route path="/users" element={<Usuarios />} />
               </Route>
 
             </Route>
