@@ -154,28 +154,28 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         if resp['cantidad_reservas'] >= 3:
             return {"error": "El participante ya tiene 3 reservas en la semana actual"}
 
-        # Crear la reserva
+        # Crear la reserva (incluyendo creador)
         cur.execute("""
-            INSERT INTO reserva (nombre_sala, edificio, fecha, id_turno, estado) 
-            VALUES (%s, %s, %s, %s, 'activa');
-        """, (request.nombre_sala, request.edificio, request.fecha, request.id_turno))
+            INSERT INTO reserva (nombre_sala, edificio, fecha, id_turno, estado, creador) 
+            VALUES (%s, %s, %s, %s, 'activa', %s);
+        """, (request.nombre_sala, request.edificio, request.fecha, request.id_turno, ci))
 
         cn.commit()
         id_reserva = cur.lastrowid
 
-        # Asociar participante principal
+        # Asociar participante principal (creador) con estado 'creador'
         cur.execute("""
-            INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia) 
-            VALUES (%s, %s, FALSE);
+            INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia, estado_invitacion) 
+            VALUES (%s, %s, FALSE, 'creador');
         """, (ci, id_reserva))
 
         cn.commit()
 
-        # Asociar otros participantes
+        # Asociar otros participantes con estado 'pendiente' (invitaciones)
         for ci_participantes in request.participantes:
             cur.execute("""
-                INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia)
-                VALUES (%s, %s, FALSE);
+                INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia, estado_invitacion)
+                VALUES (%s, %s, FALSE, 'pendiente');
             """, (ci_participantes, id_reserva))
 
         cn.commit()
@@ -183,7 +183,9 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         return {
             "mensaje": "Reserva creada correctamente",
             "id_reserva": id_reserva,
-            "participantes_totales": [ci] + request.participantes
+            "creador": ci,
+            "participantes_invitados": request.participantes,
+            "estado_invitaciones": "pendiente"
         }
 
     except Exception as e:
