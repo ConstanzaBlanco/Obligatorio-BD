@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useUser } from "./UserContext";
 import CrearReserva from "./User/CrearReserva";
+import NotFound from "./NotFound";  
 
 export default function SalasPorEdificio() {
 
@@ -16,6 +17,7 @@ export default function SalasPorEdificio() {
   const [idTurno, setIdTurno] = useState("");
 
   const [mensaje, setMensaje] = useState("");
+  const [notFound, setNotFound] = useState(false);  
 
   const [nombreSala, setNombreSala] = useState("");
   const [capacidad, setCapacidad] = useState("");
@@ -95,6 +97,7 @@ export default function SalasPorEdificio() {
     cargarTurnos();
   }, []);
 
+
   // CARGAR SALAS
   async function cargarSalas() {
     try {
@@ -107,6 +110,12 @@ export default function SalasPorEdificio() {
       const res = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
+
+      // REDIRECCIÓN SI EL EDIFICIO NO EXISTE
+      if (res.status === 404) {
+        setNotFound(true);
+        return;
+      }
 
       const data = await res.json();
 
@@ -129,6 +138,12 @@ export default function SalasPorEdificio() {
   useEffect(() => {
     cargarSalas();
   }, [nombreEdificio, fecha, idTurno]);
+
+
+  // SI EL EDIFICIO NO EXISTE, MOSTRAR LA PÁGINA 404
+  if (notFound) {
+    return <NotFound mensaje="El edificio no existe." />;
+  }
 
 
   // CREAR SALA
@@ -173,7 +188,6 @@ export default function SalasPorEdificio() {
 
 
   // ELIMINAR SALA 
-
   async function eliminarSala(nombre_sala) {
     if (!window.confirm(`¿Seguro que deseas eliminar la sala "${nombre_sala}"?`))
       return;
@@ -204,8 +218,10 @@ export default function SalasPorEdificio() {
     }
   }
 
+
   const salasHabilitadas = salas.filter(s => s.habilitada === 1 || s.habilitada === true);
   const salasDeshabilitadas = salas.filter(s => !s.habilitada);
+
 
   return (
     <div style={{ marginTop: 30 }}>
@@ -292,7 +308,6 @@ export default function SalasPorEdificio() {
                   Editar
                 </button>
 
-                {/* BOTÓN ELIMINAR  */}
                 <button
                   onClick={() => eliminarSala(s.nombre_sala)}
                   style={{
@@ -361,7 +376,6 @@ export default function SalasPorEdificio() {
                       Editar
                     </button>
 
-                    {/* BOTÓN ELIMINAR */}
                     <button
                       onClick={() => eliminarSala(s.nombre_sala)}
                       style={{
