@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends
 from db.connector import getConnection
-from core.security import currentUser
 from core.security import requireRole
 
 router = APIRouter()
@@ -12,6 +11,7 @@ def seePastAndActiveReservations(user = Depends(requireRole("Bibliotecario"))):
         cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
 
+        # SOLO usuarios con invitación aceptada O creador
         cur.execute("""
             SELECT
                 r.id_reserva,
@@ -24,8 +24,10 @@ def seePastAndActiveReservations(user = Depends(requireRole("Bibliotecario"))):
                 t.hora_fin
             FROM turno t
             JOIN reserva r ON t.id_turno = r.id_turno
-            JOIN reserva_participante rp ON r.id_reserva = rp.id_reserva
+            JOIN reserva_participante rp 
+                ON r.id_reserva = rp.id_reserva
             WHERE r.estado = 'activa'
+              AND (rp.estado_invitacion = 'aceptada' OR rp.estado_invitacion = 'creador')
               AND (
                     r.fecha < CURRENT_DATE
                     OR (r.fecha = CURRENT_DATE AND CURRENT_TIME > t.hora_fin)
@@ -43,9 +45,9 @@ def seePastAndActiveReservations(user = Depends(requireRole("Bibliotecario"))):
                     "id_reserva": row["id_reserva"],
                     "nombre_sala": row["nombre_sala"],
                     "edificio": row["edificio"],
-                    "fecha": row["fecha"],
-                    "hora_inicio": row["hora_inicio"],
-                    "hora_fin": row["hora_fin"],
+                    "fecha": str(row["fecha"]),
+                    "hora_inicio": str(row["hora_inicio"]),
+                    "hora_fin": str(row["hora_fin"]),
                     "estado": row["estado"],
                     "ci_participantes": []
                 }
