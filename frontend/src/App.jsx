@@ -27,6 +27,7 @@ import AdminOrBiblioOnly from "./protect/AdminOrBiblioOnly";
 import FacultadManager from "./components/Admin/Facultad";
 import ProgramaManager from "./components/Admin/ProgramaAcademico";
 import Home from "./components/Home";
+import NotFound from "./components/NotFound";
 
 export default function App() {
   const { user, logout } = useUser();
@@ -71,6 +72,9 @@ export default function App() {
               <Route element={<AdminOrBiblioOnly />}>
                 <Route path="/users" element={<Usuarios />} />
               </Route>
+
+              <Route path="*" element={<NotFound />} />
+
 
             </Route>
           </Route>
