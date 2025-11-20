@@ -30,37 +30,58 @@ def seeOwnActiveReservations(user=Depends(currentUser)):
         # Me quedo con la fecha y hora actual del sistema
         cur.execute("SELECT NOW() AS now;")
         now = cur.fetchone()["now"]
+        date_now = now.date()
+        time_now = now.time()
 
-        # Consultamos por las reservas activas que aún se pueden cancelar
+        # Reservas CREADAS por el usuario (que puede cancelar)
         cur.execute("""
-            SELECT 
+            SELECT
                 r.id_reserva,
-                rp.ci_participante,
                 r.nombre_sala,
                 r.edificio,
-                r.fecha, 
+                r.fecha,
+                t.hora_inicio,
+                t.hora_fin,
+                r.estado
+            FROM turno t
+            JOIN reserva r ON t.id_turno = r.id_turno
+            WHERE r.estado = 'activa'
+              AND r.creador = %s
+              AND (r.fecha > %s OR (r.fecha = %s AND t.hora_inicio > %s))
+            ORDER BY r.fecha, t.hora_inicio
+        """, (ci, date_now, date_now, time_now))
+
+        mis_reservas_creadas = cur.fetchall()
+
+        # Reservas donde el usuario PARTICIPA pero NO es el creador
+        cur.execute("""
+            SELECT
+                r.id_reserva,
+                r.creador,
+                r.nombre_sala,
+                r.edificio,
+                r.fecha,
                 t.hora_inicio,
                 t.hora_fin,
                 r.estado,
-                rp.fecha_solicitud_reserva
+                rp.fecha_solicitud_reserva,
+                rp.estado_invitacion
             FROM turno t
             JOIN reserva r ON t.id_turno = r.id_turno
             JOIN reserva_participante rp ON r.id_reserva = rp.id_reserva
             WHERE r.estado = 'activa'
-                AND rp.ci_participante = %s
-                -- No permitir reservas de días pasados
-                AND r.fecha >= DATE(%s)
-                -- Si la reserva es hoy, no permitir si ya empezó
-                AND NOT (
-                        r.fecha = DATE(%s)
-                        AND t.hora_inicio <= TIME(%s)
-                    )
-            ORDER BY r.fecha, t.hora_inicio;
-        """, (ci, now, now, now))
+              AND rp.ci_participante = %s
+              AND r.creador != %s
+              AND (r.fecha > %s OR (r.fecha = %s AND t.hora_inicio > %s))
+            ORDER BY r.fecha, t.hora_inicio
+        """, (ci, ci, date_now, date_now, time_now))
 
-        reservas = cur.fetchall()
+        reservas_donde_participo = cur.fetchall()
 
-        return {"reservas_activas_del_usuario": reservas}
+        return {
+            "mis_reservas_creadas": mis_reservas_creadas,
+            "reservas_donde_participo": reservas_donde_participo
+        }
 
     except HTTPException:
         raise
