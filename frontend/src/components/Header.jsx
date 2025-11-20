@@ -13,6 +13,7 @@ export default function Header() {
         {rol === "usuario" && (
           <>
             <Link to="/mis-reservas" style={linkStyle}>Mis Reservas</Link>
+            <Link to="/mis-invitaciones" style={linkStyle}>Invitaciones</Link>
             <Link to="/mis-sanciones" style={linkStyle}>Mis Sanciones</Link>
             <Link to="/edificios" style={linkStyle}>Reservar</Link>
           </>

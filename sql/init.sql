@@ -71,7 +71,6 @@ CREATE TABLE turno (
     hora_inicio TIME NOT NULL,
     hora_fin TIME NOT NULL
 );
-
 -- Tabla de reserva
 CREATE TABLE reserva (
     id_reserva INT AUTO_INCREMENT PRIMARY KEY,
@@ -120,6 +119,7 @@ INSERT INTO edificio (nombre_edificio, id_facultad, direccion, departamento, hab
 ('Sur', 2, 'Calle Secundaria 45', 'Canelones', TRUE),
 ('Norte', 3, 'Av. Legal 456', 'Maldonado', TRUE),
 ('Este', 4, 'Calle Financiera 89', 'Colonia', TRUE);
+
 
 
 -- INSERT SALAS
@@ -198,7 +198,6 @@ INSERT INTO reserva (nombre_sala, edificio, fecha, id_turno, estado, creador) VA
 ('Sala D', 'Este', '2025-10-25', 1, 'activa', 12345678),
 ('Sala E', 'Central', '2025-10-25', 2, 'activa', 12345678);
 
--- Reserva-participante
 INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia, estado_invitacion) VALUES
 (12345678, 1, TRUE, 'aceptada'),
 (87654321, 2, FALSE, 'aceptada'),
@@ -209,7 +208,7 @@ INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia, estad
 (87654321, 6, TRUE, 'aceptada'),
 (12345678, 7, FALSE, 'aceptada'),
 (33333333, 8, TRUE, 'aceptada'),
-(11111111, 9, FALSE, 'aceptada');
+(11111111, 9, FALSE, 'aceptada'); 
 
 -- Sanciones
 INSERT INTO sancion_participante (ci_participante, fecha_inicio, fecha_fin) VALUES
