@@ -7,6 +7,7 @@ from db.academicProgramSentences import (
     updatePrograma,
     deletePrograma
 )
+from db.facultadSentences import getFacultades
 from core.security import requireRole
 
 router = APIRouter(prefix="/programa", tags=["Programa Académico"])
@@ -45,7 +46,12 @@ def create_programa(payload: ProgramaCreate, user = Depends(requireRole("Adminis
 @router.get("/all")
 def get_all_programas(user = Depends(requireRole("Administrador"))):
     roleDb = user["rol"]
-    return getProgramas(roleDb)
+    programas = getProgramas(roleDb)
+    facultades = getFacultades(roleDb)
+    return {
+        "programas": programas,
+        "facultades": facultades
+    }
 
 
 @router.get("/{nombre_programa}")
