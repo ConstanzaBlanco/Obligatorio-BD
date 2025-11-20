@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from core.security import createToken
+from core.invalidInput import isInvalidInput
 from db.loginSentences import getUser, updateLastAccess
 from core.passwordHash import verifyPassword
 
@@ -14,6 +15,9 @@ class LoginRequest(BaseModel):
 def login(payload: LoginRequest):
     correo = payload.username
     password = payload.password
+
+    if isInvalidInput(correo) or isInvalidInput(password):
+        raise HTTPException(status_code=401, detail="Error: credenciales inválidas")
 
     user = getUser(correo)
     roleDb = user["rol"]
