@@ -23,14 +23,13 @@ export default function SalasPorEdificio() {
 
   const hoy = new Date().toISOString().split("T")[0];
 
-  // --- MODAL ---
+  // MODAL
   const [modalOpen, setModalOpen] = useState(false);
   const [editNombreSala, setEditNombreSala] = useState("");
   const [editCapacidad, setEditCapacidad] = useState("");
   const [editTipoSala, setEditTipoSala] = useState("");
   const [editHabilitada, setEditHabilitada] = useState(true);
 
-  // Abrir modal y cargar datos
   const abrirModal = (sala) => {
     setEditNombreSala(sala.nombre_sala);
     setEditCapacidad(sala.capacidad);
@@ -39,7 +38,6 @@ export default function SalasPorEdificio() {
     setModalOpen(true);
   };
 
-  // Guardar cambios del modal — ARREGLADO
   const guardarCambios = async () => {
     const token = localStorage.getItem("token");
 
@@ -75,9 +73,8 @@ export default function SalasPorEdificio() {
     }
   };
 
-  // ===================================
+
   // CARGAR TURNOS
-  // ===================================
   useEffect(() => {
     const cargarTurnos = async () => {
       try {
@@ -98,9 +95,7 @@ export default function SalasPorEdificio() {
     cargarTurnos();
   }, []);
 
-  // ===================================
   // CARGAR SALAS
-  // ===================================
   async function cargarSalas() {
     try {
       const token = localStorage.getItem("token");
@@ -135,9 +130,8 @@ export default function SalasPorEdificio() {
     cargarSalas();
   }, [nombreEdificio, fecha, idTurno]);
 
-  // ===================================
+
   // CREAR SALA
-  // ===================================
   const crearSala = async (e) => {
     e.preventDefault();
     setMensaje("");
@@ -176,6 +170,39 @@ export default function SalasPorEdificio() {
       setMensaje("Error creando sala.");
     }
   };
+
+
+  // ELIMINAR SALA 
+
+  async function eliminarSala(nombre_sala) {
+    if (!window.confirm(`¿Seguro que deseas eliminar la sala "${nombre_sala}"?`))
+      return;
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(
+        `http://localhost:8000/eliminarSala/${encodeURIComponent(nombre_sala)}/${encodeURIComponent(nombreEdificio)}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setMensaje(data.detail || "Error eliminando sala.");
+        return;
+      }
+
+      setMensaje("Sala eliminada correctamente.");
+      cargarSalas();
+
+    } catch {
+      setMensaje("Error eliminando sala.");
+    }
+  }
 
   const salasHabilitadas = salas.filter(s => s.habilitada === 1 || s.habilitada === true);
   const salasDeshabilitadas = salas.filter(s => !s.habilitada);
@@ -219,9 +246,7 @@ export default function SalasPorEdificio() {
         </p>
       )}
 
-      {/* ============================= */}
       {/*     SALAS HABILITADAS         */}
-      {/* ============================= */}
       <h3 style={{ textAlign: "center", marginTop: 30 }}>Salas habilitadas</h3>
 
       <div style={{
@@ -250,28 +275,45 @@ export default function SalasPorEdificio() {
             <p><strong>Estado:</strong> Habilitada</p>
 
             {rol === "administrador" && (
-              <button
-                onClick={() => abrirModal(s)}
-                style={{
-                  backgroundColor: "#007bff",
-                  color: "white",
-                  border: "none",
-                  padding: "8px 12px",
-                  marginTop: 10,
-                  borderRadius: 5,
-                  cursor: "pointer"
-                }}
-              >
-                Editar
-              </button>
+              <>
+                <button
+                  onClick={() => abrirModal(s)}
+                  style={{
+                    backgroundColor: "#007bff",
+                    color: "white",
+                    border: "none",
+                    padding: "8px 12px",
+                    marginTop: 10,
+                    borderRadius: 5,
+                    cursor: "pointer",
+                    marginRight: 10
+                  }}
+                >
+                  Editar
+                </button>
+
+                {/* BOTÓN ELIMINAR  */}
+                <button
+                  onClick={() => eliminarSala(s.nombre_sala)}
+                  style={{
+                    backgroundColor: "#dc3545",
+                    color: "white",
+                    border: "none",
+                    padding: "8px 12px",
+                    marginTop: 10,
+                    borderRadius: 5,
+                    cursor: "pointer"
+                  }}
+                >
+                  Eliminar
+                </button>
+              </>
             )}
           </div>
         ))}
       </div>
 
-      {/* ============================= */}
       {/* SALAS DESHABILITADAS */}
-      {/* ============================= */}
       {(rol === "administrador" || rol === "bibliotecario") && (
         <>
           <h3 style={{ textAlign: "center", marginTop: 40 }}>Salas deshabilitadas</h3>
@@ -302,21 +344,41 @@ export default function SalasPorEdificio() {
                 <p><strong>Estado:</strong> No habilitada</p>
 
                 {rol === "administrador" && (
-                  <button
-                    onClick={() => abrirModal(s)}
-                    style={{
-                      backgroundColor: "#007bff",
-                      color: "white",
-                      border: "none",
-                      padding: "8px 12px",
-                      marginTop: 10,
-                      borderRadius: 5,
-                      cursor: "pointer"
-                    }}
-                  >
-                    Editar
-                  </button>
+                  <>
+                    <button
+                      onClick={() => abrirModal(s)}
+                      style={{
+                        backgroundColor: "#007bff",
+                        color: "white",
+                        border: "none",
+                        padding: "8px 12px",
+                        marginTop: 10,
+                        borderRadius: 5,
+                        cursor: "pointer",
+                        marginRight: 10
+                      }}
+                    >
+                      Editar
+                    </button>
+
+                    {/* BOTÓN ELIMINAR */}
+                    <button
+                      onClick={() => eliminarSala(s.nombre_sala)}
+                      style={{
+                        backgroundColor: "#dc3545",
+                        color: "white",
+                        border: "none",
+                        padding: "8px 12px",
+                        marginTop: 10,
+                        borderRadius: 5,
+                        cursor: "pointer"
+                      }}
+                    >
+                      Eliminar
+                    </button>
+                  </>
                 )}
+
               </div>
             ))}
           </div>
@@ -371,9 +433,8 @@ export default function SalasPorEdificio() {
         </div>
       )}
 
-      {/* ======================= */}
+
       {/* MODAL EDITAR */}
-      {/* ======================= */}
       {modalOpen && (
         <div style={modalOverlay}>
           <div style={modalBox}>
