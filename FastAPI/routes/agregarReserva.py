@@ -25,7 +25,9 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         # CI del usuario autenticado 
         ci = user["ci"]
 
-        # Ver que el usuario no haya reservado ya 2 veces en ese dia
+
+        # LIMITE DE 2 HORAS POR DÍA -> SOLO SI NO ES EXCEPCIÓN
+
         cur.execute(
             """
             SELECT COUNT(*) AS reservas_diarias
@@ -38,10 +40,12 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         )
 
         row = cur.fetchone()
-        if row and row["reservas_diarias"] >= 2:
-            return {"error": "Ya reservaste 2 horas en este día"}
 
-        
+        # Aún no sabemos si es excepción, Lo validamos después
+        limite_diario_superado = row and row["reservas_diarias"] >= 2
+
+
+
         # Sala y edificio existentes, ver si la sala está habilitada
         cur.execute("""
             SELECT 
@@ -107,9 +111,10 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
 
 
         # DETERMINAR SI ESTE USUARIO TIENE EXCEPCIÓN DE LÍMITES
+
         es_excepcion = False
 
-        # Sala de posgrado → excepción solo si es posgrado o docente
+        # Sala de posgrado, excepción si es posgrado o docente
         if sala['tipo_sala'] == 'posgrado':
             cur.execute("""
                 SELECT pa.tipo
@@ -139,6 +144,15 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
             """, (ci,))
             if cur.fetchone():
                 es_excepcion = True
+
+
+
+
+        # APLICAR LÍMITE DIARIO SOLO SI NO ES EXCEPCIÓN
+
+        if limite_diario_superado and not es_excepcion:
+            return {"error": "Ya reservaste 2 horas en este día"}
+
 
 
         # Verificar tipo de sala y tipo del participante (permisos normales)
@@ -176,8 +190,9 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
             return {"error": "El participante se encuentra sancionado y no puede realizar reservas"}
 
 
-        # VALIDACIÓN: NO MÁS DE 3 RESERVAS POR SEMANA
-        #    (SOLO SI NO ES EXCEPCIÓN)
+
+        # VALIDACIÓN: NO MÁS DE 3 RESERVAS POR SEMANA (si no es excepción)
+
         if not es_excepcion:
             cur.execute("""
                 SELECT COUNT(*) AS cantidad_reservas
@@ -191,6 +206,7 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
             resp4 = cur.fetchone()
             if resp4['cantidad_reservas'] >= 3:
                 return {"error": "Ya tenés 3 reservas esta semana"}
+
 
 
         # Crear la reserva (incluyendo creador)
