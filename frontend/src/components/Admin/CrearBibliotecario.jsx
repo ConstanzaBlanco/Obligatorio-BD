@@ -46,7 +46,7 @@ export default function CreateBiblioUser() {
       setOk("Bibliotecario creado correctamente ✔");
 
       setTimeout(() => {
-        navigate("/usuarios");
+        navigate("/users");
       }, 1500);
 
       setCorreo("");
