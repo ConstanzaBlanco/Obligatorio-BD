@@ -71,7 +71,6 @@ CREATE TABLE turno (
     hora_inicio TIME NOT NULL,
     hora_fin TIME NOT NULL
 );
-
 -- Tabla de reserva
 CREATE TABLE reserva (
     id_reserva INT AUTO_INCREMENT PRIMARY KEY,
@@ -80,8 +79,10 @@ CREATE TABLE reserva (
     fecha DATE NOT NULL,
     id_turno INT NOT NULL,
     estado ENUM('activa','cancelada','sin asistencia','finalizada') NOT NULL,
+    creador BIGINT NOT NULL,
     FOREIGN KEY (nombre_sala, edificio) REFERENCES sala(nombre_sala, edificio),
-    FOREIGN KEY (id_turno) REFERENCES turno(id_turno)
+    FOREIGN KEY (id_turno) REFERENCES turno(id_turno),
+    FOREIGN KEY (creador) REFERENCES participante(ci)
 );
 
 -- Tabla reserva_participante
@@ -90,6 +91,7 @@ CREATE TABLE reserva_participante (
     id_reserva INT NOT NULL,
     fecha_solicitud_reserva DATETIME DEFAULT CURRENT_TIMESTAMP,
     asistencia BOOLEAN DEFAULT FALSE,
+    estado_invitacion ENUM('pendiente','aceptada','rechazada','creador') NOT NULL DEFAULT 'aceptada',
     PRIMARY KEY (ci_participante, id_reserva),
     FOREIGN KEY (ci_participante) REFERENCES participante(ci),
     FOREIGN KEY (id_reserva) REFERENCES reserva(id_reserva)
@@ -112,6 +114,7 @@ INSERT INTO facultad (nombre) VALUES
 ('Ciencias'),
 ('Derecho'),
 ('Economia');
+
 
 -- Edificios
 INSERT INTO edificio (nombre_edificio, id_facultad, direccion, departamento) VALUES
@@ -187,29 +190,29 @@ INSERT INTO participante_programa_academico (ci_participante, nombre_programa, r
 (44444444, 'Fisica Teorica', 'alumno');
 
 -- Reservas
-INSERT INTO reserva (nombre_sala, edificio, fecha, id_turno, estado) VALUES
-('Sala A', 'Central', '2025-10-22', 1, 'activa'),
-('Sala B', 'Sur', '2025-10-23', 2, 'finalizada'),
-('Sala A', 'Central', '2025-10-24', 1, 'activa'),
-('Sala A', 'Central', '2025-10-24', 2, 'finalizada'),
-('Sala B', 'Sur', '2025-10-24', 3, 'cancelada'),
-('Sala C', 'Norte', '2025-10-24', 1, 'finalizada'),
-('Sala D', 'Este', '2025-10-24', 4, 'sin asistencia'),
-('Sala D', 'Este', '2025-10-25', 1, 'activa'),
-('Sala E', 'Central', '2025-10-25', 2, 'activa');
+INSERT INTO reserva (nombre_sala, edificio, fecha, id_turno, estado, creador) VALUES
+('Sala A', 'Central', '2025-10-22', 1, 'activa', 12345678),
+('Sala B', 'Sur', '2025-10-23', 2, 'finalizada', 12345678),
+('Sala A', 'Central', '2025-10-24', 1, 'activa', 12345678),
+('Sala A', 'Central', '2025-10-24', 2, 'finalizada', 12345678),
+('Sala B', 'Sur', '2025-10-24', 3, 'cancelada', 12345678),
+('Sala C', 'Norte', '2025-10-24', 1, 'finalizada', 12345678),
+('Sala D', 'Este', '2025-10-24', 4, 'sin asistencia', 12345678),
+('Sala D', 'Este', '2025-10-25', 1, 'activa', 12345678),
+('Sala E', 'Central', '2025-10-25', 2, 'activa', 12345678);
 
--- Reserva-participante
-INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia) VALUES
-(12345678, 1, TRUE),
-(87654321, 2, FALSE),
-(11111111, 3, TRUE),
-(22222222, 3, TRUE),
-(33333333, 4, TRUE),
-(44444444, 5, FALSE),
-(87654321, 6, TRUE),
-(12345678, 7, FALSE),
-(33333333, 8, TRUE),
-(11111111, 9, FALSE);
+-- Reserva-participante (incluye estado_invitacion)
+INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia, estado_invitacion) VALUES
+(12345678, 1, TRUE, 'aceptada'),
+(87654321, 2, FALSE, 'aceptada'),
+(11111111, 3, TRUE, 'aceptada'),
+(22222222, 3, TRUE, 'aceptada'),
+(33333333, 4, TRUE, 'aceptada'),
+(44444444, 5, FALSE, 'aceptada'),
+(87654321, 6, TRUE, 'aceptada'),
+(12345678, 7, FALSE, 'aceptada'),
+(33333333, 8, TRUE, 'aceptada'),
+(11111111, 9, FALSE, 'aceptada'); 
 
 -- Sanciones
 INSERT INTO sancion_participante (ci_participante, fecha_inicio, fecha_fin) VALUES
