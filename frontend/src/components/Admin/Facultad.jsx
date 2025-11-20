@@ -154,7 +154,6 @@ export default function FacultadManager() {
       <table style={styles.table}>
         <thead>
           <tr>
-            <th>ID</th>
             <th>Nombre</th>
             <th style={{ width: 150 }}>Acciones</th>
           </tr>
@@ -163,7 +162,6 @@ export default function FacultadManager() {
         <tbody>
           {facultades.map((fac) => (
             <tr key={fac.id_facultad}>
-              <td>{fac.id_facultad}</td>
 
               <td>
                 {editId === fac.id_facultad ? (
