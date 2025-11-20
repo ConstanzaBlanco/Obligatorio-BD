@@ -11,22 +11,27 @@ def obtener_edificios(departamento: str = None, user = Depends(requireRole("Admi
         cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
 
-        # Hacemos una query que nos de todos los edificios, con filtro opcional
         query = """
             SELECT 
                 nombre_edificio,
                 direccion,
                 departamento,
-                id_facultad
+                id_facultad,
+                habilitado
             FROM edificio
             WHERE 1 = 1
         """
 
         params = []
 
+        # Filtro por departamento
         if departamento:
             query += " AND departamento = %s"
             params.append(departamento)
+
+        # Los usuarios ven solo los habilitados
+        if roleDb.lower() == "usuario":
+            query += " AND habilitado = TRUE"
 
         cur.execute(query, tuple(params))
         edificios = cur.fetchall()

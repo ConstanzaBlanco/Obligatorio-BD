@@ -27,10 +27,10 @@ CREATE TABLE programa_academico (
 
 -- Tabla de participante
 CREATE TABLE participante (
-    ci BIGINT PRIMARY KEY,
+    ci BIGINT NOT NULL PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL,
     apellido VARCHAR(50) NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
+    email VARCHAR(100),
     FOREIGN KEY (email) REFERENCES login(correo)
 );
 
@@ -44,15 +44,15 @@ CREATE TABLE participante_programa_academico (
     FOREIGN KEY (nombre_programa) REFERENCES programa_academico(nombre_programa)
 );
 
--- Tabla de edificio
+-- Tabla de edificio 
 CREATE TABLE edificio (
     nombre_edificio VARCHAR(100) PRIMARY KEY,
     id_facultad INT NOT NULL,
     direccion VARCHAR(200),
     departamento VARCHAR(100),
+    habilitado BOOLEAN NOT NULL DEFAULT TRUE,   
     FOREIGN KEY (id_facultad) REFERENCES facultad(id_facultad)
 );
-
 
 -- Tabla de Sala
 CREATE TABLE sala (
@@ -106,8 +106,6 @@ CREATE TABLE sancion_participante (
     FOREIGN KEY (ci_participante) REFERENCES participante(ci)
 );
 
--- Insertar datos re chetos
-
 -- Facultades
 INSERT INTO facultad (nombre) VALUES
 ('Ingenieria'),
@@ -115,17 +113,16 @@ INSERT INTO facultad (nombre) VALUES
 ('Derecho'),
 ('Economia');
 
+-- Edificios 
+INSERT INTO edificio (nombre_edificio, id_facultad, direccion, departamento, habilitado) VALUES
+('Central', 1, 'Av. Principal 123', 'Montevideo', TRUE),
+('Sur', 2, 'Calle Secundaria 45', 'Canelones', TRUE),
+('Norte', 3, 'Av. Legal 456', 'Maldonado', TRUE),
+('Este', 4, 'Calle Financiera 89', 'Colonia', TRUE);
 
--- Edificios
-INSERT INTO edificio (nombre_edificio, id_facultad, direccion, departamento) VALUES
-('Central', 1, 'Av. Principal 123', 'Montevideo'),
-('Sur', 2, 'Calle Secundaria 45', 'Canelones'),
-('Norte', 3, 'Av. Legal 456', 'Maldonado'),
-('Este', 4, 'Calle Financiera 89', 'Colonia');
 
--- ============================================
--- INSERT SALAS (AGREGADO habilitada = TRUE)
--- ============================================
+
+-- INSERT SALAS
 INSERT INTO sala (nombre_sala, edificio, capacidad, tipo_sala, habilitada) VALUES
 ('Sala A', 'Central', 10, 'libre', TRUE),
 ('Sala B', 'Sur', 20, 'posgrado', TRUE),
@@ -201,7 +198,6 @@ INSERT INTO reserva (nombre_sala, edificio, fecha, id_turno, estado, creador) VA
 ('Sala D', 'Este', '2025-10-25', 1, 'activa', 12345678),
 ('Sala E', 'Central', '2025-10-25', 2, 'activa', 12345678);
 
--- Reserva-participante (incluye estado_invitacion)
 INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia, estado_invitacion) VALUES
 (12345678, 1, TRUE, 'aceptada'),
 (87654321, 2, FALSE, 'aceptada'),
