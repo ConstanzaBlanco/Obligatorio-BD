@@ -33,6 +33,7 @@ from routes import crearSala
 from routes import modificarSala
 from routes import estadisticas
 from routes import eliminarSala
+from routes import horaServidor
 # --- ADMIN ---
 
 from routes import CreateBiblio
@@ -100,6 +101,7 @@ app.include_router(editarEdificio.router)
 app.include_router(crearSala.router)
 app.include_router(modificarSala.router)
 app.include_router(eliminarSala.router)
+app.include_router(horaServidor.router)
 # --- routers admin ---
 app.include_router(CreateBiblio.router)
 app.include_router(changeRolOfUser.router)
