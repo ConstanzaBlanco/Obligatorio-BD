@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from core.security import requireRole
 from db.loginSentences import updatePassword
 from core.passwordHash import hashPassword, verifyPassword
+from core.invalidInput import isInvalidInput
 
 router = APIRouter()
 
@@ -12,6 +13,9 @@ class changePassword(BaseModel):
 
 @router.patch("/changePassword")
 def changePasswd(payload: changePassword, userLogin = Depends(requireRole("Usuario","Administrador","Bibliotecario"))):
+
+    if isInvalidInput(payload.currentPassword) or isInvalidInput(payload.newPassword):
+        raise HTTPException(status_code=401, detail="Error: credenciales inválidas")
     
     roleDb = userLogin["rol"]
     # La contraseña nueva no puede ser igual a la actual

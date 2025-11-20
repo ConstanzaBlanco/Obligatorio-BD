@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from db.loginSentences import updateRolOfUser
 from core.security import requireRole
+from core.invalidInput import isInvalidInput
 
 router = APIRouter()
 
@@ -14,6 +15,9 @@ class UpdateRolRequest(BaseModel):
 def updateUserRole(payload: UpdateRolRequest, user = Depends(requireRole("Administrador"))):
     correo = payload.correo.strip().lower()
     rol = payload.rol.strip()
+
+    if isInvalidInput(correo) or isInvalidInput(rol):
+        raise HTTPException(status_code=401, detail="Error: credenciales inválidas")
 
     roleDb = user["rol"]
 
