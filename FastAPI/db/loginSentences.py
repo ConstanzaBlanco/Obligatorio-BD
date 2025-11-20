@@ -135,3 +135,22 @@ def clearTokenJti(correo: str):
         return cur.rowcount
     finally:
         cn.close()
+
+def updateDataUser(newEmail: str, oldEmail: str, name: str, lastName: str, ci: int, roleDb: str):
+    cn = getConnection(roleDb)
+    try:
+        cur = cn.cursor()
+
+        cur.execute(
+            "UPDATE login SET correo=%s WHERE correo=%s",
+            (newEmail, oldEmail)
+        )
+
+        cur.execute(
+            "UPDATE participante SET nombre=%s, apellido=%s, email=%s WHERE ci=%s",
+            (name, lastName, newEmail, ci)
+        )
+
+        cn.commit()
+    finally:
+        cn.close()

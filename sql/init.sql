@@ -32,6 +32,7 @@ CREATE TABLE participante (
     apellido VARCHAR(50) NOT NULL,
     email VARCHAR(100),
     FOREIGN KEY (email) REFERENCES login(correo)
+        ON UPDATE CASCADE
 );
 
 -- Tabla participante_programa_academico
