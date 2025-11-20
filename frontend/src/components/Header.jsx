@@ -1,116 +1,67 @@
 import { Link } from "react-router-dom";
 import { useUser } from "./UserContext";
+import "./Header.css";
 
 export default function Header() {
   const { user, logout } = useUser();
   const rol = user?.rol?.toLowerCase();
 
   return (
-    <nav style={navStyle}>
-      {/* IZQUIERDA */}
-      <div style={leftSection}>
-        <Link to="/" style={linkStyle}>Home</Link>
-        {rol === "usuario" && (
-          <>
-            <Link to="/mis-reservas" style={linkStyle}>Mis Reservas</Link>
-            <Link to="/mis-invitaciones" style={linkStyle}>Invitaciones</Link>
-            <Link to="/mis-sanciones" style={linkStyle}>Mis Sanciones</Link>
-            <Link to="/edificios" style={linkStyle}>Reservar</Link>
-          </>
-        )}
+    <nav className="navbar">
+      <div className="navbar-container">
+        {/* LOGO / BRAND */}
+        <Link to="/" className="navbar-brand">
+          <span className="brand-icon">📚</span>
+          <span className="brand-text">SalaHub</span>
+        </Link>
 
-        {rol === "bibliotecario" && (
-          <>
-            <Link to="/reservas-vencidas" style={linkStyle}>Reservas Vencidas</Link>
-            <Link to="/reservas" style={linkStyle}>Reservas</Link>
-            <Link to="/edificios" style={linkStyle}>Edificios</Link>
-            <Link to="/sanciones" style={linkStyle}>Sanciones</Link>
-            <Link to="/users" style={linkStyle}>Usuario</Link>
-          </>
-        )}
+        {/* MENU NAVEGACION */}
+        <div className="navbar-menu">
+          <Link to="/" className="nav-link">Inicio</Link>
 
-        {rol === "administrador" && (
-          <>
-            <Link to="/edificios" style={linkStyle}>Edificios</Link>
-            <Link to="/facultad" style={linkStyle}>Facultades</Link>
-            <Link to="/programa" style={linkStyle}>Programa</Link>
-            <Link to="/users" style={linkStyle}>Usuarios</Link>
-          </>
-        )}
-      </div>
+          {rol === "usuario" && (
+            <>
+              <Link to="/mis-reservas" className="nav-link">Mis Reservas</Link>
+              <Link to="/mis-invitaciones" className="nav-link">Invitaciones</Link>
+              <Link to="/mis-sanciones" className="nav-link">Sanciones</Link>
+              <Link to="/edificios" className="nav-link nav-link-primary">+ Reservar</Link>
+            </>
+          )}
 
-      {/* DERECHA */}
-      <div style={rightSection}>
-        <button 
-          onClick={() => window.location.href = "/me"}
-          style={avatarBtn}
-        >
-          👤
-        </button>
+          {rol === "bibliotecario" && (
+            <>
+              <Link to="/reservas" className="nav-link">Reservas</Link>
+              <Link to="/reservas-vencidas" className="nav-link">Vencidas</Link>
+              <Link to="/sanciones" className="nav-link">Sanciones</Link>
+              <Link to="/users" className="nav-link">Usuarios</Link>
+            </>
+          )}
 
-        <button onClick={logout} style={logoutBtn}>
-          Cerrar sesión
-        </button>
+          {rol === "administrador" && (
+            <>
+              <Link to="/edificios" className="nav-link">Edificios</Link>
+              <Link to="/facultad" className="nav-link">Facultades</Link>
+              <Link to="/programa" className="nav-link">Programas</Link>
+              <Link to="/users" className="nav-link">Usuarios</Link>
+            </>
+          )}
+        </div>
+
+        {/* DERECHA - USER & LOGOUT */}
+        <div className="navbar-right">
+          <button
+            className="nav-avatar-btn"
+            title={`${user?.name || "Usuario"}`}
+            onClick={() => window.location.href = "/me"}
+          >
+            <span className="avatar-icon">👤</span>
+          </button>
+          <span className="nav-user-name">{user?.name || "Usuario"}</span>
+          <button className="nav-logout-btn" onClick={logout}>
+            Salir
+          </button>
+        </div>
       </div>
     </nav>
   );
 }
-
-/* ---------------- ESTILOS ---------------- */
-
-const navStyle = {
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-  padding: "12px 25px",
-  background: "#ffffff",
-  borderBottom: "2px solid #e5e5e5",
-  boxShadow: "0 3px 12px rgba(0,0,0,0.08)",
-  position: "sticky",
-  top: 0,
-  zIndex: 999,
-};
-
-const leftSection = {
-  display: "flex",
-  alignItems: "center",
-  gap: "15px",
-};
-
-const rightSection = {
-  display: "flex",
-  alignItems: "center",
-  gap: "10px",
-};
-
-const linkStyle = {
-  padding: "8px 12px",
-  borderRadius: "6px",
-  textDecoration: "none",
-  color: "#007bff",
-  fontWeight: 600,
-  transition: "0.2s ease",
-};
-
-const logoutBtn = {
-  padding: "8px 14px",
-  backgroundColor: "#dc3545",
-  color: "white",
-  border: "none",
-  borderRadius: "6px",
-  cursor: "pointer",
-  fontSize: "14px",
-};
-
-const avatarBtn = {
-  width: "38px",
-  height: "38px",
-  borderRadius: "50%",
-  background: "#e6e6ff",
-  border: "1px solid #ccc",
-  cursor: "pointer",
-  fontSize: "18px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-};

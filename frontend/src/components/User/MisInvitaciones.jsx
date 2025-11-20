@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "./MisInvitaciones.css";
 
 export default function MisInvitaciones() {
   const [invitaciones, setInvitaciones] = useState([]);
@@ -7,14 +8,21 @@ export default function MisInvitaciones() {
 
   const token = localStorage.getItem("token");
 
-  // Convierte "2025-11-16" → "16/11/2025"
-  function formatFecha(fechaStr) {
+  const formatFecha = (fechaStr) => {
     const fecha = new Date(fechaStr);
     return fecha.toLocaleDateString("es-UY");
-  }
+  };
+
+  const formatHora = (hora) => {
+    if (!hora) return "";
+    if (typeof hora === "string") {
+      const parts = hora.split(":");
+      return parts.length >= 2 ? `${parts[0]}:${parts[1]}` : hora;
+    }
+    return String(hora);
+  };
 
   const cargarInvitaciones = async () => {
-    console.log("Cargando invitaciones...");
     setLoading(true);
     try {
       const res = await fetch("http://localhost:8000/invitaciones/pendientes", {
@@ -59,7 +67,7 @@ export default function MisInvitaciones() {
         return;
       }
 
-      alert(data.mensaje || "Invitación aceptada");
+      alert("✓ Invitación aceptada");
       cargarInvitaciones();
     } catch (err) {
       console.error(err);
@@ -68,10 +76,7 @@ export default function MisInvitaciones() {
   };
 
   const rechazarInvitacion = async (id_reserva) => {
-    const confirmacion = window.confirm(
-      "¿Estás seguro de que querés rechazar esta invitación?"
-    );
-    if (!confirmacion) return;
+    if (!window.confirm("¿Estás seguro de que querés rechazar esta invitación?")) return;
 
     try {
       const res = await fetch("http://localhost:8000/invitaciones/rechazar", {
@@ -90,7 +95,7 @@ export default function MisInvitaciones() {
         return;
       }
 
-      alert(data.mensaje || "Invitación rechazada");
+      alert("✗ Invitación rechazada");
       cargarInvitaciones();
     } catch (err) {
       console.error(err);
@@ -103,78 +108,70 @@ export default function MisInvitaciones() {
   }, []);
 
   return (
-    <div style={{ padding: 24 }}>
-      <h2>Mis Invitaciones</h2>
+    <div className="container">
+      <div className="page-header">
+        <h1>Mis Invitaciones</h1>
+        <p className="subtitle">Recibiste {invitaciones.length} invitación(es) pendiente(s)</p>
+      </div>
 
-      {loading && <p>Cargando invitaciones...</p>}
+      {error && <div className="alert alert-danger">{error}</div>}
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      {!loading && invitaciones.length === 0 && (
-        <p>No tenés invitaciones pendientes.</p>
+      {loading && (
+        <div style={{ textAlign: "center", padding: "2rem" }}>
+          <p>Cargando invitaciones...</p>
+        </div>
       )}
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
+      {!loading && invitaciones.length === 0 && (
+        <div className="empty-state">
+          <p>📭 No tenés invitaciones pendientes</p>
+        </div>
+      )}
+
+      <div className="grid">
         {invitaciones.map((inv) => (
           <div
             key={`${inv.id_reserva}-${inv.ci_participante}`}
-            style={{
-              border: "2px solid #5cb85c",
-              borderRadius: 8,
-              padding: 16,
-              width: 300,
-              background: "#f0f8f0",
-              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-            }}
+            className="card invitation-card"
           >
-            <h4 style={{ marginTop: 0, color: "#333" }}>
-              {inv.nombre_sala} - {inv.edificio}
-            </h4>
-            <p>
-              <strong>Fecha:</strong> {formatFecha(inv.fecha)}
-            </p>
-            <p>
-              <strong>Hora:</strong> {inv.hora_inicio} → {inv.hora_fin}
-            </p>
-            <p style={{ color: "#666", fontSize: 14 }}>
-              <strong>De:</strong> {inv.creador_nombre} {inv.creador_apellido}
-            </p>
+            <div className="invitation-header">
+              <div className="from-user">
+                <span className="from-icon">📨</span>
+                <div>
+                  <span className="from-label">De:</span>
+                  <p className="from-name">
+                    {inv.creador_nombre} {inv.creador_apellido}
+                  </p>
+                </div>
+              </div>
+            </div>
 
-            <div
-              style={{
-                marginTop: 12,
-                display: "flex",
-                gap: 8,
-                flexDirection: "column",
-              }}
-            >
+            <div className="card-body">
+              <h3 className="room-name">{inv.nombre_sala}</h3>
+              <p className="building-name">{inv.edificio}</p>
+
+              <div className="info-row">
+                <span className="info-label">📅</span>
+                <span className="info-value">{formatFecha(inv.fecha)}</span>
+              </div>
+              <div className="info-row">
+                <span className="info-label">⏰</span>
+                <span className="info-value">
+                  {formatHora(inv.hora_inicio)} → {formatHora(inv.hora_fin)}
+                </span>
+              </div>
+            </div>
+
+            <div className="invitation-actions">
               <button
                 onClick={() => aceptarInvitacion(inv.id_reserva)}
-                style={{
-                  padding: "8px 12px",
-                  background: "#5cb85c",
-                  color: "white",
-                  border: "none",
-                  borderRadius: 6,
-                  cursor: "pointer",
-                  fontSize: 14,
-                  fontWeight: "bold",
-                }}
+                className="btn btn-success btn-block"
               >
                 ✓ Aceptar
               </button>
               <button
                 onClick={() => rechazarInvitacion(inv.id_reserva)}
-                style={{
-                  padding: "8px 12px",
-                  background: "#d9534f",
-                  color: "white",
-                  border: "none",
-                  borderRadius: 6,
-                  cursor: "pointer",
-                  fontSize: 14,
-                  fontWeight: "bold",
-                }}
+                className="btn btn-danger btn-block"
               >
                 ✗ Rechazar
               </button>

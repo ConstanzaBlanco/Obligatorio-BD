@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from db.connector import getConnection
 from core.security import currentUser
 from pydantic import BaseModel
+from fastapi import HTTPException
 
 router = APIRouter()
 
@@ -18,6 +19,11 @@ class InvitationResponse(BaseModel):
 
 class AcceptRejectRequest(BaseModel):
     id_reserva: int
+
+
+class InviteRequest(BaseModel):
+    id_reserva: int
+    participantes: list[int]
 
 
 # Obtener todas las invitaciones pendientes del usuario actual
@@ -68,6 +74,81 @@ def getPendingInvitationsList(user=Depends(currentUser)):
             "invitaciones": invitations
         }
     
+    except Exception as e:
+        return {"error": str(e)}
+
+
+# Invitar participantes a una reserva (solo creador)
+@router.post("/invitaciones/invitar")
+def inviteParticipants(request: InviteRequest, user=Depends(currentUser)):
+    try:
+        roleDb = user["rol"]
+        ci = user["ci"]
+
+        cn = getConnection(roleDb)
+        cur = cn.cursor(dictionary=True)
+
+        # Verificar que la reserva exista y obtener datos (sala, edificio, creador, capacidad)
+        cur.execute("""
+            SELECT r.id_reserva, r.creador, r.nombre_sala, r.edificio, s.capacidad
+            FROM reserva r
+            JOIN sala s ON r.nombre_sala = s.nombre_sala AND r.edificio = s.edificio
+            WHERE r.id_reserva = %s AND r.estado = 'activa'
+        """, (request.id_reserva,))
+
+        reserva = cur.fetchone()
+        if not reserva:
+            raise HTTPException(status_code=404, detail="Reserva no encontrada o no activa")
+
+        # Solo el creador puede invitar
+        if reserva["creador"] != ci:
+            raise HTTPException(status_code=403, detail="Solo el creador puede invitar participantes")
+
+        capacidad = reserva["capacidad"]
+
+        # Normalizar lista de CIs y quitar duplicados y al creador
+        requested = list(dict.fromkeys(request.participantes))
+        requested = [p for p in requested if p != ci]
+
+        if len(requested) == 0:
+            return {"mensaje": "No hay participantes válidos para invitar", "invitados": []}
+
+        # Verificar existencia de participantes y eliminar los que ya están en la reserva
+        valid_to_insert = []
+        for participante_ci in requested:
+            cur.execute("SELECT ci FROM participante WHERE ci = %s", (participante_ci,))
+            if not cur.fetchone():
+                continue
+
+            cur.execute("SELECT ci_participante FROM reserva_participante WHERE id_reserva = %s AND ci_participante = %s", (request.id_reserva, participante_ci))
+            if cur.fetchone():
+                # ya estaba asociado (evitamos duplicados)
+                continue
+
+            valid_to_insert.append(participante_ci)
+
+        if not valid_to_insert:
+            return {"mensaje": "Ningún participante nuevo válido para invitar", "invitados": []}
+
+        # Contar participantes actuales (no rechazados) para chequear capacidad
+        cur.execute("SELECT COUNT(*) AS total FROM reserva_participante WHERE id_reserva = %s AND estado_invitacion != 'rechazada'", (request.id_reserva,))
+        total_actual = cur.fetchone()["total"]
+
+        if total_actual + len(valid_to_insert) > capacidad:
+            raise HTTPException(status_code=400, detail="La cantidad de invitados excede la capacidad de la sala")
+
+        # Insertar las invitaciones pendientes
+        for ci_new in valid_to_insert:
+            cur.execute("INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia, estado_invitacion) VALUES (%s, %s, FALSE, 'pendiente')", (ci_new, request.id_reserva))
+
+        cn.commit()
+        cn.close()
+
+        return {"mensaje": "Invitaciones enviadas", "invitados": valid_to_insert}
+
+    except HTTPException:
+        raise
+
     except Exception as e:
         return {"error": str(e)}
 
