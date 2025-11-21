@@ -1,6 +1,54 @@
 import { useEffect, useState } from "react";
 import { useUser } from "../UserContext";
 
+/* ========================================================
+   ALERT COMPONENTE
+======================================================== */
+function Alert({ type = "error", message, onClose }) {
+  const colors = {
+    error: "#dc3545",
+    success: "#198754",
+    warning: "#ffc107",
+    info: "#0dcaf0",
+  };
+
+  return (
+    <div
+      style={{
+        background: colors[type] + "22",
+        border: "1px solid " + colors[type],
+        padding: "10px 14px",
+        borderRadius: 6,
+        color: colors[type],
+        marginBottom: 15,
+        position: "relative",
+      }}
+    >
+      <strong style={{ textTransform: "capitalize" }}>{type}:</strong>{" "}
+      {message}
+
+      <button
+        onClick={onClose}
+        style={{
+          position: "absolute",
+          right: 10,
+          top: 8,
+          background: "transparent",
+          border: "none",
+          color: colors[type],
+          fontWeight: "bold",
+          cursor: "pointer",
+        }}
+      >
+        ×
+      </button>
+    </div>
+  );
+}
+
+/* ========================================================
+   COMPONENTE PRINCIPAL — SANCIONES
+======================================================== */
 export default function Sanciones() {
   const { user } = useUser();
   const rol = user?.rol?.toLowerCase();
@@ -79,7 +127,9 @@ export default function Sanciones() {
 
       const data = await res.json();
 
-      if (!res.ok) return setError(data.detail || "Error al quitar sanción.");
+      if (!res.ok) {
+        return setError(data.detail || "Error al quitar sanción.");
+      }
 
       setMensaje(data.mensaje || "Sanción quitada.");
       await cargarSancionesActivas();
@@ -119,7 +169,9 @@ export default function Sanciones() {
 
       const data = await res.json();
 
-      if (!res.ok) return setError(data.detail || "Error al crear sanción.");
+      if (!res.ok) {
+        return setError(data.detail || "Error al crear sanción.");
+      }
 
       setMensaje("Sanción creada correctamente.");
       setShowCreateModal(false);
@@ -136,7 +188,7 @@ export default function Sanciones() {
     }
   };
 
-  // --- 𝗘𝗗𝗜𝗧𝗔𝗥 SANCIÓN ---
+  // --- EDITAR SANCIÓN ---
   const abrirModalEditar = (s) => {
     setEditData({
       ci: s.ci_participante,
@@ -166,7 +218,9 @@ export default function Sanciones() {
 
       const data = await res.json();
 
-      if (!res.ok) return setError(data.detail || "Error al editar sanción.");
+      if (!res.ok) {
+        return setError(data.detail || "Error al editar sanción.");
+      }
 
       setMensaje("Sanción editada correctamente.");
       setShowEditModal(false);
@@ -182,8 +236,20 @@ export default function Sanciones() {
     <div style={{ marginTop: 30 }}>
       <h1>Sanciones</h1>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {mensaje && <p style={{ color: "green" }}>{mensaje}</p>}
+      {/* ========================================================
+         ALERTS — NUEVO
+      ======================================================= */}
+      {error && (
+        <Alert type="error" message={error} onClose={() => setError("")} />
+      )}
+
+      {mensaje && (
+        <Alert
+          type="success"
+          message={mensaje}
+          onClose={() => setMensaje("")}
+        />
+      )}
 
       {/* ---------------------------------- */}
       {/* BOTÓN CREAR */}
@@ -202,19 +268,34 @@ export default function Sanciones() {
         <div style={contenedor}>
           {activas.map((s, i) => (
             <div key={i} style={card}>
-              <p><b>ID:</b> {s.id_sancion}</p>
-              <p><b>CI:</b> {s.ci_participante}</p>
-              <p><b>Email:</b> {s.email}</p>
-              <p><b>Descripción:</b> {s.descripcion}</p>
-              <p><b>Inicio:</b> {s.fecha_inicio}</p>
-              <p><b>Fin:</b> {s.fecha_fin}</p>
+              <p>
+                <b>ID:</b> {s.id_sancion}
+              </p>
+              <p>
+                <b>CI:</b> {s.ci_participante}
+              </p>
+              <p>
+                <b>Email:</b> {s.email}
+              </p>
+              <p>
+                <b>Descripción:</b> {s.descripcion}
+              </p>
+              <p>
+                <b>Inicio:</b> {s.fecha_inicio}
+              </p>
+              <p>
+                <b>Fin:</b> {s.fecha_fin}
+              </p>
 
               <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
                 <button style={btnEdit} onClick={() => abrirModalEditar(s)}>
                   Editar
                 </button>
 
-                <button style={btnDanger} onClick={() => quitarSancion(s.ci_participante)}>
+                <button
+                  style={btnDanger}
+                  onClick={() => quitarSancion(s.ci_participante)}
+                >
                   Quitar
                 </button>
               </div>
@@ -233,12 +314,24 @@ export default function Sanciones() {
         <div style={contenedor}>
           {pasadas.map((s, i) => (
             <div key={i} style={{ ...card, opacity: 0.6 }}>
-              <p><b>ID:</b> {s.id_sancion}</p>
-              <p><b>CI:</b> {s.ci_participante}</p>
-              <p><b>Email:</b> {s.email}</p>
-              <p><b>Descripción:</b> {s.descripcion}</p>
-              <p><b>Inicio:</b> {s.fecha_inicio}</p>
-              <p><b>Fin:</b> {s.fecha_fin}</p>
+              <p>
+                <b>ID:</b> {s.id_sancion}
+              </p>
+              <p>
+                <b>CI:</b> {s.ci_participante}
+              </p>
+              <p>
+                <b>Email:</b> {s.email}
+              </p>
+              <p>
+                <b>Descripción:</b> {s.descripcion}
+              </p>
+              <p>
+                <b>Inicio:</b> {s.fecha_inicio}
+              </p>
+              <p>
+                <b>Fin:</b> {s.fecha_fin}
+              </p>
 
               <button style={{ ...btnEdit, background: "#6c757d" }} disabled>
                 Editar
@@ -257,12 +350,30 @@ export default function Sanciones() {
 
           <form onSubmit={crearSancionManual}>
             <Input label="CI" value={newCi} onChange={setNewCi} />
-            <Input label="Fecha inicio" type="date" value={newFechaInicio} onChange={setNewFechaInicio} />
-            <Input label="Fecha fin" type="date" value={newFechaFin} onChange={setNewFechaFin} />
-            <Textarea label="Descripción" value={newDescripcion} onChange={setNewDescripcion} />
+            <Input
+              label="Fecha inicio"
+              type="date"
+              value={newFechaInicio}
+              onChange={setNewFechaInicio}
+            />
+            <Input
+              label="Fecha fin"
+              type="date"
+              value={newFechaFin}
+              onChange={setNewFechaFin}
+            />
+            <Textarea
+              label="Descripción"
+              value={newDescripcion}
+              onChange={setNewDescripcion}
+            />
 
             <div style={modalButtons}>
-              <button type="button" style={btnSecondary} onClick={() => setShowCreateModal(false)}>
+              <button
+                type="button"
+                style={btnSecondary}
+                onClick={() => setShowCreateModal(false)}
+              >
                 Cancelar
               </button>
               <button type="submit" style={btnSuccess} disabled={loadingCrear}>
@@ -281,30 +392,42 @@ export default function Sanciones() {
           <h3>Editar sanción</h3>
 
           <form onSubmit={editarSancion}>
-            <p><b>CI:</b> {editData.ci}</p>
+            <p>
+              <b>CI:</b> {editData.ci}
+            </p>
 
             <Input
               label="Nueva fecha inicio"
               type="date"
               value={editData.nueva_fecha_inicio}
-              onChange={(v) => setEditData({ ...editData, nueva_fecha_inicio: v })}
+              onChange={(v) =>
+                setEditData({ ...editData, nueva_fecha_inicio: v })
+              }
             />
 
             <Input
               label="Nueva fecha fin"
               type="date"
               value={editData.nueva_fecha_fin}
-              onChange={(v) => setEditData({ ...editData, nueva_fecha_fin: v })}
+              onChange={(v) =>
+                setEditData({ ...editData, nueva_fecha_fin: v })
+              }
             />
 
             <Textarea
               label="Nueva descripción"
               value={editData.nueva_descripcion}
-              onChange={(v) => setEditData({ ...editData, nueva_descripcion: v })}
+              onChange={(v) =>
+                setEditData({ ...editData, nueva_descripcion: v })
+              }
             />
 
             <div style={modalButtons}>
-              <button type="button" style={btnSecondary} onClick={() => setShowEditModal(false)}>
+              <button
+                type="button"
+                style={btnSecondary}
+                onClick={() => setShowEditModal(false)}
+              >
                 Cancelar
               </button>
               <button type="submit" style={btnSuccess}>
@@ -318,17 +441,18 @@ export default function Sanciones() {
   );
 }
 
-/* -----------------------
+/* ---------------------------------------------
    COMPONENTES REUTILIZABLES
------------------------- */
-
+---------------------------------------------- */
 function Modal({ children, onClose }) {
   return (
     <div style={modalOverlay}>
       <div style={modalContent}>
         {children}
 
-        <button onClick={onClose} style={closeButton}>✕</button>
+        <button onClick={onClose} style={closeButton}>
+          ✕
+        </button>
       </div>
     </div>
   );
@@ -338,7 +462,12 @@ function Input({ label, type = "text", value, onChange }) {
   return (
     <div style={field}>
       <label>{label}</label>
-      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} style={input} />
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={input}
+      />
     </div>
   );
 }
@@ -347,14 +476,18 @@ function Textarea({ label, value, onChange }) {
   return (
     <div style={field}>
       <label>{label}</label>
-      <textarea value={value} onChange={(e) => onChange(e.target.value)} style={{ ...input, height: 80 }} />
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{ ...input, height: 80 }}
+      />
     </div>
   );
 }
 
-/* -----------------------
+/* ---------------------------------------------
         ESTILOS
------------------------- */
+---------------------------------------------- */
 
 const contenedor = {
   display: "flex",
