@@ -13,6 +13,10 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Use consistent box-sizing to avoid width issues */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
 a {
   font-weight: 500;
   color: #646cff;
@@ -25,7 +29,7 @@ a:hover {
 body {
   margin: 0;
   display: flex;
-  place-items: center;
+  flex-direction: column;
   min-width: 320px;
   min-height: 100vh;
 }
@@ -66,3 +70,17 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+.layout-wrapper {
+  padding: 0;
+  margin: 0;
+  width: 100vw;
+  min-height: 100vh;
+}
+
+.layout-content {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
