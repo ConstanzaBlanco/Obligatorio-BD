@@ -28,12 +28,14 @@ export default function SalasPorEdificio() {
   // MODAL
   const [modalOpen, setModalOpen] = useState(false);
   const [editNombreSala, setEditNombreSala] = useState("");
+  const [salaOriginalNombre, setSalaOriginalNombre] = useState("");  // 👈 AGREGADO
   const [editCapacidad, setEditCapacidad] = useState("");
   const [editTipoSala, setEditTipoSala] = useState("");
   const [editHabilitada, setEditHabilitada] = useState(true);
 
   const abrirModal = (sala) => {
     setEditNombreSala(sala.nombre_sala);
+    setSalaOriginalNombre(sala.nombre_sala); // 👈 AGREGADO
     setEditCapacidad(sala.capacidad);
     setEditTipoSala(sala.tipo_sala);
     setEditHabilitada(sala.habilitada === 1 || sala.habilitada === true);
@@ -51,7 +53,8 @@ export default function SalasPorEdificio() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          nombre_sala: editNombreSala,
+          nombre_sala: salaOriginalNombre,   // 👈 AGREGADO
+          nuevo_nombre_sala: editNombreSala, // 👈 AGREGADO
           edificio: nombreEdificio,
           capacidad: Number(editCapacidad),
           tipo_sala: editTipoSala,
@@ -111,7 +114,6 @@ export default function SalasPorEdificio() {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // REDIRECCIÓN SI EL EDIFICIO NO EXISTE
       if (res.status === 404) {
         setNotFound(true);
         return;
@@ -139,8 +141,6 @@ export default function SalasPorEdificio() {
     cargarSalas();
   }, [nombreEdificio, fecha, idTurno]);
 
-
-  // SI EL EDIFICIO NO EXISTE, MOSTRAR LA PÁGINA 404
   if (notFound) {
     return <NotFound mensaje="El edificio no existe." />;
   }
@@ -262,7 +262,7 @@ export default function SalasPorEdificio() {
         </p>
       )}
 
-      {/*     SALAS HABILITADAS         */}
+      {/* SALAS HABILITADAS */}
       <h3 style={{ textAlign: "center", marginTop: 30 }}>Salas habilitadas</h3>
 
       <div style={{
@@ -447,12 +447,20 @@ export default function SalasPorEdificio() {
         </div>
       )}
 
-
       {/* MODAL EDITAR */}
       {modalOpen && (
         <div style={modalOverlay}>
           <div style={modalBox}>
             <h3>Editar sala</h3>
+
+            {/* NOMBRE DE SALA - AGREGADO */}
+            <input
+              type="text"
+              value={editNombreSala}
+              onChange={(e) => setEditNombreSala(e.target.value)}
+              placeholder="Nuevo nombre de sala"
+              style={inputStyle}
+            />
 
             <input
               type="number"

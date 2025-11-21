@@ -8,6 +8,7 @@ router = APIRouter()
 class ModificarSalaRequest(BaseModel):
     nombre_sala: str
     edificio: str
+    nuevo_nombre_sala: str | None = None   # <-- AGREGADO
     capacidad: int | None = None
     tipo_sala: str | None = None
     habilitada: bool | None = None
@@ -21,9 +22,9 @@ def modificar_sala(request: ModificarSalaRequest, user=Depends(requireRole("Admi
     cur = cn.cursor(dictionary=True)
 
     try:
-        # 1. Verificar que la sala exista
+        # Verificar que la sala exista
         cur.execute("""
-            SELECT capacidad, tipo_sala, habilitada
+            SELECT nombre_sala, capacidad, tipo_sala, habilitada
             FROM sala
             WHERE nombre_sala = %s AND edificio = %s
         """, (request.nombre_sala, request.edificio))
@@ -32,12 +33,13 @@ def modificar_sala(request: ModificarSalaRequest, user=Depends(requireRole("Admi
         if not sala:
             raise HTTPException(status_code=404, detail="La sala no existe")
 
-        # Si no envía nuevos valores, usar los actuales
+        # Si no envía nuevos valores, mantener los actuales
+        nuevo_nombre = request.nuevo_nombre_sala if request.nuevo_nombre_sala else sala["nombre_sala"]
         nueva_capacidad = request.capacidad if request.capacidad is not None else sala["capacidad"]
         nuevo_tipo = request.tipo_sala if request.tipo_sala is not None else sala["tipo_sala"]
         nuevo_estado = request.habilitada if request.habilitada is not None else sala["habilitada"]
 
-        # 2. Si intenta DESHABILITAR la sala → verificar reservas activas
+        # Si intenta deshabilitar la sala → verificar reservas activas
         if (sala["habilitada"] in (1, True)) and (nuevo_estado is False):
             cur.execute("""
                 SELECT id_reserva
@@ -55,7 +57,30 @@ def modificar_sala(request: ModificarSalaRequest, user=Depends(requireRole("Admi
                     detail="No se puede deshabilitar la sala porque tiene reservas activas"
                 )
 
-        # 3. Actualizar la sala
+        # Si cambia el nombre de la sala
+        if nuevo_nombre != request.nombre_sala:
+            # Verificar que el nuevo nombre no exista ya en ese edificio
+            cur.execute("""
+                SELECT 1 FROM sala
+                WHERE nombre_sala = %s AND edificio = %s
+            """, (nuevo_nombre, request.edificio))
+
+            if cur.fetchone():
+                raise HTTPException(
+                    status_code=400,
+                    detail="Ya existe otra sala con ese nombre en este edificio"
+                )
+
+            # Hacer el UPDATE del nombre (esto cascada a reserva)
+            cur.execute("""
+                UPDATE sala
+                SET nombre_sala = %s
+                WHERE nombre_sala = %s AND edificio = %s
+            """, (nuevo_nombre, request.nombre_sala, request.edificio))
+
+            cn.commit()
+
+        # Actualizar otros valores
         cur.execute("""
             UPDATE sala
             SET capacidad = %s,
@@ -66,7 +91,7 @@ def modificar_sala(request: ModificarSalaRequest, user=Depends(requireRole("Admi
             nueva_capacidad,
             nuevo_tipo,
             nuevo_estado,
-            request.nombre_sala,
+            nuevo_nombre,          
             request.edificio
         ))
 
@@ -74,6 +99,7 @@ def modificar_sala(request: ModificarSalaRequest, user=Depends(requireRole("Admi
 
         return {
             "mensaje": "Sala modificada correctamente",
+            "nombre_sala": nuevo_nombre,
             "capacidad": nueva_capacidad,
             "tipo_sala": nuevo_tipo,
             "habilitada": nuevo_estado
