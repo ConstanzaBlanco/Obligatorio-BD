@@ -38,9 +38,6 @@ from routes import invitaciones
 from routes import estadisticas
 from routes import eliminarSala
 from routes import horaServidor
-from routes import agregarSancion
-from routes import editarSancion
-from routes import todasLasSanciones
 # --- ADMIN ---
 
 from routes import CreateBiblio
@@ -110,9 +107,6 @@ app.include_router(modificarSala.router)
 app.include_router(invitaciones.router)
 app.include_router(eliminarSala.router)
 app.include_router(horaServidor.router)
-app.include_router(agregarSancion.router)
-app.include_router(editarSancion.router)
-app.include_router(todasLasSanciones.router)
 # --- routers admin ---
 app.include_router(CreateBiblio.router)
 app.include_router(changeRolOfUser.router)

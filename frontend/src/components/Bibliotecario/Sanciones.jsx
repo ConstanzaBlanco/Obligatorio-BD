@@ -5,6 +5,7 @@ export default function Sanciones() {
   const { user } = useUser();
   const rol = user?.rol?.toLowerCase();
 
+  // SOLO bibliotecario
   if (rol !== "bibliotecario") return null;
 
   const [activas, setActivas] = useState([]);
@@ -12,25 +13,17 @@ export default function Sanciones() {
   const [error, setError] = useState("");
   const [mensaje, setMensaje] = useState("");
 
-  const [showCrearModal, setShowCrearModal] = useState(false);
+  // estado para el modal de nueva sanción
+  const [showModal, setShowModal] = useState(false);
   const [newCi, setNewCi] = useState("");
   const [newFechaInicio, setNewFechaInicio] = useState("");
   const [newFechaFin, setNewFechaFin] = useState("");
-  const [newDescripcionTipo, setNewDescripcionTipo] = useState("");
-  const [newDescripcionOtra, setNewDescripcionOtra] = useState("");
+  const [newDescripcion, setNewDescripcion] = useState("");
   const [loadingCrear, setLoadingCrear] = useState(false);
-
-  const [showEditarModal, setShowEditarModal] = useState(false);
-  const [editCi, setEditCi] = useState(null);
-  const [editFechaInicio, setEditFechaInicio] = useState("");
-  const [editFechaFin, setEditFechaFin] = useState("");
-  const [editDesc, setEditDesc] = useState("");
-
-  const [editFechaInicioOriginal, setEditFechaInicioOriginal] = useState("");
-  const [editFechaFinOriginal, setEditFechaFinOriginal] = useState("");
 
   const token = localStorage.getItem("token");
 
+  // --- CARGAR SANCIONES ACTIVAS ---
   const cargarSancionesActivas = async () => {
     try {
       const res = await fetch("http://localhost:8000/sanctionsActive", {
@@ -40,10 +33,11 @@ export default function Sanciones() {
       const data = await res.json();
       setActivas(data.sanciones_activas || []);
     } catch {
-      alert("Error cargando sanciones activas.");
+      setError("Error cargando sanciones activas.");
     }
   };
 
+  // --- CARGAR SANCIONES PASADAS ---
   const cargarSancionesPasadas = async () => {
     try {
       const res = await fetch("http://localhost:8000/sanctionsPast", {
@@ -53,7 +47,7 @@ export default function Sanciones() {
       const data = await res.json();
       setPasadas(data.sanciones_pasadas || []);
     } catch {
-      alert("Error cargando sanciones pasadas.");
+      setError("Error cargando sanciones pasadas.");
     }
   };
 
@@ -62,44 +56,48 @@ export default function Sanciones() {
     cargarSancionesPasadas();
   }, []);
 
+  // --- QUITAR SANCIÓN ---
   const quitarSancion = async (ci) => {
     setMensaje("");
+    setError("");
 
     try {
       const res = await fetch(`http://localhost:8000/quitarSancion?ci=${ci}`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.detail || "Error al quitar sanción.");
+        setError(data.detail || "Error al quitar sanción.");
         return;
       }
 
-      setMensaje(data.mensaje);
+      setMensaje(data.mensaje || "Sanción quitada.");
 
       await cargarSancionesActivas();
       await cargarSancionesPasadas();
-    } catch {
-      alert("Error al quitar la sanción.");
+    } catch (err) {
+      setError("Error al quitar la sanción.");
     }
   };
 
+  // --- CREAR SANCIÓN MANUAL ---
   const crearSancionManual = async (e) => {
     e.preventDefault();
+    setMensaje("");
+    setError("");
 
-    const descripcionFinal =
-      newDescripcionTipo === "otro" ? newDescripcionOtra : newDescripcionTipo;
-
-    if (!newCi || !newFechaInicio || !newFechaFin || !descripcionFinal.trim()) {
-      alert("Todos los campos son obligatorios.");
+    if (!newCi || !newFechaInicio || !newFechaFin || !newDescripcion.trim()) {
+      setError("Todos los campos de la nueva sanción son obligatorios.");
       return;
     }
 
     setLoadingCrear(true);
-
     try {
       const res = await fetch("http://localhost:8000/sancion/crear", {
         method: "POST",
@@ -111,83 +109,32 @@ export default function Sanciones() {
           ci: Number(newCi),
           fechaInicio: newFechaInicio,
           fechaFin: newFechaFin,
-          descripcion: descripcionFinal.trim(),
+          descripcion: newDescripcion.trim(),
         }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.detail || "Error al crear sanción.");
+        setError(data.detail || "Error al crear la sanción.");
         return;
       }
 
-      setMensaje("Sanción creada correctamente.");
-      setShowCrearModal(false);
-
+      setMensaje(data.status === "created" ? "Sanción creada correctamente." : "Sanción creada.");
+      // limpiar formulario y cerrar modal
+      setShowModal(false);
       setNewCi("");
       setNewFechaInicio("");
       setNewFechaFin("");
-      setNewDescripcionTipo("");
-      setNewDescripcionOtra("");
+      setNewDescripcion("");
 
+      // recargar listas
       await cargarSancionesActivas();
       await cargarSancionesPasadas();
-    } catch {
-      alert("Error al crear la sanción.");
+    } catch (err) {
+      setError("Error al crear la sanción.");
     } finally {
       setLoadingCrear(false);
-    }
-  };
-
-  const abrirModalEditar = (s) => {
-    setEditCi(s.ci_participante);
-    setEditFechaInicio(s.fecha_inicio);
-    setEditFechaFin(s.fecha_fin);
-    setEditDesc(s.descripcion);
-
-    setEditFechaInicioOriginal(s.fecha_inicio);
-    setEditFechaFinOriginal(s.fecha_fin);
-
-    setShowEditarModal(true);
-  };
-
-  const editarSancion = async (e) => {
-    e.preventDefault();
-
-    try {
-      const body = {
-        ci: editCi,
-        fecha_inicio_original: editFechaInicioOriginal,
-        fecha_fin_original: editFechaFinOriginal,
-        nueva_fecha_inicio: editFechaInicio,
-        nueva_fecha_fin: editFechaFin,
-        nueva_descripcion: editDesc,
-      };
-
-      const res = await fetch("http://localhost:8000/editarSancion", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        alert(data.detail || "Error al editar sanción.");
-        return;
-      }
-
-      setMensaje("Sanción modificada correctamente.");
-      setShowEditarModal(false);
-
-      await cargarSancionesActivas();
-      await cargarSancionesPasadas();
-    } catch {
-      alert("Error al editar sanción.");
     }
   };
 
@@ -195,11 +142,13 @@ export default function Sanciones() {
     <div style={{ marginTop: 30 }}>
       <h1>Sanciones</h1>
 
+      {error && <p style={{ color: "red" }}>{error}</p>}
       {mensaje && <p style={{ color: "green" }}>{mensaje}</p>}
 
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 20 }}>
+      {/* Botón para abrir modal de nueva sanción */}
+      <div style={{ marginBottom: 20 }}>
         <button
-          onClick={() => setShowCrearModal(true)}
+          onClick={() => setShowModal(true)}
           style={{
             padding: "8px 14px",
             backgroundColor: "#0d6efd",
@@ -209,76 +158,95 @@ export default function Sanciones() {
             cursor: "pointer",
           }}
         >
-          + Crear sanción
+          Agregar sanción
         </button>
       </div>
 
+      {/* ACTIVAS */}
       <h2>Sanciones Activas</h2>
+      {activas.length === 0 ? (
+        <p>No hay sanciones activas</p>
+      ) : (
+        <div style={contenedor}>
+          {activas.map((s, i) => (
+            <div key={i} style={card}>
+              <p>
+                <b>ID:</b> {s.id_sancion}
+              </p>
+              <p>
+                <b>Descripción:</b> {s.descripcion}
+              </p>
+              <p>
+                <b>CI:</b> {s.ci_participante}
+              </p>
+              <p>
+                <b>Email:</b> {s.email}
+              </p>
+              <p>
+                <b>Inicio:</b> {s.fecha_inicio}
+              </p>
+              <p>
+                <b>Fin:</b> {s.fecha_fin}
+              </p>
 
-      <div style={contenedor}>
-        {activas.map((s, i) => (
-          <div key={i} style={card}>
-            <p><b>CI:</b> {s.ci_participante}</p>
-            <p><b>Email:</b> {s.email}</p>
-            <p><b>Inicio:</b> {s.fecha_inicio}</p>
-            <p><b>Fin:</b> {s.fecha_fin}</p>
-            <p><b>Descripción:</b> {s.descripcion}</p>
+              <button
+                onClick={() => quitarSancion(s.ci_participante)}
+                style={{
+                  marginTop: 10,
+                  padding: "6px 10px",
+                  backgroundColor: "#dc3545",
+                  color: "white",
+                  border: "none",
+                  borderRadius: 4,
+                  cursor: "pointer",
+                }}
+              >
+                Quitar sanción
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
-            <button
-              onClick={() => abrirModalEditar(s)}
-              style={{
-                marginTop: 10,
-                padding: "6px 10px",
-                backgroundColor: "#ffc107",
-                color: "black",
-                border: "none",
-                borderRadius: 4,
-                cursor: "pointer",
-                marginRight: 10,
-              }}
-            >
-              Editar
-            </button>
-
-            <button
-              onClick={() => quitarSancion(s.ci_participante)}
-              style={{
-                marginTop: 10,
-                padding: "6px 10px",
-                backgroundColor: "#dc3545",
-                color: "white",
-                border: "none",
-                borderRadius: 4,
-                cursor: "pointer",
-              }}
-            >
-              Quitar
-            </button>
-          </div>
-        ))}
-      </div>
-
+      {/* PASADAS */}
       <h2 style={{ marginTop: 40 }}>Sanciones Pasadas</h2>
-      <div style={contenedor}>
-        {pasadas.map((s, i) => (
-          <div key={i} style={{ ...card, opacity: 0.7 }}>
-            <p><b>CI:</b> {s.ci_participante}</p>
-            <p><b>Email:</b> {s.email}</p>
-            <p><b>Inicio:</b> {s.fecha_inicio}</p>
-            <p><b>Fin:</b> {s.fecha_fin}</p>
-            <p><b>Descripción:</b> {s.descripcion}</p>
-          </div>
-        ))}
-      </div>
+      {pasadas.length === 0 ? (
+        <p>No hay sanciones pasadas</p>
+      ) : (
+        <div style={contenedor}>
+          {pasadas.map((s, i) => (
+            <div key={i} style={{ ...card, opacity: 0.7 }}>
+              <p>
+                <b>ID:</b> {s.id_sancion}
+              </p>
+              <p>
+                <b>Descripción:</b> {s.descripcion}
+              </p>
+              <p>
+                <b>CI:</b> {s.ci_participante}
+              </p>
+              <p>
+                <b>Email:</b> {s.email}
+              </p>
+              <p>
+                <b>Inicio:</b> {s.fecha_inicio}
+              </p>
+              <p>
+                <b>Fin:</b> {s.fecha_fin}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
 
-      {showCrearModal && (
+      {/* MODAL NUEVA SANCIÓN */}
+      {showModal && (
         <div style={modalOverlay}>
           <div style={modalContent}>
-            <h3>Crear sanción</h3>
-
+            <h3>Crear sanción manual</h3>
             <form onSubmit={crearSancionManual}>
               <div style={field}>
-                <label>CI</label>
+                <label>CI del participante</label>
                 <input
                   type="number"
                   value={newCi}
@@ -309,56 +277,40 @@ export default function Sanciones() {
 
               <div style={field}>
                 <label>Descripción</label>
-                <select
-                  value={newDescripcionTipo}
-                  onChange={(e) => setNewDescripcionTipo(e.target.value)}
-                  style={input}
-                >
-                  <option value="">Seleccione...</option>
-                  <option value="Faltar a la sala">Faltar a la sala</option>
-                  <option value="Mal comportamiento">Mal comportamiento</option>
-                  <option value="Uso indebido del espacio">Uso indebido del espacio</option>
-                  <option value="Daños materiales">Daños materiales</option>
-                  <option value="otro">Otro...</option>
-                </select>
+                <textarea
+                  value={newDescripcion}
+                  onChange={(e) => setNewDescripcion(e.target.value)}
+                  style={{ ...input, height: 70, resize: "vertical" }}
+                />
               </div>
-
-              {newDescripcionTipo === "otro" && (
-                <div style={field}>
-                  <label>Motivo</label>
-                  <input
-                    type="text"
-                    value={newDescripcionOtra}
-                    onChange={(e) => setNewDescripcionOtra(e.target.value)}
-                    style={input}
-                  />
-                </div>
-              )}
 
               <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 10 }}>
                 <button
                   type="button"
-                  onClick={() => setShowCrearModal(false)}
+                  onClick={() => setShowModal(false)}
                   style={{
                     padding: "6px 12px",
                     backgroundColor: "#6c757d",
                     color: "white",
                     border: "none",
                     borderRadius: 4,
+                    cursor: "pointer",
                   }}
+                  disabled={loadingCrear}
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  disabled={loadingCrear}
                   style={{
                     padding: "6px 12px",
                     backgroundColor: "#198754",
                     color: "white",
                     border: "none",
                     borderRadius: 4,
+                    cursor: "pointer",
                   }}
+                  disabled={loadingCrear}
                 >
                   {loadingCrear ? "Creando..." : "Crear sanción"}
                 </button>
@@ -367,79 +319,11 @@ export default function Sanciones() {
           </div>
         </div>
       )}
-
-      {showEditarModal && (
-        <div style={modalOverlay}>
-          <div style={modalContent}>
-            <h3>Editar sanción</h3>
-
-            <form onSubmit={editarSancion}>
-              <div style={field}>
-                <label>Fecha inicio</label>
-                <input
-                  type="date"
-                  value={editFechaInicio}
-                  onChange={(e) => setEditFechaInicio(e.target.value)}
-                  style={input}
-                />
-              </div>
-
-              <div style={field}>
-                <label>Fecha fin</label>
-                <input
-                  type="date"
-                  value={editFechaFin}
-                  onChange={(e) => setEditFechaFin(e.target.value)}
-                  style={input}
-                />
-              </div>
-
-              <div style={field}>
-                <label>Descripción</label>
-                <textarea
-                  value={editDesc}
-                  onChange={(e) => setEditDesc(e.target.value)}
-                  style={{ ...input, height: 70 }}
-                />
-              </div>
-
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-                <button
-                  type="button"
-                  onClick={() => setShowEditarModal(false)}
-                  style={{
-                    padding: "6px 12px",
-                    backgroundColor: "#6c757d",
-                    color: "white",
-                    border: "none",
-                    borderRadius: 4,
-                  }}
-                >
-                  Cancelar
-                </button>
-
-                <button
-                  type="submit"
-                  style={{
-                    padding: "6px 12px",
-                    backgroundColor: "#0d6efd",
-                    color: "white",
-                    border: "none",
-                    borderRadius: 4,
-                  }}
-                >
-                  Guardar cambios
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }
 
+// estilos
 const contenedor = {
   display: "flex",
   flexWrap: "wrap",
