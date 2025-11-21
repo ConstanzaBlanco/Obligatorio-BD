@@ -7,7 +7,6 @@ router = APIRouter()
 
 @router.get("/sanctionsActive")
 def sanctions_active(user=Depends(requireRole("Bibliotecario", "Administrador"))):
-
     roleDb = user["rol"]
     cn = getConnection(roleDb)
     cur = cn.cursor(dictionary=True)
@@ -18,6 +17,7 @@ def sanctions_active(user=Depends(requireRole("Bibliotecario", "Administrador"))
                 sp.ci_participante,
                 sp.fecha_inicio,
                 sp.fecha_fin,
+                sp.descripcion,
                 p.email
             FROM sancion_participante sp
             JOIN participante p ON p.ci = sp.ci_participante
@@ -27,7 +27,6 @@ def sanctions_active(user=Depends(requireRole("Bibliotecario", "Administrador"))
         """)
 
         sanciones = cur.fetchall()
-
         return {"sanciones_activas": sanciones}
 
     except Exception as e:

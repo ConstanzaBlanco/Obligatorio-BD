@@ -103,6 +103,7 @@ CREATE TABLE sancion_participante (
     ci_participante BIGINT NOT NULL,
     fecha_inicio DATE NOT NULL,
     fecha_fin DATE NOT NULL,
+    descripcion VARCHAR(255) NOT NULL,
     PRIMARY KEY (ci_participante, fecha_inicio, fecha_fin),
     FOREIGN KEY (ci_participante) REFERENCES participante(ci)
 );
@@ -212,13 +213,13 @@ INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia, estad
 (11111111, 9, FALSE, 'aceptada'); 
 
 -- Sanciones
-INSERT INTO sancion_participante (ci_participante, fecha_inicio, fecha_fin) VALUES
-(12345678, '2025-11-01', '2025-11-07'),
-(87654321, '2025-12-01', '2025-12-05'),
-(11111111, '2025-10-20', '2025-10-25'),
-(22222222, '2025-10-10', '2025-10-15'),
-(33333333, '2025-09-01', '2025-09-05'),
-(12345678, '2025-10-01', '2025-11-07');
+INSERT INTO sancion_participante (ci_participante, fecha_inicio, fecha_fin, descripcion) VALUES
+(12345678, '2025-11-01', '2025-11-07', 'Faltar a la sala'),
+(87654321, '2025-12-01', '2025-12-05', 'Faltar a la sala'),
+(11111111, '2025-10-20', '2025-10-25', 'Faltar a la sala'),
+(22222222, '2025-10-10', '2025-10-15', 'Faltar a la sala'),
+(33333333, '2025-09-01', '2025-09-05', 'Faltar a la sala'),
+(12345678, '2025-10-01', '2025-11-07', 'Faltar a la sala');
 
 CREATE USER 'Administrador'@'%' IDENTIFIED BY 'shaw';
 CREATE USER 'Bibliotecario'@'%' IDENTIFIED BY 'shaw';
