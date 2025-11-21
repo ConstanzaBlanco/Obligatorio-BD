@@ -5,7 +5,6 @@ export default function Sanciones() {
   const { user } = useUser();
   const rol = user?.rol?.toLowerCase();
 
-  // SOLO bibliotecario
   if (rol !== "bibliotecario") return null;
 
   const [activas, setActivas] = useState([]);
@@ -13,17 +12,28 @@ export default function Sanciones() {
   const [error, setError] = useState("");
   const [mensaje, setMensaje] = useState("");
 
-  // estado para el modal de nueva sanción
-  const [showModal, setShowModal] = useState(false);
+  const token = localStorage.getItem("token");
+
+  // --- MODAL CREAR ---
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [newCi, setNewCi] = useState("");
   const [newFechaInicio, setNewFechaInicio] = useState("");
   const [newFechaFin, setNewFechaFin] = useState("");
   const [newDescripcion, setNewDescripcion] = useState("");
   const [loadingCrear, setLoadingCrear] = useState(false);
 
-  const token = localStorage.getItem("token");
+  // --- MODAL EDITAR ---
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editData, setEditData] = useState({
+    ci: "",
+    fecha_inicio_original: "",
+    fecha_fin_original: "",
+    nueva_fecha_inicio: "",
+    nueva_fecha_fin: "",
+    nueva_descripcion: "",
+  });
 
-  // --- CARGAR SANCIONES ACTIVAS ---
+  // --- FETCH ACTIVES ---
   const cargarSancionesActivas = async () => {
     try {
       const res = await fetch("http://localhost:8000/sanctionsActive", {
@@ -37,7 +47,7 @@ export default function Sanciones() {
     }
   };
 
-  // --- CARGAR SANCIONES PASADAS ---
+  // --- FETCH PAST ---
   const cargarSancionesPasadas = async () => {
     try {
       const res = await fetch("http://localhost:8000/sanctionsPast", {
@@ -64,40 +74,34 @@ export default function Sanciones() {
     try {
       const res = await fetch(`http://localhost:8000/quitarSancion?ci=${ci}`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await res.json();
 
-      if (!res.ok) {
-        setError(data.detail || "Error al quitar sanción.");
-        return;
-      }
+      if (!res.ok) return setError(data.detail || "Error al quitar sanción.");
 
       setMensaje(data.mensaje || "Sanción quitada.");
-
       await cargarSancionesActivas();
       await cargarSancionesPasadas();
-    } catch (err) {
+    } catch {
       setError("Error al quitar la sanción.");
     }
   };
 
-  // --- CREAR SANCIÓN MANUAL ---
+  // --- CREAR SANCIÓN ---
   const crearSancionManual = async (e) => {
     e.preventDefault();
     setMensaje("");
     setError("");
 
     if (!newCi || !newFechaInicio || !newFechaFin || !newDescripcion.trim()) {
-      setError("Todos los campos de la nueva sanción son obligatorios.");
+      setError("Todos los campos son obligatorios.");
       return;
     }
 
     setLoadingCrear(true);
+
     try {
       const res = await fetch("http://localhost:8000/sancion/crear", {
         method: "POST",
@@ -115,26 +119,62 @@ export default function Sanciones() {
 
       const data = await res.json();
 
-      if (!res.ok) {
-        setError(data.detail || "Error al crear la sanción.");
-        return;
-      }
+      if (!res.ok) return setError(data.detail || "Error al crear sanción.");
 
-      setMensaje(data.status === "created" ? "Sanción creada correctamente." : "Sanción creada.");
-      // limpiar formulario y cerrar modal
-      setShowModal(false);
+      setMensaje("Sanción creada correctamente.");
+      setShowCreateModal(false);
+
       setNewCi("");
       setNewFechaInicio("");
       setNewFechaFin("");
       setNewDescripcion("");
 
-      // recargar listas
       await cargarSancionesActivas();
       await cargarSancionesPasadas();
-    } catch (err) {
-      setError("Error al crear la sanción.");
     } finally {
       setLoadingCrear(false);
+    }
+  };
+
+  // --- 𝗘𝗗𝗜𝗧𝗔𝗥 SANCIÓN ---
+  const abrirModalEditar = (s) => {
+    setEditData({
+      ci: s.ci_participante,
+      fecha_inicio_original: s.fecha_inicio,
+      fecha_fin_original: s.fecha_fin,
+      nueva_fecha_inicio: s.fecha_inicio,
+      nueva_fecha_fin: s.fecha_fin,
+      nueva_descripcion: s.descripcion,
+    });
+    setShowEditModal(true);
+  };
+
+  const editarSancion = async (e) => {
+    e.preventDefault();
+    setMensaje("");
+    setError("");
+
+    try {
+      const res = await fetch("http://localhost:8000/editarSancion", {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(editData),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) return setError(data.detail || "Error al editar sanción.");
+
+      setMensaje("Sanción editada correctamente.");
+      setShowEditModal(false);
+
+      await cargarSancionesActivas();
+      await cargarSancionesPasadas();
+    } catch {
+      setError("No se pudo editar la sanción.");
     }
   };
 
@@ -145,24 +185,16 @@ export default function Sanciones() {
       {error && <p style={{ color: "red" }}>{error}</p>}
       {mensaje && <p style={{ color: "green" }}>{mensaje}</p>}
 
-      {/* Botón para abrir modal de nueva sanción */}
-      <div style={{ marginBottom: 20 }}>
-        <button
-          onClick={() => setShowModal(true)}
-          style={{
-            padding: "8px 14px",
-            backgroundColor: "#0d6efd",
-            color: "white",
-            border: "none",
-            borderRadius: 4,
-            cursor: "pointer",
-          }}
-        >
-          Agregar sanción
-        </button>
-      </div>
+      {/* ---------------------------------- */}
+      {/* BOTÓN CREAR */}
+      {/* ---------------------------------- */}
+      <button onClick={() => setShowCreateModal(true)} style={btnPrimary}>
+        Agregar sanción
+      </button>
 
-      {/* ACTIVAS */}
+      {/* ---------------------------------- */}
+      {/* SANCIONES ACTIVAS */}
+      {/* ---------------------------------- */}
       <h2>Sanciones Activas</h2>
       {activas.length === 0 ? (
         <p>No hay sanciones activas</p>
@@ -170,160 +202,160 @@ export default function Sanciones() {
         <div style={contenedor}>
           {activas.map((s, i) => (
             <div key={i} style={card}>
-              <p>
-                <b>ID:</b> {s.id_sancion}
-              </p>
-              <p>
-                <b>Descripción:</b> {s.descripcion}
-              </p>
-              <p>
-                <b>CI:</b> {s.ci_participante}
-              </p>
-              <p>
-                <b>Email:</b> {s.email}
-              </p>
-              <p>
-                <b>Inicio:</b> {s.fecha_inicio}
-              </p>
-              <p>
-                <b>Fin:</b> {s.fecha_fin}
-              </p>
+              <p><b>ID:</b> {s.id_sancion}</p>
+              <p><b>CI:</b> {s.ci_participante}</p>
+              <p><b>Email:</b> {s.email}</p>
+              <p><b>Descripción:</b> {s.descripcion}</p>
+              <p><b>Inicio:</b> {s.fecha_inicio}</p>
+              <p><b>Fin:</b> {s.fecha_fin}</p>
 
-              <button
-                onClick={() => quitarSancion(s.ci_participante)}
-                style={{
-                  marginTop: 10,
-                  padding: "6px 10px",
-                  backgroundColor: "#dc3545",
-                  color: "white",
-                  border: "none",
-                  borderRadius: 4,
-                  cursor: "pointer",
-                }}
-              >
-                Quitar sanción
-              </button>
+              <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+                <button style={btnEdit} onClick={() => abrirModalEditar(s)}>
+                  Editar
+                </button>
+
+                <button style={btnDanger} onClick={() => quitarSancion(s.ci_participante)}>
+                  Quitar
+                </button>
+              </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* PASADAS */}
+      {/* ---------------------------------- */}
+      {/* SANCIONES PASADAS */}
+      {/* ---------------------------------- */}
       <h2 style={{ marginTop: 40 }}>Sanciones Pasadas</h2>
       {pasadas.length === 0 ? (
         <p>No hay sanciones pasadas</p>
       ) : (
         <div style={contenedor}>
           {pasadas.map((s, i) => (
-            <div key={i} style={{ ...card, opacity: 0.7 }}>
-              <p>
-                <b>ID:</b> {s.id_sancion}
-              </p>
-              <p>
-                <b>Descripción:</b> {s.descripcion}
-              </p>
-              <p>
-                <b>CI:</b> {s.ci_participante}
-              </p>
-              <p>
-                <b>Email:</b> {s.email}
-              </p>
-              <p>
-                <b>Inicio:</b> {s.fecha_inicio}
-              </p>
-              <p>
-                <b>Fin:</b> {s.fecha_fin}
-              </p>
+            <div key={i} style={{ ...card, opacity: 0.6 }}>
+              <p><b>ID:</b> {s.id_sancion}</p>
+              <p><b>CI:</b> {s.ci_participante}</p>
+              <p><b>Email:</b> {s.email}</p>
+              <p><b>Descripción:</b> {s.descripcion}</p>
+              <p><b>Inicio:</b> {s.fecha_inicio}</p>
+              <p><b>Fin:</b> {s.fecha_fin}</p>
+
+              <button style={{ ...btnEdit, background: "#6c757d" }} disabled>
+                Editar
+              </button>
             </div>
           ))}
         </div>
       )}
 
-      {/* MODAL NUEVA SANCIÓN */}
-      {showModal && (
-        <div style={modalOverlay}>
-          <div style={modalContent}>
-            <h3>Crear sanción manual</h3>
-            <form onSubmit={crearSancionManual}>
-              <div style={field}>
-                <label>CI del participante</label>
-                <input
-                  type="number"
-                  value={newCi}
-                  onChange={(e) => setNewCi(e.target.value)}
-                  style={input}
-                />
-              </div>
+      {/* ---------------------------------- */}
+      {/* MODAL CREAR SANCIÓN */}
+      {/* ---------------------------------- */}
+      {showCreateModal && (
+        <Modal onClose={() => setShowCreateModal(false)}>
+          <h3>Nueva sanción</h3>
 
-              <div style={field}>
-                <label>Fecha inicio</label>
-                <input
-                  type="date"
-                  value={newFechaInicio}
-                  onChange={(e) => setNewFechaInicio(e.target.value)}
-                  style={input}
-                />
-              </div>
+          <form onSubmit={crearSancionManual}>
+            <Input label="CI" value={newCi} onChange={setNewCi} />
+            <Input label="Fecha inicio" type="date" value={newFechaInicio} onChange={setNewFechaInicio} />
+            <Input label="Fecha fin" type="date" value={newFechaFin} onChange={setNewFechaFin} />
+            <Textarea label="Descripción" value={newDescripcion} onChange={setNewDescripcion} />
 
-              <div style={field}>
-                <label>Fecha fin</label>
-                <input
-                  type="date"
-                  value={newFechaFin}
-                  onChange={(e) => setNewFechaFin(e.target.value)}
-                  style={input}
-                />
-              </div>
+            <div style={modalButtons}>
+              <button type="button" style={btnSecondary} onClick={() => setShowCreateModal(false)}>
+                Cancelar
+              </button>
+              <button type="submit" style={btnSuccess} disabled={loadingCrear}>
+                {loadingCrear ? "Creando..." : "Crear"}
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
 
-              <div style={field}>
-                <label>Descripción</label>
-                <textarea
-                  value={newDescripcion}
-                  onChange={(e) => setNewDescripcion(e.target.value)}
-                  style={{ ...input, height: 70, resize: "vertical" }}
-                />
-              </div>
+      {/* ---------------------------------- */}
+      {/* MODAL EDITAR SANCIÓN */}
+      {/* ---------------------------------- */}
+      {showEditModal && (
+        <Modal onClose={() => setShowEditModal(false)}>
+          <h3>Editar sanción</h3>
 
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 10 }}>
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  style={{
-                    padding: "6px 12px",
-                    backgroundColor: "#6c757d",
-                    color: "white",
-                    border: "none",
-                    borderRadius: 4,
-                    cursor: "pointer",
-                  }}
-                  disabled={loadingCrear}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  style={{
-                    padding: "6px 12px",
-                    backgroundColor: "#198754",
-                    color: "white",
-                    border: "none",
-                    borderRadius: 4,
-                    cursor: "pointer",
-                  }}
-                  disabled={loadingCrear}
-                >
-                  {loadingCrear ? "Creando..." : "Crear sanción"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+          <form onSubmit={editarSancion}>
+            <p><b>CI:</b> {editData.ci}</p>
+
+            <Input
+              label="Nueva fecha inicio"
+              type="date"
+              value={editData.nueva_fecha_inicio}
+              onChange={(v) => setEditData({ ...editData, nueva_fecha_inicio: v })}
+            />
+
+            <Input
+              label="Nueva fecha fin"
+              type="date"
+              value={editData.nueva_fecha_fin}
+              onChange={(v) => setEditData({ ...editData, nueva_fecha_fin: v })}
+            />
+
+            <Textarea
+              label="Nueva descripción"
+              value={editData.nueva_descripcion}
+              onChange={(v) => setEditData({ ...editData, nueva_descripcion: v })}
+            />
+
+            <div style={modalButtons}>
+              <button type="button" style={btnSecondary} onClick={() => setShowEditModal(false)}>
+                Cancelar
+              </button>
+              <button type="submit" style={btnSuccess}>
+                Guardar cambios
+              </button>
+            </div>
+          </form>
+        </Modal>
       )}
     </div>
   );
 }
 
-// estilos
+/* -----------------------
+   COMPONENTES REUTILIZABLES
+------------------------ */
+
+function Modal({ children, onClose }) {
+  return (
+    <div style={modalOverlay}>
+      <div style={modalContent}>
+        {children}
+
+        <button onClick={onClose} style={closeButton}>✕</button>
+      </div>
+    </div>
+  );
+}
+
+function Input({ label, type = "text", value, onChange }) {
+  return (
+    <div style={field}>
+      <label>{label}</label>
+      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} style={input} />
+    </div>
+  );
+}
+
+function Textarea({ label, value, onChange }) {
+  return (
+    <div style={field}>
+      <label>{label}</label>
+      <textarea value={value} onChange={(e) => onChange(e.target.value)} style={{ ...input, height: 80 }} />
+    </div>
+  );
+}
+
+/* -----------------------
+        ESTILOS
+------------------------ */
+
 const contenedor = {
   display: "flex",
   flexWrap: "wrap",
@@ -333,28 +365,93 @@ const contenedor = {
 
 const card = {
   border: "1px solid #ccc",
-  padding: 10,
+  padding: 12,
   borderRadius: 6,
   width: 280,
+  background: "white",
+  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+};
+
+const btnPrimary = {
+  padding: "8px 14px",
+  background: "#0d6efd",
+  color: "white",
+  border: "none",
+  borderRadius: 4,
+  cursor: "pointer",
+  marginBottom: 20,
+};
+
+const btnEdit = {
+  padding: "6px 12px",
+  background: "#198754",
+  color: "white",
+  border: "none",
+  borderRadius: 4,
+  cursor: "pointer",
+};
+
+const btnDanger = {
+  padding: "6px 12px",
+  background: "#dc3545",
+  color: "white",
+  border: "none",
+  borderRadius: 4,
+  cursor: "pointer",
+};
+
+const btnSecondary = {
+  padding: "6px 12px",
+  background: "#6c757d",
+  color: "white",
+  border: "none",
+  borderRadius: 4,
+  cursor: "pointer",
+};
+
+const btnSuccess = {
+  padding: "6px 12px",
+  background: "#28a745",
+  color: "white",
+  border: "none",
+  borderRadius: 4,
+  cursor: "pointer",
 };
 
 const modalOverlay = {
   position: "fixed",
   inset: 0,
-  backgroundColor: "rgba(0,0,0,0.4)",
+  background: "rgba(0,0,0,0.4)",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  zIndex: 1000,
+  zIndex: 999,
 };
 
 const modalContent = {
-  backgroundColor: "white",
+  background: "white",
   padding: 20,
   borderRadius: 8,
-  minWidth: 320,
-  maxWidth: 420,
-  boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
+  minWidth: 350,
+  maxWidth: 450,
+  position: "relative",
+};
+
+const closeButton = {
+  position: "absolute",
+  top: 10,
+  right: 10,
+  background: "transparent",
+  border: "none",
+  fontSize: 20,
+  cursor: "pointer",
+};
+
+const modalButtons = {
+  display: "flex",
+  justifyContent: "flex-end",
+  gap: 10,
+  marginTop: 15,
 };
 
 const field = {
