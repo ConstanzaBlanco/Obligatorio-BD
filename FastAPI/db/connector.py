@@ -35,5 +35,4 @@ DB_CONFIGS = {
 
 def getConnection(role: str = "Invitado"):
     cfg = DB_CONFIGS.get(role, DB_CONFIGS["Invitado"])
-    print(f"[DB-CONNECT] role_app={role!r} → mysql_user={cfg['user']!r}")
     return mysql.connector.connect(**cfg)

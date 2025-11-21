@@ -15,9 +15,22 @@ def createSanction(ci: int, roleDb):
     try:
         cur = cn.cursor()
         cur.execute("""
-            INSERT INTO sancion_participante (ci_participante, fecha_inicio, fecha_fin)
-            VALUES (%s, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 2 MONTH));
+            INSERT INTO sancion_participante (ci_participante, fecha_inicio, fecha_fin, descripcion)
+            VALUES (%s, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 2 MONTH), 'Faltar a reserva');
         """, (ci,))
+        cn.commit()
+        return cur.rowcount
+    finally:
+        cn.close()
+
+def createOtherSanction(ci: int, fechaInicio: str, fechaFin: str, desc: str, roleDb):
+    cn = getConnection(roleDb)
+    try:
+        cur = cn.cursor()
+        cur.execute("""
+            INSERT INTO sancion_participante (ci_participante, fecha_inicio, fecha_fin, descripcion)
+            VALUES (%s, %s, %s, %s);
+        """, (ci, fechaInicio, fechaFin, desc))
         cn.commit()
         return cur.rowcount
     finally:

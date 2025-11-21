@@ -27,7 +27,7 @@ def seeOwnPastSanctions(user=Depends(currentUser)):
         ahora = cur.fetchone()["ahora"]
 
         cur.execute("""
-            SELECT fecha_inicio, fecha_fin
+            SELECT fecha_inicio, fecha_fin, descripcion
             FROM sancion_participante
             WHERE ci_participante = %s
               AND fecha_fin < %s
