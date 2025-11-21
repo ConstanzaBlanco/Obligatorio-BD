@@ -5,6 +5,7 @@ import jwt
 import uuid
 from db.loginSentences import getUser, getOneUser, updateTokenJti
 
+
 # Config básica
 SECRET_KEY = "bbfd9ee2a536ed05d4b609ff305b09f54b5af49ac3e567456fa913d9137c9617"
 ALGORITHM = "HS256"
@@ -117,3 +118,4 @@ def requireRole(*roles):
         return user
 
     return dep
+

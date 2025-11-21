@@ -1,5 +1,6 @@
 from db.connector import getConnection
 
+
 def getAllSanctions(roleDb):
     cn = getConnection(roleDb)
     try:
