@@ -12,18 +12,20 @@ export default function Edificios() {
   const [facultades, setFacultades] = useState([]);
   const [mensaje, setMensaje] = useState("");
 
-  //  CREAR EDIFICIO (FORM) 
+  // CREAR
   const [nuevoNombre, setNuevoNombre] = useState("");
   const [nuevaDireccion, setNuevaDireccion] = useState("");
   const [nuevoDepartamento, setNuevoDepartamento] = useState("");
   const [idFacultad, setIdFacultad] = useState("");
 
-  // MODAL 
+  // MODAL
   const [showModal, setShowModal] = useState(false);
   const [edificioAEditar, setEdificioAEditar] = useState(null);
 
   const [editIdFacultad, setEditIdFacultad] = useState("");
   const [editHabilitado, setEditHabilitado] = useState("");
+
+  const [editNuevoNombre, setEditNuevoNombre] = useState("");
 
   const guardarCambios = async () => {
     const token = localStorage.getItem("token");
@@ -31,6 +33,10 @@ export default function Edificios() {
     const body = {
       nombre_original: edificioAEditar.nombre_edificio,
     };
+
+    if (editNuevoNombre.trim() !== "") {
+      body.nuevo_nombre_edificio = editNuevoNombre.trim();
+    }
 
     if (editIdFacultad !== "") {
       body.id_facultad = parseInt(editIdFacultad);
@@ -64,7 +70,6 @@ export default function Edificios() {
     }
   };
 
-  // Cargar departamentos
   const cargarDepartamentos = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -76,7 +81,6 @@ export default function Edificios() {
     } catch {}
   };
 
-  // Cargar facultades
   const cargarFacultades = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -88,7 +92,6 @@ export default function Edificios() {
     } catch {}
   };
 
-  // Cargar edificios
   const cargarEdificios = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -118,7 +121,6 @@ export default function Edificios() {
     cargarEdificios();
   }, [departamentoFiltro]);
 
-  // ELIMINAR (ADMIN)
   const eliminarEdificio = async (nombre_edificio) => {
     if (!window.confirm(`¿Seguro que deseas eliminar "${nombre_edificio}"?`)) return;
 
@@ -147,7 +149,6 @@ export default function Edificios() {
     }
   };
 
-  // CREAR (ADMIN)
   const crearEdificio = async (e) => {
     e.preventDefault();
     setMensaje("");
@@ -188,16 +189,11 @@ export default function Edificios() {
     }
   };
 
-
-  //   FILTRAR DEPARTAMENTOS
   const departamentosFiltrados = departamentos.filter(dep => {
     const edificiosDelDep = edificios.filter(e => e.departamento === dep);
-
     if (edificiosDelDep.length === 0) return false;
-
     const todosDeshabilitados = edificiosDelDep.every(e => e.habilitado === false);
     if (todosDeshabilitados) return false;
-
     return true;
   });
 
@@ -205,7 +201,6 @@ export default function Edificios() {
     <div style={{ marginTop: 30 }}>
       <h2>Listado de Edificios</h2>
 
-      {/* FILTRO */}
       <select
         value={departamentoFiltro}
         onChange={(e) => setDepartamentoFiltro(e.target.value)}
@@ -219,7 +214,6 @@ export default function Edificios() {
 
       {mensaje && <p style={{ color: "green" }}>{mensaje}</p>}
 
-      {/* LISTA */}
       <ul style={{ listStyle: "none", padding: 0, marginTop: 20 }}>
         {edificios.map((e, i) => (
           <li
@@ -252,6 +246,7 @@ export default function Edificios() {
                     setEdificioAEditar(e);
                     setEditIdFacultad(e.id_facultad);
                     setEditHabilitado(e.habilitado ? "true" : "false");
+                    setEditNuevoNombre("");
                     setShowModal(true);
                   }}
                 >
@@ -270,7 +265,7 @@ export default function Edificios() {
         ))}
       </ul>
 
-      {/* FORM CREAR EDIFICIO */}
+      {/* CREAR EDIFICIO */}
       {rol === "administrador" && (
         <>
           <h3 style={{ marginTop: 40 }}>Crear Nuevo Edificio</h3>
@@ -331,6 +326,16 @@ export default function Edificios() {
 
             <p><strong>{edificioAEditar?.nombre_edificio}</strong></p>
 
+            {/* CAMBIAR NOMBRE */}
+            <label>Cambiar nombre:</label>
+            <input
+              type="text"
+              placeholder="Nuevo nombre..."
+              value={editNuevoNombre}
+              onChange={(e) => setEditNuevoNombre(e.target.value)}
+              style={inputStyle}
+            />
+
             <label>Facultad:</label>
             <select
               value={editIdFacultad}
@@ -371,7 +376,6 @@ export default function Edificios() {
     </div>
   );
 }
-
 
 const itemStyle = {
   border: "1px solid #ccc",
