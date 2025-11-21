@@ -3,10 +3,11 @@ import Header from "../components/Header";
 
 export default function PrivateLayout() {
   return (
-    <>
+    <div className="layout-wrapper">
       <Header />
-
-      <Outlet />
-    </>
+      <main className="layout-content">
+        <Outlet />
+      </main>
+    </div>
   );
 }

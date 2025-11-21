@@ -33,7 +33,7 @@ export default function App() {
   const { user, logout } = useUser();
 
   return (
-    <div style={{ textAlign: "center", marginTop: 40 }}>
+    <div className="app-wrapper">
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Register />} />

@@ -7,110 +7,141 @@ export default function Header() {
 
   return (
     <nav style={navStyle}>
-      {/* IZQUIERDA */}
-      <div style={leftSection}>
-        <Link to="/" style={linkStyle}>Home</Link>
-        {rol === "usuario" && (
-          <>
-            <Link to="/mis-reservas" style={linkStyle}>Mis Reservas</Link>
-            <Link to="/mis-invitaciones" style={linkStyle}>Invitaciones</Link>
-            <Link to="/mis-sanciones" style={linkStyle}>Mis Sanciones</Link>
-            <Link to="/edificios" style={linkStyle}>Reservar</Link>
-          </>
-        )}
+      <div style={innerContainer}>
+        {/* IZQUIERDA */}
+        <div style={leftSection}>
+          <NavLink to="/">Home</NavLink>
 
-        {rol === "bibliotecario" && (
-          <>
-            <Link to="/reservas-vencidas" style={linkStyle}>Reservas Vencidas</Link>
-            <Link to="/reservas" style={linkStyle}>Reservas</Link>
-            <Link to="/edificios" style={linkStyle}>Edificios</Link>
-            <Link to="/sanciones" style={linkStyle}>Sanciones</Link>
-            <Link to="/users" style={linkStyle}>Usuario</Link>
-          </>
-        )}
+          {rol === "usuario" && (
+            <>
+              <NavLink to="/mis-reservas">Mis Reservas</NavLink>
+              <NavLink to="/mis-invitaciones">Invitaciones</NavLink>
+              <NavLink to="/mis-sanciones">Mis Sanciones</NavLink>
+              <NavLink to="/edificios">Reservar</NavLink>
+            </>
+          )}
 
-        {rol === "administrador" && (
-          <>
-            <Link to="/edificios" style={linkStyle}>Edificios</Link>
-            <Link to="/facultad" style={linkStyle}>Facultades</Link>
-            <Link to="/programa" style={linkStyle}>Programa</Link>
-            <Link to="/users" style={linkStyle}>Usuarios</Link>
-          </>
-        )}
-      </div>
+          {rol === "bibliotecario" && (
+            <>
+              <NavLink to="/reservas-vencidas">Reservas Vencidas</NavLink>
+              <NavLink to="/reservas">Reservas</NavLink>
+              <NavLink to="/edificios">Edificios</NavLink>
+              <NavLink to="/sanciones">Sanciones</NavLink>
+              <NavLink to="/users">Usuario</NavLink>
+            </>
+          )}
 
-      {/* DERECHA */}
-      <div style={rightSection}>
-        <button 
-          onClick={() => window.location.href = "/me"}
-          style={avatarBtn}
-        >
-          👤
-        </button>
+          {rol === "administrador" && (
+            <>
+              <NavLink to="/edificios">Edificios</NavLink>
+              <NavLink to="/facultad">Facultades</NavLink>
+              <NavLink to="/programa">Programas</NavLink>
+              <NavLink to="/users">Usuarios</NavLink>
+            </>
+          )}
+        </div>
 
-        <button onClick={logout} style={logoutBtn}>
-          Cerrar sesión
-        </button>
+        {/* DERECHA */}
+        <div style={rightSection}>
+          <button 
+            onClick={() => window.location.href = "/me"}
+            style={avatarBtn}
+          >
+            👤
+          </button>
+
+          <button onClick={logout} style={logoutBtn}>
+            Cerrar sesión
+          </button>
+        </div>
       </div>
     </nav>
   );
 }
 
+
+/* ---------------- COMPONENTE NAVLINK ---------------- */
+
+function NavLink({ to, children }) {
+  return (
+    <Link to={to} className="nav-text" style={linkStyle}>
+      {children}
+    </Link>
+  );
+}
+
+
 /* ---------------- ESTILOS ---------------- */
 
 const navStyle = {
+  width: "100%",
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
-  padding: "12px 25px",
-  background: "#ffffff",
-  borderBottom: "2px solid #e5e5e5",
-  boxShadow: "0 3px 12px rgba(0,0,0,0.08)",
+  padding: "12px 0",
+  background: "#002B7A",
+  boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
   position: "sticky",
   top: 0,
-  zIndex: 999,
+  left: 0,
+  right: 0,
+  margin: 0,
+  zIndex: 1000,
+  boxSizing: "border-box",
 };
+
+const innerContainer = {
+  width: "100%",
+  maxWidth: "1200px",
+  margin: "0 auto",
+  padding: "0 20px",
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+};
+
 
 const leftSection = {
   display: "flex",
   alignItems: "center",
-  gap: "15px",
+  gap: "20px",
+  flexWrap: "wrap",
 };
 
 const rightSection = {
   display: "flex",
   alignItems: "center",
-  gap: "10px",
+  gap: "12px",
 };
 
 const linkStyle = {
-  padding: "8px 12px",
-  borderRadius: "6px",
   textDecoration: "none",
-  color: "#007bff",
-  fontWeight: 600,
-  transition: "0.2s ease",
-};
-
-const logoutBtn = {
-  padding: "8px 14px",
-  backgroundColor: "#dc3545",
   color: "white",
-  border: "none",
-  borderRadius: "6px",
-  cursor: "pointer",
-  fontSize: "14px",
+  fontWeight: 600,
+  fontSize: "16px",
+  padding: "5px 0",
 };
 
 const avatarBtn = {
   width: "38px",
   height: "38px",
   borderRadius: "50%",
-  background: "#e6e6ff",
-  border: "1px solid #ccc",
+  background: "#ffffff22",
+  border: "1px solid #ffffff55",
   cursor: "pointer",
   fontSize: "18px",
+  color: "white",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
+};
+
+const logoutBtn = {
+  padding: "8px 14px",
+  backgroundColor: "#FF4B4B",
+  color: "white",
+  border: "none",
+  borderRadius: "6px",
+  cursor: "pointer",
+  fontSize: "14px",
 };

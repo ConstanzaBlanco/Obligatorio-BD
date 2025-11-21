@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "./components/UserContext";
+import "./Login.css";
 
 export default function Login() {
   const [correo, setCorreo] = useState("");
@@ -45,11 +46,12 @@ export default function Login() {
   };
 
   return (
-    <div style={{ maxWidth: 300, margin: "50px auto" }}>
-      <h2>Iniciar Sesión</h2>
-      <button type="submit" onClick={() => { navigate("/registro") }}>Registrarse</button>
+    <div className="login-container">
+      <h2 className="login-title">Iniciar Sesión</h2>
 
-      <form onSubmit={handleLogin}>
+      <button type="button" className="register-button" onClick={() => { navigate("/registro") }}>Registrarse</button>
+
+      <form className="login-form" onSubmit={handleLogin}>
         <input
           type="email"
           placeholder="Correo"
@@ -65,11 +67,10 @@ export default function Login() {
           required
         />
 
-        <button type="submit">Entrar</button>
+        <button type="submit" className="login-button">Entrar</button>
       </form>
 
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className="login-error">{error}</p>}
     </div>
   );
 }
