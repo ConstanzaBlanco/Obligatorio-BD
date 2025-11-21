@@ -66,6 +66,18 @@ CREATE TABLE sala (
     FOREIGN KEY (edificio) REFERENCES edificio(nombre_edificio)
 );
 
+-- Ajustar FK de sala para permitir UPDATE CASCADE al cambiar edificio
+ALTER TABLE sala
+DROP FOREIGN KEY sala_ibfk_1;
+
+ALTER TABLE sala
+ADD CONSTRAINT sala_ibfk_1
+FOREIGN KEY (edificio)
+    REFERENCES edificio(nombre_edificio)
+    ON UPDATE CASCADE
+    ON DELETE RESTRICT;
+
+
 -- Tabla de turno
 CREATE TABLE turno (
     id_turno INT AUTO_INCREMENT PRIMARY KEY,
@@ -85,6 +97,19 @@ CREATE TABLE reserva (
     FOREIGN KEY (id_turno) REFERENCES turno(id_turno),
     FOREIGN KEY (creador) REFERENCES participante(ci)
 );
+
+-- Ajuste ON UPDATE CASCADE para reservas al modificar nombre de sala/edificio
+ALTER TABLE reserva 
+DROP FOREIGN KEY reserva_ibfk_1;
+
+ALTER TABLE reserva 
+ADD CONSTRAINT reserva_ibfk_1
+FOREIGN KEY (nombre_sala, edificio)
+    REFERENCES sala(nombre_sala, edificio)
+    ON UPDATE CASCADE
+    ON DELETE RESTRICT;
+
+
 
 -- Tabla reserva_participante
 CREATE TABLE reserva_participante (
