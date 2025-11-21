@@ -25,7 +25,7 @@ def seeOwnActiveSanctions(user=Depends(currentUser)):
 
         # sanciones activas: ahora BETWEEN inicio y fin
         cur.execute("""
-            SELECT fecha_inicio, fecha_fin
+            SELECT fecha_inicio, fecha_fin, descripcion
             FROM sancion_participante
             WHERE ci_participante = %s
               AND %s BETWEEN fecha_inicio AND fecha_fin
