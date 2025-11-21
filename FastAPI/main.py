@@ -32,6 +32,8 @@ from routes import editarEdificio
 from routes import crearSala
 from routes import modificarSala
 
+from routes import sanciones
+
 from routes import invitaciones
 from routes import estadisticas
 from routes import eliminarSala
@@ -110,6 +112,7 @@ app.include_router(CreateBiblio.router)
 app.include_router(changeRolOfUser.router)
 app.include_router(deleteUser.router)
 app.include_router(estadisticas.router)
+app.include_router(sanciones.router)
 
 # --- router facultad ---
 app.include_router(facultad.router)
