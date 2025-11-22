@@ -147,7 +147,7 @@ def modificar_reserva(payload: EditReserva, user=Depends(requireRole("Biblioteca
         for p in participantes:
             createNotification(
                 p["ci_participante"],
-                "reserva_modificada",
+                "RESERVA MODIFICADA",
                 f"La reserva #{payload.id_reserva} ha sido modificada.",
                 referencia_tipo="reserva",
                 referencia_id=payload.id_reserva

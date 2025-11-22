@@ -50,7 +50,7 @@ def getAllCisOfOneReservation(reserveId: int, roleDb):
     try:
         cur = cn.cursor(dictionary=True)
         cur.execute(
-            "SELECT ci_participante FROM reserva_participante WHERE id_reserva = %s;",
+            "SELECT ci_participante FROM reserva_participante WHERE id_reserva = %s AND (estado_invitacion = 'aceptada' OR estado_invitacion = 'creador');",
             (reserveId,)
         )
         rows = cur.fetchall()
