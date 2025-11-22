@@ -129,6 +129,36 @@ export default function MisInvitaciones() {
     }
   };
 
+  const bloquearUsuario = async (ci_bloqueado) => {
+    const confirmacion = window.confirm(
+      "¿Seguro que querés bloquear a este usuario para que no te pueda invitar?"
+    );
+    if (!confirmacion) return;
+
+    try {
+      const res = await fetch("http://localhost:8000/bloqueos/block", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ ci_bloqueado }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || "No se pudo bloquear al usuario");
+        return;
+      }
+
+      alert(data.mensaje || "Usuario bloqueado");
+      cargarInvitaciones();
+    } catch (err) {
+      console.error(err);
+      alert("Error al bloquear usuario");
+    }
+  };
+
   useEffect(() => {
     cargarInvitaciones();
   }, []);
@@ -161,6 +191,13 @@ export default function MisInvitaciones() {
             <h4 style={{ marginTop: 0, color: "#333" }}>
               {inv.nombre_sala} - {inv.edificio}
             </h4>
+            <div style={{ marginBottom: 6 }}>
+              {inv.estado === 'cancelada' ? (
+                <span style={{ color: '#c0392b', fontWeight: 700 }}>Reserva Cancelada</span>
+              ) : (
+                <span style={{ color: '#27ae60', fontWeight: 700 }}>Reserva Activa</span>
+              )}
+            </div>
             <p>
               <strong>N°:</strong> {i + 1}
             </p>
@@ -179,15 +216,17 @@ export default function MisInvitaciones() {
                 flexDirection: "column",
               }}
             >
+              {/*Se desabilita si la reserva fue cancelada */}
               <button
                 onClick={() => aceptarInvitacion(inv.id_reserva)}
+                disabled={inv.estado === 'cancelada'}
                 style={{
                   padding: "8px 12px",
-                  background: "#5cb85c",
+                  background: inv.estado === 'cancelada' ? '#9dd7b2' : '#5cb85c',
                   color: "white",
                   border: "none",
                   borderRadius: 6,
-                  cursor: "pointer",
+                  cursor: inv.estado === 'cancelada' ? 'not-allowed' : 'pointer',
                   fontSize: 14,
                   fontWeight: "bold",
                 }}
@@ -196,13 +235,14 @@ export default function MisInvitaciones() {
               </button>
               <button
                 onClick={() => rechazarInvitacion(inv.id_reserva)}
+                disabled={inv.estado === 'cancelada'}
                 style={{
                   padding: "8px 12px",
-                  background: "#d9534f",
+                  background: inv.estado === 'cancelada' ? '#f3b6b6' : '#d9534f',
                   color: "white",
                   border: "none",
                   borderRadius: 6,
-                  cursor: "pointer",
+                  cursor: inv.estado === 'cancelada' ? 'not-allowed' : 'pointer',
                   fontSize: 14,
                   fontWeight: "bold",
                 }}
@@ -211,9 +251,25 @@ export default function MisInvitaciones() {
               </button>
               <button
                 onClick={() => bloquearInvitacion(inv.id_reserva)}
+                disabled={inv.estado === 'cancelada'}
                 style={{
                   padding: "8px 12px",
-                  background: "#555",
+                  background: inv.estado === 'cancelada' ? '#9e9e9e' : '#555',
+                  color: "white",
+                  border: "none",
+                  borderRadius: 6,
+                  cursor: inv.estado === 'cancelada' ? 'not-allowed' : 'pointer',
+                  fontSize: 14,
+                  fontWeight: "bold",
+                }}
+              >
+                🔒 Bloquear
+              </button>
+              <button
+                onClick={() => bloquearUsuario(inv.creador)}
+                style={{
+                  padding: "8px 12px",
+                  background: "#444",
                   color: "white",
                   border: "none",
                   borderRadius: 6,
@@ -222,7 +278,7 @@ export default function MisInvitaciones() {
                   fontWeight: "bold",
                 }}
               >
-                🔒 Bloquear
+                🚫 Bloquear usuario
               </button>
             </div>
           </div>
