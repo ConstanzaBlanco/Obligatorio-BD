@@ -98,7 +98,7 @@ def editar_sancion(payload: EditarSancion, user=Depends(requireRole("Bibliotecar
 
         createNotification(
             payload.ci,
-            "sancion_editada",
+            "SANCION EDITADA",
             mensaje,
             referencia_tipo="sancion",
             referencia_id=None

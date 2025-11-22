@@ -192,7 +192,7 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
 
             createNotification(
                 ci_participantes,  
-                "invitacion",
+                "INVITACION",
                 f"Fuiste invitado por {ci} a una reserva en la sala {request.nombre_sala} ({request.edificio}) "
                 f"para el día {request.fecha} en el turno {request.id_turno}",
                 referencia_tipo="reserva",
