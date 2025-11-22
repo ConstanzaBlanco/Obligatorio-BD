@@ -98,6 +98,37 @@ export default function MisInvitaciones() {
     }
   };
 
+  const bloquearInvitacion = async (id_reserva) => {
+    const confirmacion = window.confirm(
+      "¿Estás seguro de que querés bloquear las invitaciones de esta reserva? No recibirás más invitaciones de ella."
+    );
+    if (!confirmacion) return;
+
+    try {
+      const res = await fetch("http://localhost:8000/invitaciones/bloquear", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id_reserva }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "No se pudo bloquear la invitación");
+        return;
+      }
+
+      alert(data.mensaje || "Invitaciones bloqueadas");
+      cargarInvitaciones();
+    } catch (err) {
+      console.error(err);
+      alert("Error al bloquear las invitaciones");
+    }
+  };
+
   useEffect(() => {
     cargarInvitaciones();
   }, []);
@@ -177,6 +208,21 @@ export default function MisInvitaciones() {
                 }}
               >
                 ✗ Rechazar
+              </button>
+              <button
+                onClick={() => bloquearInvitacion(inv.id_reserva)}
+                style={{
+                  padding: "8px 12px",
+                  background: "#555",
+                  color: "white",
+                  border: "none",
+                  borderRadius: 6,
+                  cursor: "pointer",
+                  fontSize: 14,
+                  fontWeight: "bold",
+                }}
+              >
+                🔒 Bloquear
               </button>
             </div>
           </div>
