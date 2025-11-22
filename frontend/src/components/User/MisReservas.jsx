@@ -5,6 +5,7 @@ export default function MisReservas() {
   const [misReservas, setMisReservas] = useState([]);
   const [inviteInputs, setInviteInputs] = useState({});
   const [reservasParticipando, setReservasParticipando] = useState([]);
+  const [reservasBloqueadas, setReservasBloqueadas] = useState([]);
   const [error, setError] = useState("");
 
   const token = localStorage.getItem("token");
@@ -112,7 +113,11 @@ function formatHora(hora) {
 
       if (res.ok) {
         setMisReservas(data.mis_reservas_creadas || []);
-        setReservasParticipando(data.reservas_donde_participo || []);
+        const allParticip = data.reservas_donde_participo || [];
+        const bloqueadas = allParticip.filter(r => (r.estado_invitacion || '').toString() === 'bloqueada');
+        const normales = allParticip.filter(r => (r.estado_invitacion || '').toString() !== 'bloqueada');
+        setReservasParticipando(normales);
+        setReservasBloqueadas(bloqueadas);
         // Inicializar inputs por reserva
         const init = {};
         (data.mis_reservas_creadas || []).forEach(r => {
@@ -249,12 +254,29 @@ function formatHora(hora) {
                           });
                           const data = await res.json();
                           if (!res.ok || data.error) {
-                            alert(data.error || data.detail || 'Error al enviar invitaciones');
+                            // Si el backend devolvió errores por CI, mostrarlos detalladamente
+                            if (data.errores && Array.isArray(data.errores) && data.errores.length > 0) {
+                              const msgs = data.errores.map(e => `${e.ci}: ${e.error}`).join('\n');
+                              alert(`No se pudieron enviar algunas invitaciones:\n${msgs}`);
+                            } else {
+                              alert(data.error || data.detail || 'Error al enviar invitaciones');
+                            }
                             return;
                           }
 
-                          alert(data.mensaje || 'Invitaciones enviadas');
-                          // refrescar reservas y limpiar input
+                          // Mostrar éxito y detalles (invitados y errores parciales)
+                          let message = data.mensaje || 'Invitaciones enviadas';
+                          if (data.invitados && Array.isArray(data.invitados) && data.invitados.length > 0) {
+                            message += `\nInvitados: ${data.invitados.join(', ')}`;
+                          }
+                          if (data.errores && Array.isArray(data.errores) && data.errores.length > 0) {
+                            const msgs = data.errores.map(e => `${e.ci}: ${e.error}`).join('\n');
+                            message += `\nAlgunos errores:\n${msgs}`;
+                          }
+                          alert(message);
+
+                          // limpiar input local para esa reserva y refrescar
+                          setInviteInputs(prev => ({ ...(prev || {}), [r.id_reserva]: { value: '', list: [], errors: [] } }));
                           cargarActivas();
 
                         } catch (err) {
@@ -315,6 +337,59 @@ function formatHora(hora) {
                 <p><strong>N°:</strong> {idx + 1}</p>
                 <p><strong>Hora:</strong> {formatHora(r.hora_inicio)} → {formatHora(r.hora_fin)}</p>
                 <p style={{ fontSize: 13, color: '#666' }}><strong>Estado invitación:</strong> {r.estado_invitacion || 'aceptada'}</p>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {reservasBloqueadas.length > 0 && (
+        <>
+          <h3>Reservas bloqueadas</h3>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
+            {reservasBloqueadas.map((r, idx) => (
+              <div
+                key={`bloq-${r.id_reserva}`}
+                style={{
+                  border: "1px solid #ccc",
+                  borderRadius: 8,
+                  padding: 16,
+                  width: 260,
+                  background: "#f2f2f2",
+                  color: "#666"
+                }}
+              >
+                <h4 style={{ marginTop: 0, color: '#444' }}>{r.nombre_sala} - {r.edificio}</h4>
+                <p><strong>N°:</strong> {idx + 1}</p>
+                <p><strong>Hora:</strong> {formatHora(r.hora_inicio)} → {formatHora(r.hora_fin)}</p>
+                <p style={{ fontSize: 13, color: '#666' }}><strong>Estado invitación:</strong> {r.estado_invitacion}</p>
+                <p style={{ fontSize: 12, color: '#555' }}>Bloqueaste recibir más invitaciones de esta reserva.</p>
+                <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={async () => {
+                      const confirmacion = window.confirm('¿Querés desbloquear esta reserva? Tu invitación quedará como "rechazada" y dejarás de estar bloqueado.');
+                      if (!confirmacion) return;
+                      try {
+                        const res = await fetch('http://localhost:8000/invitaciones/desbloquear', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                          body: JSON.stringify({ id_reserva: r.id_reserva, accion: 'rechazar' })
+                        });
+                        const data = await res.json();
+                        if (!res.ok || data.error) {
+                          alert(data.error || 'No se pudo desbloquear');
+                          return;
+                        }
+                        alert(data.mensaje || 'Reserva desbloqueada');
+                        cargarActivas();
+                      } catch (err) {
+                        console.error(err);
+                        alert('Error al desbloquear');
+                      }
+                    }}
+                    style={{ padding: '8px 12px', background: '#777', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer' }}
+                  >Desbloquear</button>
+                </div>
               </div>
             ))}
           </div>
