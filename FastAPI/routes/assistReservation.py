@@ -17,6 +17,7 @@ class UpdateStateOfReservation(BaseModel):
     reserveId: int
     cis: list[int]
 
+
 def es_bibliotecario(ci: int) -> bool:
     cn = getConnection()
     cur = cn.cursor(dictionary=True)
@@ -36,6 +37,29 @@ def es_bibliotecario(ci: int) -> bool:
     return bool(row and row["rol"] == "Bibliotecario")
 
 
+def esta_sancionado(ci: int) -> bool:
+    """Retorna True si la persona tiene una sanción activa HOY."""
+    cn = getConnection()
+    cur = cn.cursor()
+
+    hoy = date.today()
+
+    cur.execute("""
+        SELECT 1 FROM sancion_participante
+        WHERE ci_participante = %s
+        AND fecha_inicio <= %s
+        AND fecha_fin >= %s
+        LIMIT 1
+    """, (ci, hoy, hoy))
+
+    existe = cur.fetchone()
+
+    cur.close()
+    cn.close()
+
+    return bool(existe)
+
+
 
 @router.post("/updateReservation")
 def update_reservation_state(
@@ -47,15 +71,17 @@ def update_reservation_state(
     reserveId = payload.reserveId
     attended_cis = payload.cis
 
-    # Obtener los CIS directamente (ahora devuelve ints)
+    # Obtener CIS reales (lista de ints)
     rows = getAllCisOfOneReservation(reserveId, roleDb)
     if not rows:
         raise HTTPException(404, "No existe la reserva o no tiene participantes asignados")
 
-    existing_cis = rows  # 👈 YA NO ES UNA LISTA DE DICCIONARIOS
+    existing_cis = rows  
 
-    # Filtrar NO bibliotecarios
+    # Filtrar bibliotecarios → no sancionables
     sancionables = [ci for ci in existing_cis if not es_bibliotecario(ci)]
+
+    # Filtrar asistieron → solo si son sancionables
     attended_cis = [ci for ci in attended_cis if ci in sancionables]
 
     # Si no hay nadie sancionable
@@ -66,7 +92,7 @@ def update_reservation_state(
             "message": "Reserva finalizada. Todos eran bibliotecarios, nadie sancionado."
         }
 
-    # Si nadie asistió
+    # Si NADIE asistió
     if len(attended_cis) == 0:
         return handle_non_assistance(reserveId, sancionables, roleDb)
 
@@ -83,6 +109,7 @@ def update_reservation_state(
     }
 
 
+
 def handle_non_assistance(reserveId: int, cis_sancionables: list[int], roleDb):
     fechaInicio = date.today()
     fechaFin = fechaInicio + timedelta(days=60)
@@ -91,7 +118,14 @@ def handle_non_assistance(reserveId: int, cis_sancionables: list[int], roleDb):
     fin = fechaFin.strftime("%d/%m/%Y")
     motivo = "No asistir a la sala reservada."
 
+    cis_sancionados = []
+
     for ci in cis_sancionables:
+
+        # Nuevo: NO sancionar si ya está sancionado hoy
+        if esta_sancionado(ci):
+            continue  
+
         updateAssistUser(ci, reserveId, False, roleDb)
         createSanction(ci, roleDb)
         createNotification(
@@ -101,11 +135,12 @@ def handle_non_assistance(reserveId: int, cis_sancionables: list[int], roleDb):
             referencia_tipo="sancion",
             referencia_id=None
         )
+        cis_sancionados.append(ci)
 
     updateReserveToFinish(reserveId, "sin asistencia", roleDb)
 
     return {
         "success": True,
-        "message": "Nadie asistió. Solo se sancionó a los NO bibliotecarios.",
-        "cis_sancionados": cis_sancionables
+        "message": "Nadie asistió. Se sancionó a quienes correspondía (no bibliotecarios y no sancionados previamente).",
+        "cis_sancionados": cis_sancionados
     }
