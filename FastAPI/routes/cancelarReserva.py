@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from db.connector import getConnection
 from pydantic import BaseModel
-from core.security import currentUser  
-# Para obtener el usuario autenticado
 from core.security import requireRole
+from db.notificationSentences import createNotification
 
 router = APIRouter()
 
@@ -17,12 +16,13 @@ def cancelar_reserva(request: CancelReservationRequest, user=Depends(requireRole
         cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
 
-        # Obtener el CI del usuario autenticado 
-        ci = user["ci"]  
+        # CI del usuario autenticado
+        ci = user["ci"]
 
-        # Verifico que la reserva exista y obtener datos (incluye creador)
+        # Obtener reserva + datos importantes
         cur.execute("""
-            SELECT r.id_reserva, r.estado, r.fecha, t.hora_inicio, r.creador
+            SELECT r.id_reserva, r.estado, r.fecha, t.hora_inicio, 
+                   r.creador, r.nombre_sala, r.edificio
             FROM reserva r
             JOIN turno t ON t.id_turno = r.id_turno
             WHERE r.id_reserva = %s;
@@ -30,31 +30,25 @@ def cancelar_reserva(request: CancelReservationRequest, user=Depends(requireRole
 
         reserva = cur.fetchone()
         if not reserva:
-            raise HTTPException(status_code=404, detail="No se encontró una reserva asociada al participante")
+            raise HTTPException(404, "No se encontró una reserva asociada al participante")
 
-        # Se verifica que la reserva esté activa
         if reserva["estado"] != "activa":
-            raise HTTPException(
-                status_code=400,
-                detail=f"La reserva no puede cancelarse porque su estado actual es '{reserva['estado']}'"
-            )
+            raise HTTPException(400, f"No se puede cancelar porque la reserva está '{reserva['estado']}'")
 
-        # Sólo el creador puede cancelar la reserva
-        if reserva.get("creador") != ci:
-            raise HTTPException(status_code=403, detail="Solo el creador de la reserva puede cancelarla")
+        if reserva["creador"] != ci:
+            raise HTTPException(403, "Solo el creador puede cancelar la reserva")
 
-        # Bloqueo de cancelación según fecha y hora
+        # Hora actual
         cur.execute("SELECT NOW() AS now")
         now = cur.fetchone()["now"]
-        
+
         if str(reserva["fecha"]) < str(now.date()):
-            raise HTTPException(status_code=400, detail="No se puede cancelar una reserva de días anteriores")
+            raise HTTPException(400, "No se puede cancelar una reserva pasada")
 
-        # Si es hoy, validar que no haya comenzado
         if str(reserva["fecha"]) == str(now.date()) and str(reserva["hora_inicio"]) <= str(now.time()):
-            raise HTTPException(status_code=400, detail="La reserva ya empezó, no puede ser cancelada")
+            raise HTTPException(400, "La reserva ya empezó, no puede cancelarse")
 
-        # Cancelo la reserva
+        # --- CANCELAR ---
         cur.execute("""
             UPDATE reserva
             SET estado = 'cancelada'
@@ -62,7 +56,39 @@ def cancelar_reserva(request: CancelReservationRequest, user=Depends(requireRole
         """, (request.id_reserva,))
         cn.commit()
 
-        return {"mensaje": f"Reserva {request.id_reserva} cancelada exitosamente"}
+        # Notificación para el creador
+        createNotification(
+            ci,
+            "reserva_cancelada",
+            f"Cancelaste la reserva {request.id_reserva} en la sala {reserva['nombre_sala']} "
+            f"({reserva['edificio']}) para el día {reserva['fecha']}.",
+            referencia_tipo="reserva",
+            referencia_id=request.id_reserva
+        )
+
+        # OBTENER INVITADOS QUE ACEPTARON
+        cur.execute("""
+            SELECT rp.ci_participante, p.nombre
+            FROM reserva_participante rp
+            JOIN participante p ON p.ci = rp.ci_participante
+            WHERE rp.id_reserva = %s
+            AND rp.estado_invitacion = 'aceptada'
+        """, (request.id_reserva,))
+
+        invitados = cur.fetchall()
+
+        # NOTIFICAR A CADA INVITADO QUE ACEPTÓ
+        for invitado in invitados:
+            createNotification(
+                invitado["ci_participante"],
+                "reserva_cancelada",
+                f"La reserva {request.id_reserva} en la sala {reserva['nombre_sala']} "
+                f"({reserva['edificio']}) para el día {reserva['fecha']} fue cancelada por el creador.",
+                referencia_tipo="reserva",
+                referencia_id=request.id_reserva
+            )
+
+        return {"mensaje": f"Reserva {request.id_reserva} cancelada y notificaciones enviadas"}
 
     except HTTPException:
         raise

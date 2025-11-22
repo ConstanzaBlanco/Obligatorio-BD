@@ -40,6 +40,7 @@ from routes import estadisticas
 from routes import eliminarSala
 from routes import horaServidor
 from routes import editarSancion
+from routes import notificaciones
 # --- ADMIN ---
 
 from routes import CreateBiblio
@@ -111,6 +112,7 @@ app.include_router(checkParticipant.router)
 app.include_router(eliminarSala.router)
 app.include_router(horaServidor.router)
 app.include_router(editarSancion.router)
+app.include_router(notificaciones.router)
 # --- routers admin ---
 app.include_router(CreateBiblio.router)
 app.include_router(changeRolOfUser.router)

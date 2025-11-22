@@ -28,6 +28,7 @@ import FacultadManager from "./components/Admin/Facultad";
 import ProgramaManager from "./components/Admin/ProgramaAcademico";
 import Home from "./components/Home";
 import NotFound from "./components/NotFound";
+import NotificationsPanel from "./components/User/NotificacionesPendientes";
 
 export default function App() {
   const { user, logout } = useUser();
@@ -56,6 +57,7 @@ export default function App() {
               <Route path="/crear-reserva" element={<CrearReserva />} />
               <Route path="/mis-sanciones" element={<MisSanciones />} />
               <Route path="/me" element={<Me />} />
+              <Route path="/notificaciones" element={<NotificationsPanel/>} />
 
               <Route element={<BiblioOnly />}>
                 <Route path="/reservas-vencidas" element={<ReservasVencidas />} />
