@@ -8,7 +8,7 @@ services:
       MYSQL_DATABASE: gestion_salas
       MYSQL_USER: gestion_salas_user
       MYSQL_PASSWORD: shaw
-      TZ: America/Montevideo   # <<--- AQUI
+      TZ: America/Montevideo
     ports:
       - "3306:3306"
     volumes:

@@ -10,7 +10,7 @@ class CancelReservationRequest(BaseModel):
     id_reserva: int
 
 @router.patch("/cancelarReserva")
-def cancelar_reserva(request: CancelReservationRequest, user=Depends(requireRole("Usuario"))):
+def cancelar_reserva(request: CancelReservationRequest, user=Depends(requireRole("Usuario","Bibliotecario"))):
     try:
         roleDb = user["rol"]
         cn = getConnection(roleDb)
@@ -81,7 +81,7 @@ def cancelar_reserva(request: CancelReservationRequest, user=Depends(requireRole
         for invitado in invitados:
             createNotification(
                 invitado["ci_participante"],
-                "reserva_cancelada",
+                "RESERVA CANCELADA",
                 f"La reserva {request.id_reserva} en la sala {reserva['nombre_sala']} "
                 f"({reserva['edificio']}) para el día {reserva['fecha']} fue cancelada por el creador.",
                 referencia_tipo="reserva",
