@@ -1,4 +1,5 @@
 from db.connector import getConnection
+from fastapi import HTTPException
 
 def insertLogin(correo: str, password: str, roleDb):
     cn = getConnection(roleDb)
@@ -52,3 +53,18 @@ def insertBiblioLogin(correo: str, password: str, roleDb):
         return cur.rowcount
      finally:
         cn.close()
+
+def verifyExisteUser(ci: int, correo: str, roleDb="Invitado"):
+    conn = getConnection(roleDb)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT 1 FROM participante WHERE ci = %s", (ci,))
+        if cursor.fetchone():
+            raise HTTPException(status_code=400, detail="ci ya registrado")
+
+        cursor.execute("SELECT 1 FROM login WHERE correo = %s", (correo,))
+        if cursor.fetchone():
+            raise HTTPException(status_code=400, detail="correo ya registrado")
+    finally:
+        cursor.close()
+        conn.close()

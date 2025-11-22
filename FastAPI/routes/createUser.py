@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from core.passwordHash import hashPassword
-from db.registerSentences import insertLogin, insertPaticipante, insertParticipanteProgramaAcademico
+from db.registerSentences import insertLogin, insertPaticipante, insertParticipanteProgramaAcademico, verifyExisteUser
 from db.connector import getConnection
 
 router = APIRouter()
@@ -47,14 +47,14 @@ def createUser(payload: CreateUserRequest):
     if domain.startswith("correo."):
         rol = "alumno"
     elif domain.startswith("ucu."):
-        rol = "docente"
+        rol = "alumno"
     else:
         raise HTTPException(status_code=400, detail="correo inválido (debe ser @correo.* o @ucu.*)")
-
+    
+    verifyExisteUser(ci, correo, "Invitado")
     # Hash de password
     passwordHashed = hashPassword(password)
 
-    # Inserts (si rowcount == 0 => error)
     if insertLogin(correo, passwordHashed, "Invitado") == 0:
         raise HTTPException(status_code=400, detail="Error al insertar en login")
 
