@@ -115,7 +115,7 @@ export default function MisInvitaciones() {
       )}
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
-        {invitaciones.map((inv) => (
+        {invitaciones.map((inv, i) => (
           <div
             key={`${inv.id_reserva}-${inv.ci_participante}`}
             style={{
@@ -131,7 +131,7 @@ export default function MisInvitaciones() {
               {inv.nombre_sala} - {inv.edificio}
             </h4>
             <p>
-              <strong>Fecha:</strong> {formatFecha(inv.fecha)}
+              <strong>N°:</strong> {i + 1}
             </p>
             <p>
               <strong>Hora:</strong> {inv.hora_inicio} → {inv.hora_fin}
