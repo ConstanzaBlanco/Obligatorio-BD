@@ -15,27 +15,39 @@ class ReservationRequest(BaseModel):
     participantes: list[int]
 
 @router.post("/reservar")
-def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
+def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario","Bibliotecario"))):
     try:
         roleDb = user["rol"]
+        es_bibliotecario = (roleDb == "Bibliotecario")
+
         cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
 
         ci = user["ci"]
 
-        # LIMITE DIARIO
-        cur.execute("""
-            SELECT COUNT(*) AS reservas_diarias
-            FROM reserva r
-            JOIN reserva_participante rp ON r.id_reserva = rp.id_reserva
-            WHERE rp.ci_participante = %s AND r.fecha = %s
-            AND r.estado != 'cancelada';
-        """, (ci, request.fecha))
 
-        row = cur.fetchone()
-        limite_diario_superado = row and row["reservas_diarias"] >= 2
+        # NO PERMITIR FECHAS PASADAS
+        hoy = datetime.now().date()
+        fecha_reserva = datetime.strptime(request.fecha, "%Y-%m-%d").date()
 
-        # Obtener sala
+        if fecha_reserva < hoy:
+            return {"error": "No se puede reservar para una fecha pasada"}
+
+        # -------- LIMITE DIARIO (solo usuario) --------
+        if not es_bibliotecario:
+            cur.execute("""
+                SELECT COUNT(*) AS reservas_diarias
+                FROM reserva r
+                JOIN reserva_participante rp ON r.id_reserva = rp.id_reserva
+                WHERE rp.ci_participante = %s AND r.fecha = %s
+                AND r.estado != 'cancelada';
+            """, (ci, request.fecha))
+
+            row = cur.fetchone()
+            if row and row["reservas_diarias"] >= 2:
+                return {"error": "Ya reservaste 2 horas hoy"}
+
+        # OBTENER SALA
         cur.execute("""
             SELECT nombre_sala, edificio, tipo_sala, capacidad, habilitada
             FROM sala
@@ -46,20 +58,15 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         if not sala:
             return {"error": "No se encontró la sala o edificio especificado"}
 
-        if sala["habilitada"] == 0:
+        if sala["habilitada"] == 0 and not es_bibliotecario:
             return {"error": "La sala no está habilitada"}
 
-        # Validar participantes
-        for participanteCi in request.participantes:
-            cur.execute("SELECT ci FROM participante WHERE ci = %s", (participanteCi,))
-            if not cur.fetchone():
-                return {"error": f"El participante {participanteCi} no existe"}
-
+        # VERIFICAR CAPACIDAD
         capacidad_maxima = sala["capacidad"]
         if (1 + len(request.participantes)) > capacidad_maxima:
             return {"error": "Excede la capacidad de la sala"}
 
-        # Turno
+        # TURNOS 
         cur.execute("""
             SELECT id_turno, hora_inicio
             FROM turno
@@ -70,66 +77,53 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         if not turno_info:
             return {"error": "El turno no existe"}
 
-        # Validar turno pasado
-        hoy = datetime.now().date()
-        if request.fecha == hoy.strftime("%Y-%m-%d"):
+        # NO PERMITIR RESERVAR TURNOS PASADOS HO
+        if not es_bibliotecario and fecha_reserva == hoy:
             hora_actual = datetime.now().time()
             hora_turno = turno_info["hora_inicio"]
 
             if isinstance(hora_turno, timedelta):
                 hora_turno = (datetime.min + hora_turno).time()
-            elif isinstance(hora_turno, str):
-                hora_turno = datetime.strptime(hora_turno, "%H:%M:%S").time()
+            else:
+                hora_turno = datetime.strptime(str(hora_turno), "%H:%M:%S").time()
 
-            if hora_actual > hora_turno:
-                return {"error": "El turno ya pasó hoy"}
+            if hora_actual >= hora_turno:
+                return {"error": "Ese turno ya pasó hoy"}
 
-        es_excepcion = False
+        # REGLAS TIPO DE SALA (solo usuario)
+        if not es_bibliotecario:
 
-        # SALA POSGRADO
-        if sala["tipo_sala"] == "posgrado":
-            cur.execute("""
-                SELECT 1
-                FROM participante_programa_academico 
-                WHERE ci_participante = %s AND rol = 'docente';
-            """, (ci,))
-            es_docente = cur.fetchone()
+            # SALA POSGRADO
+            if sala["tipo_sala"] == "posgrado":
+                cur.execute("""
+                    SELECT 1
+                    FROM participante_programa_academico 
+                    WHERE ci_participante = %s AND rol = 'docente';
+                """, (ci,))
+                if cur.fetchone():
+                    return {"error": "Los docentes no pueden reservar salas de posgrado"}
 
-            if es_docente:
-                return {"error": "Los docentes no pueden reservar salas de posgrado"}
+                cur.execute("""
+                    SELECT 1
+                    FROM participante_programa_academico ppa
+                    JOIN programa_academico pa ON ppa.nombre_programa = pa.nombre_programa
+                    WHERE ppa.ci_participante = %s AND pa.tipo = 'posgrado';
+                """, (ci,))
+                if not cur.fetchone():
+                    return {"error": "Solo estudiantes de posgrado pueden reservar"}
 
-            cur.execute("""
-                SELECT pa.tipo
-                FROM participante_programa_academico ppa
-                JOIN programa_academico pa ON ppa.nombre_programa = pa.nombre_programa
-                WHERE ppa.ci_participante = %s AND pa.tipo = 'posgrado';
-            """, (ci,))
-            es_posgrado = cur.fetchone()
+            # SALA DOCENTE
+            if sala["tipo_sala"] == "docente":
+                cur.execute("""
+                    SELECT 1
+                    FROM participante_programa_academico
+                    WHERE ci_participante = %s AND rol = 'docente';
+                """, (ci,))
+                if not cur.fetchone():
+                    return {"error": "Solo docentes pueden reservar esta sala"}
 
-            if not es_posgrado:
-                return {"error": "Solo estudiantes de posgrado pueden reservar"}
-
-            es_excepcion = True
-
-        # SALA DOCENTE
-        elif sala["tipo_sala"] == "docente":
-            cur.execute("""
-                SELECT 1 FROM participante_programa_academico
-                WHERE ci_participante = %s AND rol = 'docente';
-            """, (ci,))
-            es_docente = cur.fetchone()
-
-            if not es_docente:
-                return {"error": "Solo docentes pueden reservar esta sala"}
-
-            es_excepcion = True
-
-        # LIMITE DIARIO
-        if limite_diario_superado and not es_excepcion:
-            return {"error": "Ya reservaste 2 horas hoy"}
-
-        # LIMITE SEMANAL
-        if not es_excepcion:
+        #  LIMITE SEMANAL (solo usuario) 
+        if not es_bibliotecario:
             cur.execute("""
                 SELECT COUNT(*) AS cantidad_reservas
                 FROM reserva r
@@ -139,11 +133,11 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
                 AND r.estado != 'cancelada';
             """, (request.fecha, ci))
 
-            resp4 = cur.fetchone()
-            if resp4["cantidad_reservas"] >= 3:
+            row = cur.fetchone()
+            if row["cantidad_reservas"] >= 3:
                 return {"error": "Ya tenés 3 reservas esta semana"}
 
-        # Verificar si existe reserva
+        # CHEQUEAR DOBLE RESERVA
         cur.execute("""
             SELECT estado
             FROM reserva
@@ -157,17 +151,18 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         if existente and existente["estado"] == "activa":
             return {"error": "La sala ya está reservada en esa fecha y turno"}
 
-        # Verificar sanción
-        cur.execute("""
-            SELECT ci_participante 
-            FROM sancion_participante
-            WHERE ci_participante = %s
-            AND CURDATE() BETWEEN fecha_inicio AND fecha_fin;
-        """, (ci,))
-        if cur.fetchall():
-            return {"error": "Estás sancionado, no podés reservar"}
+        # SANCIONES (solo usuario) 
+        if not es_bibliotecario:
+            cur.execute("""
+                SELECT 1 
+                FROM sancion_participante
+                WHERE ci_participante = %s
+                AND CURDATE() BETWEEN fecha_inicio AND fecha_fin;
+            """, (ci,))
+            if cur.fetchone():
+                return {"error": "Estás sancionado, no podés reservar"}
 
-        # Crear reserva
+        # CREAR RESERVA 
         cur.execute("""
             INSERT INTO reserva (nombre_sala, edificio, fecha, id_turno, estado, creador) 
             VALUES (%s, %s, %s, %s, 'activa', %s);
@@ -176,38 +171,31 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         cn.commit()
         id_reserva = cur.lastrowid
 
-        # Asociar creador
+        # CREAR PARTICIPANTES 
         cur.execute("""
             INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia, estado_invitacion) 
             VALUES (%s, %s, FALSE, 'creador');
         """, (ci, id_reserva))
-        cn.commit()
 
-        # Invitados + notificación
-        for ci_participantes in request.participantes:
+        for invitado in request.participantes:
             cur.execute("""
                 INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia, estado_invitacion)
                 VALUES (%s, %s, FALSE, 'pendiente');
-            """, (ci_participantes, id_reserva))
+            """, (invitado, id_reserva))
 
             createNotification(
-                ci_participantes,  
+                invitado,
                 "invitacion",
-                f"Fuiste invitado por {ci} a una reserva en la sala {request.nombre_sala} ({request.edificio}) "
-                f"para el día {request.fecha} en el turno {request.id_turno}",
+                f"Fuiste invitado por {ci} a una reserva en {request.nombre_sala} el día {request.fecha}",
                 referencia_tipo="reserva",
                 referencia_id=id_reserva
             )
-
 
         cn.commit()
 
         return {
             "mensaje": "Reserva creada correctamente",
-            "id_reserva": id_reserva,
-            "creador": ci,
-            "participantes_invitados": request.participantes,
-            "estado_invitaciones": "pendiente"
+            "id_reserva": id_reserva
         }
 
     except Exception as e:
