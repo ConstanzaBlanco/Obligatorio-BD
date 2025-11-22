@@ -10,7 +10,7 @@ class CancelReservationRequest(BaseModel):
     id_reserva: int
 
 @router.patch("/cancelarReserva")
-def cancelar_reserva(request: CancelReservationRequest, user=Depends(requireRole("Usuario"))):
+def cancelar_reserva(request: CancelReservationRequest, user=Depends(requireRole("Usuario","Bibliotecario"))):
     try:
         roleDb = user["rol"]
         cn = getConnection(roleDb)
