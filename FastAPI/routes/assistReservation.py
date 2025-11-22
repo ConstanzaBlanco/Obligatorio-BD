@@ -3,6 +3,8 @@ from pydantic import BaseModel
 from core.security import requireRole
 from db.reservationSentences import updateAssistUser, getAllCisOfOneReservation, updateReserveToFinish
 from db.sanctionsSentences import createSanction
+from datetime import date, timedelta
+from db.notificationSentences import createNotification
 
 router = APIRouter()
 
@@ -36,7 +38,7 @@ def update_reservation_state(
         raise HTTPException(status_code=404, detail="No existe la reserva o no tiene participantes asignados")
 
     if len(attended_cis) == 0:
-        return handle_non_assistance(reserveId, existing_cis, roleDb)
+        return handle_non_assistance(reserveId, existing_cis, roleDb, user["email"])
 
     for ci in attended_cis:
         if ci not in existing_cis:
@@ -54,11 +56,23 @@ def update_reservation_state(
         "cis_que_asistieron": attended_cis
     }
 
-def handle_non_assistance(reserveId: int, existing_cis: list[int], roleDb):
+def handle_non_assistance(reserveId: int, existing_cis: list[int], email:str, roleDb):
+    fechaInicio = date.today()
+    fechaFin = fechaInicio + timedelta(days=60)
+    inicio = fechaInicio.strftime("%d/%m/%Y")
+    fin = fechaFin.strftime("%d/%m/%Y")
+    motivo = "No asistir a la sala reservada."
+
     for ci in existing_cis:
         updateAssistUser(ci, reserveId, False, roleDb)
         createSanction(ci, roleDb)
-
+        createNotification(
+            ci,
+            "SANCION",
+            f"Has sido sancionado del {inicio} al {fin}. Motivo: {motivo}",
+            referencia_tipo="sancion",
+            referencia_id=None
+        )
     updateReserveToFinish(reserveId, 'sin asistencia', roleDb)
 
     return {
