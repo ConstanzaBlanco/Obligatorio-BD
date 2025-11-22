@@ -169,10 +169,12 @@ export default function Register() {
             />
 
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               placeholder="CI"
               value={ci}
-              onChange={(e) => setCi(e.target.value)}
+              onChange={(e) => setCi(e.target.value.replace(/\D/g, ""))}
               required
             />
 
