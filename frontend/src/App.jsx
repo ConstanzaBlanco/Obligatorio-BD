@@ -13,6 +13,7 @@ import PrivateLayout from "./protect/PrivateLayout"; // <-- AGREGADO
 // Componentes privados
 import MisReservas from "./components/User/MisReservas";
 import MisInvitaciones from "./components/User/MisInvitaciones";
+import BlockedUsers from "./components/User/PersonasBloqueadas";
 import Edificios from "./components/Edificios";
 import SalasPorEdificio from "./components/SalasPorEdificio";
 import ReservasVencidas from "./components/Bibliotecario/ReservasVencidas";
@@ -52,6 +53,7 @@ export default function App() {
 
               <Route path="/mis-reservas" element={<MisReservas />} />
               <Route path="/mis-invitaciones" element={<MisInvitaciones />} />
+              <Route path="/bloqueados" element={<BlockedUsers />} />
               <Route path="/edificios" element={<Edificios />} />
               <Route path="/edificios/:nombreEdificio" element={<SalasPorEdificio />} />
               <Route path="/crear-reserva" element={<CrearReserva />} />
