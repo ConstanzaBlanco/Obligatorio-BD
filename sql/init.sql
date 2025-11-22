@@ -133,6 +133,20 @@ CREATE TABLE sancion_participante (
     FOREIGN KEY (ci_participante) REFERENCES participante(ci)
 );
 
+-- Tabla de notificacion
+CREATE TABLE notificacion (
+    id_notificacion INT AUTO_INCREMENT PRIMARY KEY,
+    ci_destinatario BIGINT NOT NULL,
+    tipo VARCHAR(50) NOT NULL,
+    mensaje TEXT NOT NULL,
+    referencia_tipo VARCHAR(50),
+    referencia_id INT,
+    leido BOOLEAN NOT NULL DEFAULT FALSE,
+    fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ci_destinatario) REFERENCES participante(ci)
+);
+
+
 -- Facultades
 INSERT INTO facultad (nombre) VALUES
 ('Ingenieria'),

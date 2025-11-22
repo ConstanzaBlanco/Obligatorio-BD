@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from db.connector import getConnection
 from core.security import requireRole
+from db.notificationSentences import createNotification
 
 router = APIRouter()
 
@@ -35,7 +36,7 @@ def quitar_sancion(
                 detail="No hay sanción activa para este participante"
             )
 
-        # Marcar como finalizada AYER para que no aparezca más como activa
+        # Marcar como finalizada AYER
         cur.execute("""
             UPDATE sancion_participante
             SET fecha_fin = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
@@ -44,6 +45,15 @@ def quitar_sancion(
         """, (ci,))
 
         cn.commit()
+
+        # ENVIAR NOTIFICACIÓN AL PARTICIPANTE
+        createNotification(
+            ci,
+            "sancion_eliminada",
+            "Tu sanción activa ha sido levantada.",
+            referencia_tipo="sancion",
+            referencia_id=sancion.get("id_sancion") if "id_sancion" in sancion else None
+        )
 
         return {"mensaje": "Sanción quitada correctamente"}
 

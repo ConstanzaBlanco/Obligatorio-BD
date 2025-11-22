@@ -18,6 +18,7 @@ export default function Header() {
               <NavLink to="/mis-invitaciones">Invitaciones</NavLink>
               <NavLink to="/mis-sanciones">Mis Sanciones</NavLink>
               <NavLink to="/edificios">Reservar</NavLink>
+              <NavLink to="/notificaciones">Notificaciones</NavLink>
             </>
           )}
 
