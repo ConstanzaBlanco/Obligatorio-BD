@@ -124,6 +124,15 @@ CREATE TABLE reserva_participante (
     FOREIGN KEY (id_reserva) REFERENCES reserva(id_reserva)
 );
 
+-- Tabla de bloqueos entre usuarios: si A bloquea a B, B no podrá invitar a A
+CREATE TABLE bloqueos (
+    ci_bloqueador BIGINT NOT NULL,
+    ci_bloqueado BIGINT NOT NULL,
+    fecha_bloqueo DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (ci_bloqueador, ci_bloqueado),
+    FOREIGN KEY (ci_bloqueador) REFERENCES participante(ci),
+    FOREIGN KEY (ci_bloqueado) REFERENCES participante(ci)
+);
 -- Tabla sancion_participante
 CREATE TABLE sancion_participante (
     ci_participante BIGINT NOT NULL,

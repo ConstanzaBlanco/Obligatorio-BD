@@ -184,7 +184,15 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         cn.commit()
 
         # Invitados + notificación
+        errores_invitacion = []
+        invitados_enviados = []
         for ci_participantes in request.participantes:
+            # Verificar si el participante bloqueó al creador (entonces no enviar invitación)
+            cur.execute("SELECT 1 FROM bloqueos WHERE ci_bloqueador = %s AND ci_bloqueado = %s", (ci_participantes, ci))
+            if cur.fetchone():
+                errores_invitacion.append({"ci": ci_participantes, "error": "El usuario te tiene bloqueado"})
+                continue
+
             cur.execute("""
                 INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia, estado_invitacion)
                 VALUES (%s, %s, FALSE, 'pendiente');
@@ -199,6 +207,8 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
                 referencia_id=id_reserva
             )
 
+            invitados_enviados.append(ci_participantes)
+
 
         cn.commit()
 
@@ -206,7 +216,8 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
             "mensaje": "Reserva creada correctamente",
             "id_reserva": id_reserva,
             "creador": ci,
-            "participantes_invitados": request.participantes,
+            "participantes_invitados": invitados_enviados,
+            "errores_invitacion": errores_invitacion,
             "estado_invitaciones": "pendiente"
         }
 

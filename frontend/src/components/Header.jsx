@@ -16,6 +16,7 @@ export default function Header() {
             <>
               <NavLink to="/mis-reservas">Mis Reservas</NavLink>
               <NavLink to="/mis-invitaciones">Invitaciones</NavLink>
+              <NavLink to="/bloqueados">Bloqueados</NavLink>
               <NavLink to="/mis-sanciones">Mis Sanciones</NavLink>
               <NavLink to="/edificios">Reservar</NavLink>
               <NavLink to="/notificaciones">Notificaciones</NavLink>
@@ -61,7 +62,7 @@ export default function Header() {
 }
 
 
-/* ---------------- COMPONENTE NAVLINK ---------------- */
+/* Componente básico de navegación */
 
 function NavLink({ to, children }) {
   return (
@@ -72,7 +73,7 @@ function NavLink({ to, children }) {
 }
 
 
-/* ---------------- ESTILOS ---------------- */
+/* ESTILOS  */
 
 const navStyle = {
   width: "100%",
