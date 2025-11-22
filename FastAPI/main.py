@@ -42,6 +42,7 @@ from routes import horaServidor
 from routes import editarSancion
 from routes import notificaciones
 from routes import modificarReserva
+from routes import cancelarReservaAdmin
 # --- ADMIN ---
 
 from routes import CreateBiblio
@@ -115,6 +116,7 @@ app.include_router(horaServidor.router)
 app.include_router(editarSancion.router)
 app.include_router(notificaciones.router)
 app.include_router(modificarReserva.router)
+app.include_router(cancelarReservaAdmin.router)
 # --- routers admin ---
 app.include_router(CreateBiblio.router)
 app.include_router(changeRolOfUser.router)

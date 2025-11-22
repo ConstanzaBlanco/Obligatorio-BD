@@ -13,13 +13,11 @@ export default function Reservas() {
 
   const token = localStorage.getItem("token");
 
-  // --- FORMATEO DE HORA ---
   const formatHora = (valor) => {
     if (!valor) return "";
     return typeof valor === "string" ? valor.slice(0, 5) : "";
   };
 
-  // --- CARGAR RESERVAS ACTIVAS ---
   const cargarActivas = async () => {
     try {
       const res = await fetch("http://localhost:8000/reservasActivas", {
@@ -32,7 +30,6 @@ export default function Reservas() {
     }
   };
 
-  // --- CARGAR RESERVAS PASADAS ---
   const cargarPasadas = async () => {
     try {
       const res = await fetch("http://localhost:8000/reservasPasadas", {
@@ -45,7 +42,6 @@ export default function Reservas() {
     }
   };
 
-  // --- CARGAR TURNOS REALES ---
   const cargarTurnos = async () => {
     const res = await fetch("http://localhost:8000/turnosPosibles", {
       headers: { Authorization: `Bearer ${token}` }
@@ -54,10 +50,8 @@ export default function Reservas() {
     setTurnos(data.turnos_posibles || []);
   };
 
-  // --- CARGAR SALAS CORRECTAS ---
   const cargarSalas = async (edificio, fecha, turno) => {
     let url = `http://localhost:8000/salasDelEdificio?edificio=${edificio}`;
-
     if (fecha) url += `&fecha=${fecha}`;
     if (turno) url += `&id_turno=${turno}`;
 
@@ -69,7 +63,6 @@ export default function Reservas() {
     setSalas(data.salas || []);
   };
 
-  // --- ABRIR MODAL ---
   const abrirModalEditar = async (reserva) => {
     setReservaEdit({
       id_reserva: reserva.id_reserva,
@@ -85,40 +78,66 @@ export default function Reservas() {
     setModalAbierto(true);
   };
 
-  // GUARDAR CAMBIOS 
   const guardarCambios = async () => {
-  try {
-    const payload = {
-      id_reserva: reservaEdit.id_reserva,
-      nueva_sala: reservaEdit.sala,
-      nuevo_edificio: reservaEdit.edificio,
-      nueva_fecha: reservaEdit.fecha,
-      nuevo_turno: Number(reservaEdit.turno)
-    };
+    try {
+      const payload = {
+        id_reserva: reservaEdit.id_reserva,
+        nueva_sala: reservaEdit.sala,
+        nuevo_edificio: reservaEdit.edificio,
+        nueva_fecha: reservaEdit.fecha,
+        nuevo_turno: Number(reservaEdit.turno)
+      };
 
-    const res = await fetch("http://localhost:8000/reservas/modificar", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify(payload)
-    });
+      const res = await fetch("http://localhost:8000/reservas/modificar", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (data.error) {
-      alert(data.error);
-    } else {
-      alert("Reserva modificada correctamente");
-      setModalAbierto(false);
-      cargarActivas();
+      if (data.error) {
+        alert(data.error);
+      } else {
+        alert("Reserva modificada correctamente");
+        setModalAbierto(false);
+        cargarActivas();
+      }
+    } catch {
+      alert("Error al modificar");
     }
-  } catch {
-    alert("Error al modificar");
-  }
-};
+  };
 
+  // Cancelar como Bibliotecario
+  const cancelarReserva = async (id) => {
+    if (!confirm("¿Seguro que deseas cancelar esta reserva?")) return;
+
+    try {
+      const res = await fetch(
+        `http://localhost:8000/admin/cancelarReserva?id_reserva=${id}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.error) {
+        alert(data.error);
+      } else {
+        alert("Reserva cancelada correctamente");
+        cargarActivas();
+      }
+    } catch {
+      alert("Error al cancelar la reserva");
+    }
+  };
 
   useEffect(() => {
     cargarActivas();
@@ -129,7 +148,6 @@ export default function Reservas() {
     <div style={{ marginTop: 30 }}>
       <h1>Reservas</h1>
 
-      {/* --- ACTIVAS --- */}
       <h2>Reservas Activas</h2>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
         {activas.map((r) => (
@@ -148,16 +166,32 @@ export default function Reservas() {
                 background: "navy",
                 color: "white",
                 border: "none",
-                borderRadius: 5
+                borderRadius: 5,
+                width: "100%"
               }}
             >
               Editar reserva
+            </button>
+
+            {/* BOTÓN CANCELAR (ADMIN) */}
+            <button
+              onClick={() => cancelarReserva(r.id_reserva)}
+              style={{
+                marginTop: 10,
+                padding: "6px 10px",
+                background: "crimson",
+                color: "white",
+                border: "none",
+                borderRadius: 5,
+                width: "100%"
+              }}
+            >
+              Cancelar reserva
             </button>
           </div>
         ))}
       </div>
 
-      {/* --- MODAL --- */}
       {modalAbierto && reservaEdit && (
         <div style={modalStyles.overlay}>
           <div style={modalStyles.modal}>
@@ -224,7 +258,9 @@ export default function Reservas() {
   );
 }
 
+//
 // ESTILOS DEL MODAL
+//
 const modalStyles = {
   overlay: {
     position: "fixed",
