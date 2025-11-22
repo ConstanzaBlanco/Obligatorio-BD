@@ -9,7 +9,7 @@ Se implementó un sistema completo de invitaciones para reservas. Cuando un usua
 La tabla `reserva_participante` ya contaba con la columna `estado_invitacion` necesaria:
 
 ```sql
-estado_invitacion ENUM('pendiente','aceptada','rechazada','creador') NOT NULL DEFAULT 'aceptada'
+estado_invitacion ENUM('pendiente','aceptada','rechazada','bloqueada','creador') NOT NULL DEFAULT 'aceptada'
 ```
 
 ### Estados posibles:
@@ -17,6 +17,20 @@ estado_invitacion ENUM('pendiente','aceptada','rechazada','creador') NOT NULL DE
 - **aceptada**: El participante aceptó la invitación
 - **rechazada**: El participante rechazó la invitación
 - **creador**: El participante que creó la reserva
+- **bloqueada**: El participante decidió bloquear recibir invitaciones de esa reserva (no aparecerá en pendientes y no se podrá invitar mientras exista este estado)
+
+---
+
+### Migración para bases ya existentes
+Si ya tenés la base de datos creada con la definición anterior, ejecutá este script en MySQL para agregar el nuevo valor al ENUM:
+
+```sql
+ALTER TABLE reserva_participante 
+MODIFY COLUMN estado_invitacion 
+ENUM('pendiente','aceptada','rechazada','bloqueada','creador') NOT NULL DEFAULT 'aceptada';
+```
+
+Nota: Hacé un backup antes de ejecutar migraciones en producción.
 
 ---
 

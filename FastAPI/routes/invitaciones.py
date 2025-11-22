@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from db.connector import getConnection
 from core.security import currentUser
 from pydantic import BaseModel
+from typing import Optional
 from core.security import requireRole
 
 router = APIRouter()
@@ -19,6 +20,11 @@ class InvitationResponse(BaseModel):
 
 class AcceptRejectRequest(BaseModel):
     id_reserva: int
+
+
+class UnblockRequest(BaseModel):
+    id_reserva: int
+    accion: Optional[str] = None
 
 
 class InviteByCIRequest(BaseModel):
@@ -189,18 +195,18 @@ def inviteByCI(request: InviteByCIRequest, user=Depends(currentUser)):
 
         capacidad = sala["capacidad"]
 
-        # Contar participantes actuales (no contar invitaciones rechazadas)
+        # Contar participantes actuales (no contar invitaciones rechazadas ni bloqueadas)
         cur.execute("""
             SELECT COUNT(*) AS total
             FROM reserva_participante rp
-            WHERE rp.id_reserva = %s AND rp.estado_invitacion != 'rechazada'
+            WHERE rp.id_reserva = %s AND rp.estado_invitacion NOT IN ('rechazada', 'bloqueada')
         """, (request.id_reserva,))
 
         row = cur.fetchone()
         actuales = row["total"] if row else 0
 
-        # Validar existencia y duplicados
-        valid_to_invite = []
+        # Validar existencia y duplicados. Permitimos re-invitar si el estado actual es 'rechazada'
+        actions = []  # list of dicts: {ci: int, action: 'insert'|'update'}
         errors = []
 
         for ci_part in request.participantes:
@@ -210,24 +216,45 @@ def inviteByCI(request: InviteByCIRequest, user=Depends(currentUser)):
                 errors.append({"ci": ci_part, "error": "No existe participante con ese CI"})
                 continue
 
-            # verificar si ya está invitado/participando
-            cur.execute("SELECT 1 FROM reserva_participante WHERE id_reserva = %s AND ci_participante = %s", (request.id_reserva, ci_part))
-            if cur.fetchone():
+            # verificar si ya hay una entrada en reserva_participante
+            cur.execute("SELECT estado_invitacion FROM reserva_participante WHERE id_reserva = %s AND ci_participante = %s", (request.id_reserva, ci_part))
+            existing = cur.fetchone()
+            if existing:
+                # cur is dictionary=True at top: existing is dict
+                estado = existing.get("estado_invitacion") if isinstance(existing, dict) else (existing[0] if existing else None)
+                if estado == 'bloqueada':
+                    errors.append({"ci": ci_part, "error": "El usuario bloqueó esta reserva"})
+                    continue
+                if estado == 'rechazada':
+                    actions.append({"ci": ci_part, "action": 'update'})
+                    continue
+                # estados 'pendiente' o 'aceptada' u otros
                 errors.append({"ci": ci_part, "error": "Ya está en la reserva"})
                 continue
 
-            valid_to_invite.append(ci_part)
+            actions.append({"ci": ci_part, "action": 'insert'})
 
-        # Verificar capacidad
-        if actuales + len(valid_to_invite) > capacidad:
+        # Verificar capacidad (las acciones 'insert' y 'update' incrementan el aporte de participantes)
+        to_add = len([a for a in actions if a["action"] in ('insert', 'update')])
+        if actuales + to_add > capacidad:
             return {"error": "La cantidad de participantes excede la capacidad de la sala", "capacidad": capacidad, "actuales": actuales}
 
-        # Insertar invitaciones
-        for ci_part in valid_to_invite:
-            cur.execute("""
-                INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia, estado_invitacion)
-                VALUES (%s, %s, FALSE, 'pendiente')
-            """, (ci_part, request.id_reserva))
+        # Aplicar acciones
+        invited_list = []
+        for a in actions:
+            ci_part = a["ci"]
+            if a["action"] == 'insert':
+                cur.execute("""
+                    INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia, estado_invitacion)
+                    VALUES (%s, %s, FALSE, 'pendiente')
+                """, (ci_part, request.id_reserva))
+                invited_list.append(ci_part)
+            elif a["action"] == 'update':
+                cur.execute("""
+                    UPDATE reserva_participante SET estado_invitacion = %s
+                    WHERE id_reserva = %s AND ci_participante = %s
+                """, ('pendiente', request.id_reserva, ci_part))
+                invited_list.append(ci_part)
 
         cn.commit()
 
@@ -236,9 +263,110 @@ def inviteByCI(request: InviteByCIRequest, user=Depends(currentUser)):
         return {
             "mensaje": "Invitaciones enviadas",
             "id_reserva": request.id_reserva,
-            "invitados": valid_to_invite,
+            "invitados": invited_list,
             "errores": errors
         }
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
+# Bloquear invitaciones de una reserva (el usuario deja de recibir invitaciones de esa reserva)
+@router.post("/invitaciones/bloquear")
+def blockInvitationEndpoint(request: AcceptRejectRequest, user=Depends(currentUser)):
+    try:
+        roleDb = user["rol"]
+        ci = user["ci"]
+
+        cn = getConnection(roleDb)
+        cur = cn.cursor(dictionary=True)
+
+        # Verificar que la reserva exista
+        cur.execute("SELECT id_reserva FROM reserva WHERE id_reserva = %s", (request.id_reserva,))
+        if not cur.fetchone():
+            cn.close()
+            return {"error": "No se encontró la reserva especificada"}
+
+        # Si ya existe una fila para este usuario y reserva, actualizar a 'bloqueada', sino insertar
+        cur.execute("SELECT estado_invitacion FROM reserva_participante WHERE id_reserva = %s AND ci_participante = %s", (request.id_reserva, ci))
+        existing = cur.fetchone()
+        if existing:
+            cur.execute(
+                "UPDATE reserva_participante SET estado_invitacion = %s WHERE ci_participante = %s AND id_reserva = %s",
+                ('bloqueada', ci, request.id_reserva)
+            )
+        else:
+            cur.execute(
+                "INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia, estado_invitacion) VALUES (%s, %s, FALSE, 'bloqueada')",
+                (ci, request.id_reserva)
+            )
+
+        cn.commit()
+        cn.close()
+
+        return {
+            "mensaje": "Has bloqueado las invitaciones de esta reserva",
+            "id_reserva": request.id_reserva,
+            "estado": "bloqueada"
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@router.post("/invitaciones/desbloquear")
+def unblockInvitationEndpoint(request: UnblockRequest, user=Depends(currentUser)):
+    """Desbloquea la invitación para el usuario actual.
+    Por defecto la acción será convertir la entrada a 'rechazada' para que deje de recibir invitaciones.
+    Si se pasa body={'accion':'cancelar'} intentará cancelar la reserva (requiere ser creador o rol admin/bibliotecario).
+    """
+    try:
+        roleDb = user["rol"]
+        ci = user["ci"]
+
+        # determinar acción: por defecto 'rechazar'
+        accion = (request.accion or 'rechazar').lower()
+
+        cn = getConnection(roleDb)
+        cur = cn.cursor()
+
+        if accion == 'cancelar':
+            # verificar permisos: debe ser creador o rol administrador/bibliotecario
+            cur2 = cn.cursor(dictionary=True)
+            cur2.execute("SELECT creador, estado FROM reserva WHERE id_reserva = %s", (request.id_reserva,))
+            r = cur2.fetchone()
+            if not r:
+                cn.close()
+                return {"error": "No se encontró la reserva especificada"}
+
+            role_lower = (user.get("rol") or "").strip().lower()
+            if role_lower not in ("administrador", "bibliotecario") and user.get("ci") != r.get("creador"):
+                cn.close()
+                return {"error": "No estás autorizado para cancelar esta reserva"}
+
+            if r.get("estado") == 'cancelada':
+                cn.close()
+                return {"mensaje": "La reserva ya estaba cancelada", "id_reserva": request.id_reserva}
+
+            cur.execute("UPDATE reserva SET estado = %s WHERE id_reserva = %s", ('cancelada', request.id_reserva))
+            cn.commit()
+            cn.close()
+            return {"mensaje": "Reserva cancelada correctamente", "id_reserva": request.id_reserva, "estado": "cancelada"}
+
+        # Por defecto: cambiar la entrada en reserva_participante a 'rechazada' (desbloquear)
+        cur = cn.cursor(dictionary=True)
+        cur.execute("SELECT estado_invitacion FROM reserva_participante WHERE id_reserva = %s AND ci_participante = %s", (request.id_reserva, ci))
+        existing = cur.fetchone()
+        cur_non_dict = cn.cursor()
+        if existing:
+            cur_non_dict.execute("UPDATE reserva_participante SET estado_invitacion = %s WHERE id_reserva = %s AND ci_participante = %s", ('rechazada', request.id_reserva, ci))
+        else:
+            cur_non_dict.execute("INSERT INTO reserva_participante (ci_participante, id_reserva, asistencia, estado_invitacion) VALUES (%s, %s, FALSE, 'rechazada')", (ci, request.id_reserva))
+
+        cn.commit()
+        cn.close()
+
+        return {"mensaje": "Has desbloqueado la reserva (tu invitación ahora está 'rechazada')", "id_reserva": request.id_reserva, "estado": "rechazada"}
 
     except Exception as e:
         return {"error": str(e)}
