@@ -10,7 +10,6 @@ export default function Usuarios() {
 
   const token = localStorage.getItem("token");
 
-
   const loadMyRole = async () => {
     try {
       const res = await fetch("http://localhost:8000/me", {
@@ -27,7 +26,6 @@ export default function Usuarios() {
     }
   };
 
-
   const loadUsers = async () => {
     setError("");
     try {
@@ -38,12 +36,11 @@ export default function Usuarios() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.detail || "Error al cargar usuarios");
+        setError("Error al cargar usuarios");
         return;
       }
 
       setUsers(data.usuarios);
-
     } catch (err) {
       console.error(err);
       setError("No se pudo obtener la lista de usuarios");
@@ -51,6 +48,7 @@ export default function Usuarios() {
   };
 
   const handleChangeRole = async (correo, nuevoRol) => {
+    setError("");
     try {
       const payload = { correo, rol: nuevoRol };
 
@@ -66,7 +64,8 @@ export default function Usuarios() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.detail || "Error al actualizar rol");
+        console.log("Error updateUserRole", data);
+        setError("Error al actualizar rol");
         return;
       }
 
@@ -76,14 +75,46 @@ export default function Usuarios() {
       setTimeout(() => {
         setOk("");
       }, 2500);
-
     } catch (error) {
       console.error(error);
       setError("No se pudo actualizar el rol");
     }
   };
 
-  // Eliminar usuario
+  const handleChangeRoleBiblio = async (correo, nuevoRol) => {
+    setError("");
+    try {
+      const payload = { correo, rol: nuevoRol };
+
+      const res = await fetch("http://localhost:8000/users/updateRol", { 
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.log("Error /users/updateRol", data);
+        setError("Error al actualizar rol académico");
+        return;
+      }
+
+      setOk("Rol actualizado correctamente");
+      loadUsers();
+
+      setTimeout(() => {
+        setOk("");
+      }, 2500);
+    } catch (error) {
+      console.error(error);
+      setError("No se pudo actualizar el rol académico");
+    }
+  };
+
   const handleDelete = async (correo) => {
     if (!confirm(`¿Eliminar al usuario ${correo}?`)) return;
 
@@ -98,14 +129,13 @@ export default function Usuarios() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.detail || "Error al eliminar usuario");
+        setError("Error al eliminar usuario");
         return;
       }
 
       setOk(`Usuario ${correo} eliminado correctamente`);
       loadUsers();
       setTimeout(() => setOk(""), 2500);
-
     } catch (err) {
       console.error(err);
       setError("Error al eliminar usuario");
@@ -119,6 +149,7 @@ export default function Usuarios() {
 
   return (
     <>
+      {/* estilos iguales */}
       <style>{`
         .users-container {
           max-width: 900px;
@@ -247,9 +278,11 @@ export default function Usuarios() {
       <div className="users-container">
         <h2 className="title">Gestión de Usuarios</h2>
 
-        {/* SOLO ADMIN puede crear Bibliotecarios */}
         {miRol === "Administrador" && (
-          <button className="btn-create" onClick={() => navigate("/crearBibliotecario")}>
+          <button
+            className="btn-create"
+            onClick={() => navigate("/crearBibliotecario")}
+          >
             Crear Bibliotecario
           </button>
         )}
@@ -263,7 +296,9 @@ export default function Usuarios() {
               <th>Correo</th>
               <th>Rol</th>
 
-              {miRol === "Administrador" && <th>Modificar Rol</th>}
+              {(miRol === "Administrador" || miRol === "Bibliotecario") && (
+                <th>Modificar Rol</th>
+              )}
 
               <th>Último acceso</th>
               <th>Acciones</th>
@@ -298,11 +333,31 @@ export default function Usuarios() {
                       <select
                         className="select-role"
                         defaultValue={u.rol}
-                        onChange={(e) => handleChangeRole(u.correo, e.target.value)}
+                        onChange={(e) =>
+                          handleChangeRole(u.correo, e.target.value)
+                        }
                       >
                         <option value="Usuario">Usuario</option>
                         <option value="Bibliotecario">Bibliotecario</option>
                         <option value="Administrador">Administrador</option>
+                      </select>
+                    </td>
+                  )}
+
+                  {miRol === "Bibliotecario" && (
+                    <td>
+                      <select
+                        className="select-role"
+                        defaultValue={u.rol}
+                        onChange={(e) =>
+                          handleChangeRoleBiblio(
+                            u.correo,
+                            e.target.value
+                          )
+                        }
+                      >
+                        <option value="alumno">Alumno</option>
+                        <option value="docente">Docente</option>
                       </select>
                     </td>
                   )}
