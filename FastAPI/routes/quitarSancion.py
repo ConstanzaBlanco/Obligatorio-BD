@@ -49,7 +49,7 @@ def quitar_sancion(
         # ENVIAR NOTIFICACIÓN AL PARTICIPANTE
         createNotification(
             ci,
-            "sancion_eliminada",
+            "SANCION ELIMINADA",
             "Tu sanción activa ha sido levantada.",
             referencia_tipo="sancion",
             referencia_id=sancion.get("id_sancion") if "id_sancion" in sancion else None

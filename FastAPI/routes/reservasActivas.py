@@ -18,8 +18,9 @@ def reservas_activas(user = Depends(requireRole("Bibliotecario"))):
                 r.nombre_sala,
                 r.edificio,
                 r.fecha,
-                t.hora_inicio,
-                t.hora_fin,
+                r.id_turno,
+                TIME_FORMAT(t.hora_inicio, '%H:%i:%s') AS hora_inicio,
+                TIME_FORMAT(t.hora_fin, '%H:%i:%s') AS hora_fin,
                 r.estado AS estado_reserva
             FROM reserva r
             JOIN turno t ON r.id_turno = t.id_turno
