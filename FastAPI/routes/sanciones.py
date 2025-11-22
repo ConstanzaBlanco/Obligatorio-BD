@@ -78,6 +78,7 @@ def crear_sancion(payload: SancionCreate, user=Depends(requireRole("Bibliotecari
     f"Has sido sancionado del {payload.fechaInicio} al {payload.fechaFin}. Motivo: {descripcion_limpia}",
     referencia_tipo="sancion",
     referencia_id=None
+    
 )
 
 
