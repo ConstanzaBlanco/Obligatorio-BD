@@ -89,8 +89,9 @@ export default function MisSanciones() {
                 background: "#fdecea",
               }}
             >
-              <p><strong>N°:</strong> {i + 1}</p>
               <p><strong>Descripcion:</strong> {(s.descripcion)}</p>
+              <p><strong>Fecha Inicio:</strong> {formatFecha(s.fecha_inicio)}</p>
+              <p><strong>Fecha Fin:</strong> {formatFecha(s.fecha_fin)}</p>
             </li>
           ))}
         </ul>
@@ -118,8 +119,9 @@ export default function MisSanciones() {
                 background: "#f4f4f4",
               }}
             >
-              <p><strong>N°:</strong> {i + 1}</p>
               <p><strong>Descripcion:</strong> {(s.descripcion)}</p>
+               <p><strong>Inicio:</strong> {formatFecha(s.fecha_inicio)}</p>
+              <p><strong>Fin:</strong> {formatFecha(s.fecha_fin)}</p>
             </li>
           ))}
         </ul>
