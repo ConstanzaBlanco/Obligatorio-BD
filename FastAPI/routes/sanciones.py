@@ -38,17 +38,28 @@ def crear_sancion(payload: SancionCreate, user=Depends(requireRole("Bibliotecari
     if payload.fechaFin > hoy.replace(year=hoy.year + 2):
         raise HTTPException(400, detail="La fecha de fin es demasiado lejana.")
 
-    # Validación longitud
     if len(descripcion_limpia) > 200:
         raise HTTPException(400, detail="La descripción no puede superar los 200 caracteres.")
 
-    # Validar que el CI exista
+    # Validar CI existe y obtener rol correcto desde LOGIN
     cn = getConnection()
     cur = cn.cursor(dictionary=True)
 
-    cur.execute("SELECT 1 FROM participante WHERE ci = %s", (payload.ci,))
-    if not cur.fetchone():
+    cur.execute("""
+        SELECT participante.ci, login.rol 
+        FROM participante
+        JOIN login ON participante.email = login.correo
+        WHERE participante.ci = %s
+    """, (payload.ci,))
+    
+    participante = cur.fetchone()
+
+    if not participante:
         raise HTTPException(400, detail="El CI indicado no existe en el sistema.")
+
+    # NO SANCIONAR BIBLIOTECARIOS
+    if participante["rol"] == "Bibliotecario":
+        raise HTTPException(400, detail="Los bibliotecarios no pueden ser sancionados.")
 
     # Validar superposición de sanciones
     cur.execute("""
@@ -62,7 +73,7 @@ def crear_sancion(payload: SancionCreate, user=Depends(requireRole("Bibliotecari
     if cur.fetchone():
         raise HTTPException(400, detail="El participante ya tiene una sanción activa en ese rango de fechas.")
 
-    # INSERT
+    # INSERT sanción
     filas = createOtherSanction(
         payload.ci,
         payload.fechaInicio.isoformat(),
@@ -71,18 +82,14 @@ def crear_sancion(payload: SancionCreate, user=Depends(requireRole("Bibliotecari
         roleDb
     )
 
-    # NOTIFICACIÓN 
+    # Enviar notificación
     createNotification(
-    payload.ci,
-    "SANCION",
-    f"Has sido sancionado del {payload.fechaInicio} al {payload.fechaFin}. Motivo: {descripcion_limpia}",
-    referencia_tipo="sancion",
-    referencia_id=None
-    
-)
-
-
-
+        payload.ci,
+        "SANCION",
+        f"Has sido sancionado del {payload.fechaInicio} al {payload.fechaFin}. Motivo: {descripcion_limpia}",
+        referencia_tipo="sancion",
+        referencia_id=None
+    )
 
     if filas == 0:
         raise HTTPException(400, detail="No se pudo crear la sanción")

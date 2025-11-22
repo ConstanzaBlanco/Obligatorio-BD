@@ -12,8 +12,6 @@ from routes import agregarReserva
 from routes import cancelarReserva
 from routes import seePastAndActiveReservations
 from routes import assistReservation
-from routes import agregarReserva
-from routes import cancelarReserva
 from routes import edificios
 from routes import salasDelEdificio
 from routes import departamentos
