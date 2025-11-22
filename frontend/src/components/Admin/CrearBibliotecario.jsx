@@ -169,7 +169,7 @@ export default function CreateBiblioUser() {
 
           <form onSubmit={handleSubmit} className="biblio-form">
             <input type="email" placeholder="Correo institucional" value={correo} onChange={(e) => setCorreo(e.target.value)} required />
-            <input type="number" placeholder="Cédula" value={ci} onChange={(e) => setCi(e.target.value)} required />
+            <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="Cédula" value={ci} onChange={(e) => setCi(e.target.value.replace(/\D/g, ""))} required />
             <input type="text" placeholder="Nombre" value={name} onChange={(e) => setName(e.target.value)} required />
             <input type="text" placeholder="Apellido" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
             <input type="password" placeholder="Contraseña" value={password} onChange={(e) => setPassword(e.target.value)} required />
