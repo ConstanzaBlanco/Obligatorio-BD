@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from db.connector import getConnection
 from core.security import requireRole
+from db.notificationSentences import createNotification
 
 router = APIRouter()
 
@@ -18,18 +19,17 @@ def editar_sancion(payload: EditarSancion, user=Depends(requireRole("Bibliotecar
 
     roleDb = user["rol"]
     cn = getConnection(roleDb)
-    cur = cn.cursor()
+    cur = cn.cursor(dictionary=True)
 
     try:
-        # validar fechas lógicamente
+        # VALIDAR FECHAS
         if payload.nueva_fecha_inicio and payload.nueva_fecha_fin:
             if payload.nueva_fecha_fin < payload.nueva_fecha_inicio:
                 raise HTTPException(
-                    status_code=400,
-                    detail="La fecha de fin no puede ser anterior a la fecha de inicio"
+                    400, "La fecha de fin no puede ser anterior a la fecha de inicio"
                 )
 
-        # buscar la sanción original
+        # BUSCAR SANCIÓN ORIGINAL
         cur.execute("""
             SELECT *
             FROM sancion_participante
@@ -46,39 +46,65 @@ def editar_sancion(payload: EditarSancion, user=Depends(requireRole("Bibliotecar
         if not sancion:
             raise HTTPException(404, "La sanción no existe")
 
-        # armar UPDATE dinámico
-        campos = []
-        valores = []
+        # ARMAR UPDATE DINÁMICO
+        cambios = []
+        valores_update = []
+        mensajes_cambio = []  
 
         if payload.nueva_fecha_inicio:
-            campos.append("fecha_inicio = %s")
-            valores.append(payload.nueva_fecha_inicio)
+            cambios.append("fecha_inicio = %s")
+            valores_update.append(payload.nueva_fecha_inicio)
+            mensajes_cambio.append(
+                f"Fecha de inicio modificada a {payload.nueva_fecha_inicio}"
+            )
 
         if payload.nueva_fecha_fin:
-            campos.append("fecha_fin = %s")
-            valores.append(payload.nueva_fecha_fin)
+            cambios.append("fecha_fin = %s")
+            valores_update.append(payload.nueva_fecha_fin)
+            mensajes_cambio.append(
+                f"Fecha de fin modificada a {payload.nueva_fecha_fin}"
+            )
 
         if payload.nueva_descripcion:
-            campos.append("descripcion = %s")
-            valores.append(payload.nueva_descripcion)
+            cambios.append("descripcion = %s")
+            valores_update.append(payload.nueva_descripcion)
+            mensajes_cambio.append(
+                f"Descripción actualizada: "
+            )
+            mensajes_cambio.append(f"'{payload.nueva_descripcion}'")
 
-        if not campos:
+        if not cambios:
             raise HTTPException(400, "No se enviaron cambios")
 
-        valores.append(payload.ci)
-        valores.append(payload.fecha_inicio_original)
-        valores.append(payload.fecha_fin_original)
+        # Agregar filtros del WHERE
+        valores_update.append(payload.ci)
+        valores_update.append(payload.fecha_inicio_original)
+        valores_update.append(payload.fecha_fin_original)
 
+        # EJECUTAR UPDATE
         cur.execute(f"""
             UPDATE sancion_participante
-            SET {", ".join(campos)}
+            SET {", ".join(cambios)}
             WHERE ci_participante = %s
               AND fecha_inicio = %s
               AND fecha_fin = %s
-        """, tuple(valores))
+        """, tuple(valores_update))
 
         cn.commit()
-        return {"mensaje": "Sanción actualizada correctamente"}
+
+        #     ENVIAR NOTIFICACIÓN
+
+        mensaje = "Tu sanción ha sido modificada:\n" + "\n".join(f"- {m}" for m in mensajes_cambio)
+
+        createNotification(
+            payload.ci,
+            "sancion_editada",
+            mensaje,
+            referencia_tipo="sancion",
+            referencia_id=None
+        )
+
+        return {"mensaje": "Sanción actualizada y notificación enviada"}
 
     finally:
         cur.close()
