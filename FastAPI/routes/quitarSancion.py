@@ -1,31 +1,30 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from db.connector import getConnection
 from core.security import requireRole
 from db.notificationSentences import createNotification
 
-router = APIRouter()
+router = APIRouter(prefix="/sancion", tags=["Sanciones"])
 
-@router.post("/quitarSancion")
+@router.delete("/{id_sancion}")
 def quitar_sancion(
-    ci: int = Query(...),
+    id_sancion: int,
     user=Depends(requireRole("Bibliotecario", "Administrador"))
 ):
-
     roleDb = user["rol"]
     cn = getConnection(roleDb)
     cur = cn.cursor(dictionary=True)
 
     try:
-        print("DEBUG CI recibido:", ci)
+        print("DEBUG id_sancion recibido:", id_sancion)
 
-        # Buscar sanción activa
+        # Buscar sanción "activa" por ID
         cur.execute("""
             SELECT *
             FROM sancion_participante
-            WHERE ci_participante = %s
-              AND (fecha_fin IS NULL OR fecha_fin >= CURDATE())
+            WHERE id = %s
+              AND fecha_fin >= CURDATE()
             LIMIT 1
-        """, (ci,))
+        """, (id_sancion,))
         
         sancion = cur.fetchone()
         print("DEBUG sancion encontrada:", sancion)
@@ -33,29 +32,32 @@ def quitar_sancion(
         if not sancion:
             raise HTTPException(
                 status_code=404,
-                detail="No hay sanción activa para este participante"
+                detail="No hay sanción activa con ese ID"
             )
 
         # Marcar como finalizada AYER
         cur.execute("""
             UPDATE sancion_participante
             SET fecha_fin = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
-            WHERE ci_participante = %s
-              AND (fecha_fin IS NULL OR fecha_fin >= CURDATE())
-        """, (ci,))
+            WHERE id = %s
+              AND fecha_fin >= CURDATE()
+        """, (id_sancion,))
 
         cn.commit()
 
         # ENVIAR NOTIFICACIÓN AL PARTICIPANTE
         createNotification(
-            ci,
+            sancion["ci_participante"],
             "SANCION ELIMINADA",
             "Tu sanción activa ha sido levantada.",
             referencia_tipo="sancion",
-            referencia_id=sancion.get("id_sancion") if "id_sancion" in sancion else None
+            referencia_id=sancion["id"],   # 👈 acá también era id_sancion antes
         )
 
         return {"mensaje": "Sanción quitada correctamente"}
+
+    except HTTPException:
+        raise
 
     except Exception as e:
         print("ERROR REAL:", str(e))

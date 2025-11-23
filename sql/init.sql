@@ -134,11 +134,11 @@ CREATE TABLE bloqueos (
 );
 -- Tabla sancion_participante
 CREATE TABLE sancion_participante (
+    id INT AUTO_INCREMENT PRIMARY KEY,
     ci_participante BIGINT NOT NULL,
     fecha_inicio DATE NOT NULL,
     fecha_fin DATE NOT NULL,
     descripcion VARCHAR(255) NOT NULL,
-    PRIMARY KEY (ci_participante, fecha_inicio, fecha_fin),
     FOREIGN KEY (ci_participante) REFERENCES participante(ci)
 );
 
@@ -273,6 +273,54 @@ CREATE USER 'Administrador'@'%' IDENTIFIED BY 'shaw';
 CREATE USER 'Bibliotecario'@'%' IDENTIFIED BY 'shaw';
 CREATE USER 'Usuario'@'%' IDENTIFIED BY 'shaw';
 
-GRANT ALL PRIVILEGES ON gestion_salas.* TO 'Administrador'@'%';
-GRANT ALL PRIVILEGES ON gestion_salas.* TO 'Bibliotecario'@'%';
-GRANT ALL PRIVILEGES ON gestion_salas.* TO 'Usuario'@'%';
+-- Permisos para gestion_salas_user
+GRANT SELECT ON gestion_salas.edificio TO 'gestion_salas_user'@'%';
+GRANT SELECT, INSERT, UPDATE ON gestion_salas.login TO 'gestion_salas_user'@'%';
+GRANT SELECT, INSERT ON gestion_salas.participante TO 'gestion_salas_user'@'%';
+GRANT INSERT ON gestion_salas.participante_programa_academico TO 'gestion_salas_user'@'%';
+GRANT SELECT ON gestion_salas.reserva TO 'gestion_salas_user'@'%';
+GRANT SELECT ON gestion_salas.sala TO 'gestion_salas_user'@'%';
+
+-- Permisos para Usuario
+GRANT SELECT, INSERT, DELETE ON gestion_salas.bloqueos TO 'Usuario'@'%';
+GRANT SELECT ON gestion_salas.edificio TO 'Usuario'@'%';
+GRANT SELECT, INSERT, UPDATE ON gestion_salas.login TO 'Usuario'@'%';
+GRANT SELECT, INSERT, UPDATE ON gestion_salas.notificacion TO 'Usuario'@'%';
+GRANT SELECT, INSERT, UPDATE ON gestion_salas.participante TO 'Usuario'@'%';
+GRANT SELECT, INSERT ON gestion_salas.participante_programa_academico TO 'Usuario'@'%';
+GRANT SELECT ON gestion_salas.programa_academico TO 'Usuario'@'%';
+GRANT SELECT, INSERT, UPDATE ON gestion_salas.reserva TO 'Usuario'@'%';
+GRANT SELECT, INSERT, UPDATE ON gestion_salas.reserva_participante TO 'Usuario'@'%';
+GRANT SELECT ON gestion_salas.sala TO 'Usuario'@'%';
+GRANT SELECT, INSERT ON gestion_salas.sancion_participante TO 'Usuario'@'%';
+GRANT SELECT ON gestion_salas.turno TO 'Usuario'@'%';
+GRANT SELECT ON gestion_salas.facultad TO 'Usuario'@'%';
+
+-- Permisos para Bibliotecario
+GRANT SELECT, INSERT, DELETE ON gestion_salas.bloqueos TO 'Bibliotecario'@'%';
+GRANT SELECT ON gestion_salas.edificio TO 'Bibliotecario'@'%';
+GRANT SELECT, INSERT, UPDATE, DELETE ON gestion_salas.login TO 'Bibliotecario'@'%';
+GRANT SELECT, INSERT, UPDATE ON gestion_salas.notificacion TO 'Bibliotecario'@'%';
+GRANT SELECT, INSERT, UPDATE, DELETE ON gestion_salas.participante TO 'Bibliotecario'@'%';
+GRANT SELECT, INSERT, UPDATE ON gestion_salas.participante_programa_academico TO 'Bibliotecario'@'%';
+GRANT SELECT, UPDATE ON gestion_salas.reserva TO 'Bibliotecario'@'%';
+GRANT SELECT, INSERT, UPDATE ON gestion_salas.reserva_participante TO 'Bibliotecario'@'%';
+GRANT SELECT ON gestion_salas.sala TO 'Bibliotecario'@'%';
+GRANT SELECT, INSERT, UPDATE ON gestion_salas.sancion_participante TO 'Bibliotecario'@'%';
+GRANT SELECT ON gestion_salas.turno TO 'Bibliotecario'@'%';
+GRANT SELECT ON gestion_salas.facultad TO 'Bibliotecario'@'%';
+
+-- Permisos para Administrador
+GRANT SELECT, INSERT, DELETE ON gestion_salas.bloqueos TO 'Administrador'@'%';
+GRANT SELECT, INSERT, UPDATE, DELETE ON gestion_salas.edificio TO 'Administrador'@'%';
+GRANT SELECT, INSERT, UPDATE, DELETE ON gestion_salas.facultad TO 'Administrador'@'%';
+GRANT SELECT, INSERT, UPDATE, DELETE ON gestion_salas.login TO 'Administrador'@'%';
+GRANT SELECT, INSERT, UPDATE ON gestion_salas.notificacion TO 'Administrador'@'%';
+GRANT SELECT, INSERT, UPDATE, DELETE ON gestion_salas.participante TO 'Administrador'@'%';
+GRANT SELECT, INSERT, DELETE ON gestion_salas.participante_programa_academico TO 'Administrador'@'%';
+GRANT SELECT, INSERT, UPDATE ON gestion_salas.programa_academico TO 'Administrador'@'%';
+GRANT SELECT, UPDATE ON gestion_salas.reserva TO 'Administrador'@'%';
+GRANT SELECT, INSERT, UPDATE, DELETE ON gestion_salas.reserva_participante TO 'Administrador'@'%';
+GRANT SELECT, INSERT, UPDATE, DELETE ON gestion_salas.sala TO 'Administrador'@'%';
+GRANT SELECT, UPDATE, DELETE ON gestion_salas.sancion_participante TO 'Administrador'@'%';
+GRANT SELECT ON gestion_salas.turno TO 'Administrador'@'%';

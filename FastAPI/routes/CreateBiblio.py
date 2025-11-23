@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from core.passwordHash import hashPassword
-from db.registerSentences import insertLogin, insertPaticipante, insertBiblioLogin
+from db.registerSentences import insertLogin, insertPaticipante, insertBiblioLogin, verifyExisteUser
 from core.security import requireRole
 
 router = APIRouter()
@@ -42,6 +42,8 @@ def createUser(payload: CreateBiblioRequest, user = Depends(requireRole("Adminis
     local, domain = correo.split("@")
     if local.strip() == "" or domain.strip() == "":
         raise HTTPException(status_code=400, detail="correo inválido")
+    
+    verifyExisteUser(ci, correo, "Invitado")
 
 
     passwordHashed = hashPassword(password)

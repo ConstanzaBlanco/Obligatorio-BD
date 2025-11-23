@@ -14,6 +14,7 @@ def sanctions_active(user=Depends(requireRole("Bibliotecario", "Administrador"))
     try:
         cur.execute("""
             SELECT 
+                sp.id,
                 sp.ci_participante,
                 sp.fecha_inicio,
                 sp.fecha_fin,
