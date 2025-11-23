@@ -33,9 +33,10 @@ def turnos_mas_demandados(user=Depends(requireRole("Administrador", "Bibliotecar
         SELECT r.id_turno, t.hora_inicio, t.hora_fin, COUNT(*) AS total_reservas
         FROM reserva r
         JOIN turno t ON t.id_turno = r.id_turno
-        WHERE r.deleted_at IS NULL AND r.estado IN ('activa','finalizada')
+        WHERE r.estado IN ('activa','finalizada')
         GROUP BY r.id_turno, t.hora_inicio, t.hora_fin
-        ORDER BY total_reservas DESC LIMIT 10;
+        ORDER BY total_reservas DESC
+        LIMIT 10;
     """)
     data = cursor.fetchall()
     cursor.close(); conn.close()
@@ -121,15 +122,14 @@ def asistencias(user=Depends(requireRole("Administrador", "Bibliotecario"))):
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
         SELECT p.nombre, p.apellido,
-               SUM(CASE WHEN asistencia = TRUE THEN 1 ELSE 0 END) AS asistencias,
-               COUNT(*) AS cantidadReservas,
-               ppa.rol, pa.tipo
-        FROM reserva r
-        JOIN reserva_participante rp ON r.id_reserva = rp.id_reserva
+       SUM(CASE WHEN rp.asistencia = TRUE THEN 1 ELSE 0 END) AS asistencias,
+       COUNT(*) AS cantidadReservas,
+       ppa.rol, pa.tipo
+        FROM reserva_participante rp
         JOIN participante p ON rp.ci_participante = p.ci
-        JOIN participante_programa_academico ppa ON p.ci = ppa.ci_participante
-        JOIN programa_academico pa ON ppa.nombre_programa = pa.nombre_programa
-        GROUP BY p.nombre, p.apellido, ppa.rol, pa.tipo;
+        JOIN participante_programa_academico ppa ON ppa.ci_participante = p.ci
+        JOIN programa_academico pa ON pa.nombre_programa = ppa.nombre_programa
+        GROUP BY p.ci, p.nombre, p.apellido, ppa.rol, pa.tipo;
     """)
     data = cursor.fetchall()
     cursor.close(); conn.close()
@@ -164,19 +164,10 @@ def uso_reservas(user=Depends(requireRole("Administrador", "Bibliotecario"))):
     conn = getConnection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
-        SELECT 
-            (((RC.totalReservas - RC.cantidadFinalizadas) / RC.totalReservas) * 100) AS NoUtilizadas,
-            ((RC.cantidadFinalizadas / RC.totalReservas) * 100) AS Utilizadas
-        FROM (
-            SELECT 
-                SUM(CASE WHEN estado IN ('activa','finalizada') THEN cantidad ELSE 0 END) AS cantidadFinalizadas,
-                SUM(cantidad) AS totalReservas
-            FROM (
-                SELECT COUNT(*) cantidad, estado
-                FROM reserva
-                GROUP BY estado
-            ) AS X
-        ) RC;
+        SELECT
+        (SUM(CASE WHEN estado = 'sin asistencia' THEN 1 ELSE 0 END) / COUNT(*) * 100) AS NoUtilizadas,
+        (SUM(CASE WHEN estado = 'finalizada' THEN 1 ELSE 0 END) / COUNT(*) * 100) AS Utilizadas
+    FROM reserva;
     """)
     data = cursor.fetchone()
     cursor.close(); conn.close()
@@ -193,12 +184,13 @@ def top_mes(user=Depends(requireRole("Administrador", "Bibliotecario"))):
     cursor.execute("""
         SELECT p.ci, p.nombre, p.apellido, COUNT(*) AS cant_reservas
         FROM participante p
-        JOIN reserva_participante r ON p.ci = r.ci_participante
-        WHERE MONTH(r.fecha_solicitud_reserva) = MONTH(CURRENT_DATE)
-          AND YEAR(r.fecha_solicitud_reserva) = YEAR(CURRENT_DATE)
+        JOIN reserva_participante rp ON p.ci = rp.ci_participante
+        WHERE MONTH(rp.fecha_solicitud_reserva) = MONTH(CURRENT_DATE)
+        AND YEAR(rp.fecha_solicitud_reserva) = YEAR(CURRENT_DATE)
         GROUP BY p.ci, p.nombre, p.apellido
         ORDER BY cant_reservas DESC
         LIMIT 3;
+
     """)
     data = cursor.fetchall()
     cursor.close(); conn.close()
@@ -234,12 +226,11 @@ def dia_mas_reservas(user=Depends(requireRole("Administrador", "Bibliotecario"))
     conn = getConnection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
-        SELECT DAYNAME(r.fecha) AS dia_semana, 
-               DAYOFWEEK(r.fecha) AS num_semana,
-               COUNT(*) AS total_reservas
+        SELECT DAYNAME(r.fecha) AS dia_semana,
+       DAYOFWEEK(r.fecha) AS num_semana,
+       COUNT(*) AS total_reservas
         FROM reserva r
-        WHERE r.deleted_at IS NULL 
-          AND r.estado IN ('activa','finalizada')
+        WHERE r.estado IN ('activa','finalizada')
         GROUP BY dia_semana, num_semana
         ORDER BY total_reservas DESC
         LIMIT 1;
