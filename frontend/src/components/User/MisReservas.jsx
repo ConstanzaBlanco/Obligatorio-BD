@@ -11,7 +11,6 @@ export default function MisReservas() {
   const token = localStorage.getItem("token");
   const { user: currentUser } = useUser();
 
-  // Convierte "2025-11-16T20:10:29" → "16/11/2025 20:10"
   function formatFechaCompleta(fechaStr) {
     const fecha = new Date(fechaStr);
     return fecha.toLocaleString("es-UY", {
@@ -23,7 +22,6 @@ export default function MisReservas() {
     });
   }
 
-  // Pasa de "2025-11-16" → "16/11/2025"
   function formatFecha(fechaStr) {
     const fecha = new Date(fechaStr);
     return fecha.toLocaleDateString("es-UY");
@@ -45,8 +43,8 @@ export default function MisReservas() {
     }
 
     if (typeof hora === "object") {
-      const h = hora.hour ?? hora.H ?? null;
-      const m = hora.minute ?? hora.M ?? null;
+      const h = hora.hour ?? null;
+      const m = hora.minute ?? null;
       if (h !== null && m !== null)
         return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
     }
@@ -86,9 +84,7 @@ export default function MisReservas() {
   const cargarActivas = async () => {
     try {
       const res = await fetch("http://localhost:8000/seeOwnActiveReservations", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await res.json();
@@ -112,9 +108,11 @@ export default function MisReservas() {
           init[r.id_reserva] = { value: "", list: [], errors: [] };
         });
         setInviteInputs(init);
+
       } else {
         setError(data.detail || "Error al cargar reservas");
       }
+
     } catch (err) {
       console.error(err);
       setError("Error conectando con el servidor");
@@ -135,9 +133,14 @@ export default function MisReservas() {
         <p>No tenés reservas activas.</p>
       )}
 
+      {/* ========================================================= */}
+      {/*                 RESERVAS QUE CREASTE                     */}
+      {/* ========================================================= */}
+
       {misReservas.length > 0 && (
         <>
           <h3>Reservas que creaste</h3>
+
           <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
             {misReservas.map((r, idx) => (
               <div
@@ -150,26 +153,226 @@ export default function MisReservas() {
                   background: "#fff6f6",
                 }}
               >
-                <h4>
-                  {r.nombre_sala} - {r.edificio}
-                </h4>
-                <p>
-                  <strong>N°:</strong> {idx + 1}
-                </p>
+                <h4>{r.nombre_sala} - {r.edificio}</h4>
 
-                {/* ← AGREGADO */}
-                <p>
-                  <strong>Fecha:</strong> {formatFecha(r.fecha)}
-                </p>
+                <p><strong>N°:</strong> {idx + 1}</p>
+
+                <p><strong>Fecha:</strong> {formatFecha(r.fecha)}</p>
 
                 <p>
-                  <strong>Hora:</strong> {formatHora(r.hora_inicio)} →{" "}
-                  {formatHora(r.hora_fin)}
+                  <strong>Hora:</strong> {formatHora(r.hora_inicio)} → {formatHora(r.hora_fin)}
                 </p>
+                {/* --------------------------------------- */}
+                {/*       INVITAR PARTICIPANTES             */}
+                {/* --------------------------------------- */}
+                <div style={{ marginTop: 10 }}>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="CI a invitar"
+                    value={(inviteInputs[r.id_reserva]?.value) || ""}
+                    onChange={(e) => {
+                      const raw = e.target.value || "";
+                      const digits = raw.replace(/\D/g, "");
+                      setInviteInputs((prev) => ({
+                        ...prev,
+                        [r.id_reserva]: {
+                          ...(prev[r.id_reserva] || { list: [], errors: [] }),
+                          value: digits,
+                        },
+                      }));
+                    }}
+                    style={{ padding: 6, width: 140, marginRight: 8 }}
+                  />
 
-                {/* TODO LO DEMÁS IGUAL... */}
-                {/* --- aquí sigue tu bloque de invitaciones y cancelar reserva --- */}
+                  <button
+                    onClick={async () => {
+                      const v = inviteInputs[r.id_reserva]?.value || "";
+                      if (!v) return alert("Ingresá un CI");
 
+                      const existing = inviteInputs[r.id_reserva]?.list || [];
+                      if (existing.includes(Number(v)))
+                        return alert("CI ya agregado");
+
+                      const myCi = currentUser?.ci;
+                      if (myCi && Number(v) === Number(myCi)) {
+                        return alert("No te podés invitar a vos mismo");
+                      }
+
+                      try {
+                        const res = await fetch(
+                          `http://localhost:8000/participante/existe/${v}`,
+                          {
+                            headers: { Authorization: `Bearer ${token}` },
+                          }
+                        );
+                        const data = await res.json();
+
+                        if (data.error) {
+                          alert(data.error);
+                          return;
+                        }
+
+                        if (data.exists) {
+                          setInviteInputs((prev) => {
+                            const cur = prev[r.id_reserva] || {
+                              value: "",
+                              list: [],
+                              errors: [],
+                            };
+                            return {
+                              ...prev,
+                              [r.id_reserva]: {
+                                value: "",
+                                list: [...cur.list, Number(v)],
+                                errors: cur.errors,
+                              },
+                            };
+                          });
+                        } else {
+                          setInviteInputs((prev) => {
+                            const cur = prev[r.id_reserva] || {
+                              value: "",
+                              list: [],
+                              errors: [],
+                            };
+                            return {
+                              ...prev,
+                              [r.id_reserva]: {
+                                value: "",
+                                list: cur.list,
+                                errors: [
+                                  ...cur.errors,
+                                  { ci: Number(v), error: "No existe ese CI" },
+                                ],
+                              },
+                            };
+                          });
+                        }
+                      } catch (err) {
+                        console.error(err);
+                        alert("Error validando CI");
+                      }
+                    }}
+                    style={{
+                      padding: "8px 12px",
+                      background: "#0275d8",
+                      color: "white",
+                      border: "none",
+                      borderRadius: 6,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Agregar
+                  </button>
+
+                  {inviteInputs[r.id_reserva]?.list?.length > 0 && (
+                    <button
+                      onClick={async () => {
+                        const list = inviteInputs[r.id_reserva].list;
+                        if (!list.length) return;
+
+                        try {
+                          const res = await fetch(
+                            "http://localhost:8000/invitaciones/invitar",
+                            {
+                              method: "POST",
+                              headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`,
+                              },
+                              body: JSON.stringify({
+                                id_reserva: r.id_reserva,
+                                participantes: list,
+                              }),
+                            }
+                          );
+
+                          const data = await res.json();
+
+                          if (!res.ok || data.error) {
+                            if (Array.isArray(data.errores)) {
+                              const msgs = data.errores
+                                .map((e) => `${e.ci}: ${e.error}`)
+                                .join("\n");
+                              alert(
+                                `No se pudieron enviar algunas invitaciones:\n${msgs}`
+                              );
+                            } else {
+                              alert(data.error || "Error al enviar invitaciones");
+                            }
+                            return;
+                          }
+
+                          let msg =
+                            data.mensaje || "Invitaciones enviadas correctamente.";
+
+                          if (Array.isArray(data.invitados)) {
+                            msg += `\nInvitados: ${data.invitados.join(", ")}`;
+                          }
+                          if (Array.isArray(data.errores)) {
+                            const msgs = data.errores
+                              .map((e) => `${e.ci}: ${e.error}`)
+                              .join("\n");
+                            msg += `\nAlgunos errores:\n${msgs}`;
+                          }
+
+                          alert(msg);
+
+                          setInviteInputs((prev) => ({
+                            ...prev,
+                            [r.id_reserva]: { value: "", list: [], errors: [] },
+                          }));
+
+                          cargarActivas();
+                        } catch (err) {
+                          console.error(err);
+                          alert("Error enviando invitaciones");
+                        }
+                      }}
+                      style={{
+                        padding: "8px 12px",
+                        marginLeft: 8,
+                        background: "#5cb85c",
+                        color: "white",
+                        border: "none",
+                        borderRadius: 6,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Enviar
+                    </button>
+                  )}
+
+                  <div style={{ marginTop: 8 }}>
+                    {(inviteInputs[r.id_reserva]?.list || []).map((ciItem) => (
+                      <span
+                        key={ciItem}
+                        style={{
+                          display: "inline-block",
+                          padding: "4px 8px",
+                          marginRight: 6,
+                          background: "#eef",
+                          borderRadius: 6,
+                        }}
+                      >
+                        {ciItem}
+                      </span>
+                    ))}
+
+                    {(inviteInputs[r.id_reserva]?.errors || []).map((errItem) => (
+                      <div
+                        key={String(errItem.ci)}
+                        style={{ color: "crimson", fontSize: 12 }}
+                      >
+                        {errItem.ci}: {errItem.error}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* CANCELAR */}
                 <button
                   onClick={() => cancelarReserva(r.id_reserva)}
                   style={{
@@ -190,9 +393,14 @@ export default function MisReservas() {
         </>
       )}
 
+      {/* ========================================================= */}
+      {/*            RESERVAS DONDE PARTICIPÁS                     */}
+      {/* ========================================================= */}
+
       {reservasParticipando.length > 0 && (
         <>
           <h3>Reservas donde participás</h3>
+
           <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
             {reservasParticipando.map((r, idx) => (
               <div
@@ -205,21 +413,15 @@ export default function MisReservas() {
                   background: "#f6fff6",
                 }}
               >
-                <h4>
-                  {r.nombre_sala} - {r.edificio}
-                </h4>
-                <p>
-                  <strong>N°:</strong> {idx + 1}
-                </p>
+                <h4>{r.nombre_sala} - {r.edificio}</h4>
 
-                {/* ← AGREGADO */}
-                <p>
-                  <strong>Fecha:</strong> {formatFecha(r.fecha)}
-                </p>
+                <p><strong>N°:</strong> {idx + 1}</p>
+
+                {/* ← FECHA AGREGADA */}
+                <p><strong>Fecha:</strong> {formatFecha(r.fecha)}</p>
 
                 <p>
-                  <strong>Hora:</strong> {formatHora(r.hora_inicio)} →{" "}
-                  {formatHora(r.hora_fin)}
+                  <strong>Hora:</strong> {formatHora(r.hora_inicio)} → {formatHora(r.hora_fin)}
                 </p>
 
                 <p style={{ fontSize: 13, color: "#666" }}>
@@ -232,9 +434,14 @@ export default function MisReservas() {
         </>
       )}
 
+      {/* ========================================================= */}
+      {/*                RESERVAS BLOQUEADAS                        */}
+      {/* ========================================================= */}
+
       {reservasBloqueadas.length > 0 && (
         <>
           <h3>Reservas bloqueadas</h3>
+
           <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
             {reservasBloqueadas.map((r, idx) => (
               <div
@@ -248,31 +455,22 @@ export default function MisReservas() {
                   color: "#666",
                 }}
               >
-                <h4 style={{ marginTop: 0, color: "#444" }}>
-                  {r.nombre_sala} - {r.edificio}
-                </h4>
-                <p>
-                  <strong>N°:</strong> {idx + 1}
-                </p>
+                <h4 style={{ marginTop: 0 }}>{r.nombre_sala} - {r.edificio}</h4>
 
-                {/* ← AGREGADO */}
-                <p>
-                  <strong>Fecha:</strong> {formatFecha(r.fecha)}
-                </p>
+                <p><strong>N°:</strong> {idx + 1}</p>
+
+                {/* ← FECHA AGREGADA */}
+                <p><strong>Fecha:</strong> {formatFecha(r.fecha)}</p>
 
                 <p>
-                  <strong>Hora:</strong> {formatHora(r.hora_inicio)} →{" "}
-                  {formatHora(r.hora_fin)}
+                  <strong>Hora:</strong> {formatHora(r.hora_inicio)} → {formatHora(r.hora_fin)}
                 </p>
 
-                <p style={{ fontSize: 13, color: "#666" }}>
+                <p style={{ fontSize: 13 }}>
                   <strong>Estado invitación:</strong> {r.estado_invitacion}
                 </p>
-                <p style={{ fontSize: 12, color: "#555" }}>
-                  Bloqueaste recibir más invitaciones de esta reserva.
-                </p>
 
-                {/* El resto queda igual */}
+                <p style={{ fontSize: 12 }}>Bloqueaste recibir más invitaciones.</p>
               </div>
             ))}
           </div>

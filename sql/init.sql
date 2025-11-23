@@ -304,21 +304,20 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON gestion_salas.participante TO 'Bibliotec
 GRANT SELECT, INSERT, UPDATE ON gestion_salas.participante_programa_academico TO 'Bibliotecario'@'%';
 GRANT SELECT ON gestion_salas.sancion_participante TO 'Bibliotecario'@'%';
 
--- PERMISOS PARA MODIFICAR RESERVAS
 GRANT SELECT, INSERT, UPDATE, DELETE ON gestion_salas.reserva TO 'Bibliotecario'@'%';
 GRANT SELECT, INSERT, UPDATE, DELETE ON gestion_salas.reserva_participante TO 'Bibliotecario'@'%';
 
--- Tablas necesarias para validar FKs y lógica del endpoint de modificar reservas
 GRANT SELECT, UPDATE ON gestion_salas.sala TO 'Bibliotecario'@'%';
 GRANT SELECT, UPDATE ON gestion_salas.turno TO 'Bibliotecario'@'%';
 GRANT SELECT, UPDATE ON gestion_salas.edificio TO 'Bibliotecario'@'%';
 
--- Para validar creador, participantes, notificaciones y roles
 GRANT SELECT ON gestion_salas.participante TO 'Bibliotecario'@'%';
 GRANT SELECT ON gestion_salas.participante_programa_academico TO 'Bibliotecario'@'%';
 
--- Generales
 GRANT SELECT ON gestion_salas.facultad TO 'Bibliotecario'@'%';
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON gestion_salas.sancion_participante TO 'Bibliotecario'@'%';
+
 
 
 
