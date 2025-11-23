@@ -6,15 +6,24 @@ export default function MisSanciones() {
   const [error, setError] = useState("");
 
   const token = localStorage.getItem("token");
-
+  
   const formatFecha = (fecha) => {
+    if (!fecha) return "";
+
     try {
-      return new Date(fecha).toLocaleDateString("es-UY", {
+      // Soportar tanto "YYYY-MM-DD" como "YYYY-MM-DDTHH:mm:ss"
+      const [datePart] = fecha.split("T");
+      const [year, month, day] = datePart.split("-").map(Number);
+
+      const dateObj = new Date(year, month - 1, day); // 👈 local, no UTC
+
+      return dateObj.toLocaleDateString("es-UY", {
         year: "numeric",
         month: "long",
         day: "numeric",
       });
-    } catch {
+    } catch (e) {
+      console.error("Error formateando fecha:", fecha, e);
       return fecha;
     }
   };
@@ -120,7 +129,7 @@ export default function MisSanciones() {
               }}
             >
               <p><strong>Descripcion:</strong> {(s.descripcion)}</p>
-               <p><strong>Inicio:</strong> {formatFecha(s.fecha_inicio)}</p>
+              <p><strong>Inicio:</strong> {formatFecha(s.fecha_inicio)}</p>
               <p><strong>Fin:</strong> {formatFecha(s.fecha_fin)}</p>
             </li>
           ))}

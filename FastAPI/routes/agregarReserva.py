@@ -159,14 +159,16 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
 
         # Verificar sanción
         cur.execute("""
-            SELECT ci_participante 
+            SELECT 1
             FROM sancion_participante
             WHERE ci_participante = %s
-            AND CURDATE() BETWEEN fecha_inicio AND fecha_fin;
+              AND fecha_fin >= CURDATE()
+            LIMIT 1;
         """, (ci,))
-        if cur.fetchall():
-            return {"error": "Estás sancionado, no podés reservar"}
 
+        if cur.fetchone():
+            return {"error": "Estás sancionado, no podés reservar"}
+        
         # Crear reserva
         cur.execute("""
             INSERT INTO reserva (nombre_sala, edificio, fecha, id_turno, estado, creador) 
