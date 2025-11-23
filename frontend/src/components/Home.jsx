@@ -14,12 +14,11 @@ export default function Home() {
     usoReservas: null,
     topMes: [],
     promedioSanciones: [],
-    diaMasReservas: null
+    diaMasReservas: null   
   });
 
   const { user, logout } = useUser();
   const rol = user?.rol?.toLowerCase();
-
   const token = localStorage.getItem("token");
 
   const fetchData = async () => {
@@ -33,7 +32,8 @@ export default function Home() {
         sanciones: "/estadisticas/sanciones",
         usoReservas: "/estadisticas/uso-reservas",
         topMes: "/estadisticas/top-participantes-mes",
-        promedioSanciones: "/estadisticas/promedio-sanciones"
+        promedioSanciones: "/estadisticas/promedio-sanciones",
+        diaMasReservas: "/estadisticas/dia-mas-reservas"
       };
 
       const results = {};
@@ -134,7 +134,7 @@ export default function Home() {
 
         <div className="grid">
 
-          {/* ----------- TARJETA 1 ------------- */}
+          {/* TARJETA 1 */}
           <div className="card">
             <h3>Salas más reservadas</h3>
             <table>
@@ -152,7 +152,7 @@ export default function Home() {
             </table>
           </div>
 
-          {/* ----------- TARJETA 2 ------------- */}
+          {/*TARJETA 2 */}
           <div className="card">
             <h3>Promedio de participantes por sala</h3>
             <table>
@@ -168,7 +168,7 @@ export default function Home() {
             </table>
           </div>
 
-          {/* ----------- TARJETA 3 ------------- */}
+          {/* TARJETA 3  */}
           <div className="card">
             <h3>Reservas por facultad y carrera</h3>
             <table>
@@ -185,7 +185,7 @@ export default function Home() {
             </table>
           </div>
 
-          {/* ----------- TARJETA 4 ------------- */}
+          {/* TARJETA 4  */}
           <div className="card">
             <h3>Ocupación actual de edificios (%)</h3>
             {data.ocupacionEdificios.map((o, i) => (
@@ -196,9 +196,10 @@ export default function Home() {
             ))}
           </div>
 
-          {/* ----------- BLOQUE SOLO ADM/BIBLIO ------------- */}
+          {/* BLOQUE SOLO ADM/BIBLIO */}
           {(rol === "bibliotecario" || rol === "administrador") && (
             <>
+
               {/* Tarjeta 6 */}
               <div className="card">
                 <h3>Asistencias y Reservas</h3>
@@ -228,7 +229,7 @@ export default function Home() {
                     {data.sanciones.map((s, i) => (
                       <tr key={i}>
                         <td>{s.rol}</td>
-                        <td>{s.tipo_programa}</td>
+                        <td>{s.tipo}</td>
                         <td>{s.cant_sanciones}</td>
                       </tr>
                     ))}
@@ -239,8 +240,8 @@ export default function Home() {
               {/* Tarjeta 8 */}
               <div className="card">
                 <h3>Uso de Reservas</h3>
-                <p>Utilizadas: <strong>{data.usoReservas.Utilizadas.toFixed(1)}%</strong></p>
-                <p>No utilizadas: <strong>{data.usoReservas.NoUtilizadas.toFixed(1)}%</strong></p>
+                <p>Utilizadas: <strong>{data.usoReservas?.Utilizadas?.toFixed(1)}%</strong></p>
+                <p>No utilizadas: <strong>{data.usoReservas?.NoUtilizadas?.toFixed(1)}%</strong></p>
               </div>
 
               {/* Tarjeta 9 */}
@@ -274,6 +275,20 @@ export default function Home() {
                   </tbody>
                 </table>
               </div>
+
+              {/*Tarjeta 11 */}
+              <div className="card">
+                <h3>Día de la semana con más reservas</h3>
+                {data.diaMasReservas ? (
+                  <p>
+                    <strong>{data.diaMasReservas.dia_semana}</strong>  
+                    — {data.diaMasReservas.total_reservas} reservas
+                  </p>
+                ) : (
+                  <p>No hay datos.</p>
+                )}
+              </div>
+
             </>
           )}
 
