@@ -35,7 +35,7 @@ def create_facultad(payload: FacultadCreate, user = Depends(requireRole("Adminis
 
 
 @router.get("/all")
-def get_all(user = Depends(requireRole("Administrador"))):
+def get_all(user = Depends(requireRole("Administrador", "Usuario", "Bibliotecario"))):
     roleDb = user["rol"]
     return getFacultades(roleDb)
 

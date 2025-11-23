@@ -13,6 +13,7 @@ def sanctions_past(user=Depends(requireRole("Bibliotecario", "Administrador"))):
         cur = cn.cursor(dictionary=True)
         cur.execute("""
             SELECT 
+                s.id,
                 s.ci_participante,
                 p.email,
                 s.fecha_inicio,

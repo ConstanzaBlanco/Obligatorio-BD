@@ -3,16 +3,17 @@ from fastapi import APIRouter, Depends
 from db.connector import getConnection
 from core.security import currentUser 
 from fastapi import HTTPException
+from datetime import date
 
 router = APIRouter()
 
 @router.get("/seeOwnPastSanctions")
 def seeOwnPastSanctions(user=Depends(currentUser)):
-    try:
-        roleDb = user["rol"]
-        cn = getConnection(roleDb)
-        cur = cn.cursor(dictionary=True)
+    roleDb = user["rol"]
+    cn = getConnection(roleDb)
+    cur = cn.cursor(dictionary=True)
 
+    try:
         correo = user["correo"]
 
         cur.execute("SELECT ci FROM participante WHERE email = %s", (correo,))
@@ -23,23 +24,22 @@ def seeOwnPastSanctions(user=Depends(currentUser)):
 
         ci = participante["ci"]
 
-        cur.execute("SELECT NOW() AS ahora")
-        ahora = cur.fetchone()["ahora"]
+        hoy = date.today()
 
         cur.execute("""
-            SELECT fecha_inicio, fecha_fin, descripcion
+            SELECT id, fecha_inicio, fecha_fin, descripcion
             FROM sancion_participante
             WHERE ci_participante = %s
-              AND fecha_fin < %s
+              AND fecha_fin < %s      -- terminadas antes de hoy
             ORDER BY fecha_inicio DESC
-        """, (ci, ahora))
+        """, (ci, hoy))
 
         sanciones = cur.fetchall()
-
         return {"sanciones": sanciones}
 
     finally:
         try:
+            cur.close()
             cn.close()
         except:
             pass
