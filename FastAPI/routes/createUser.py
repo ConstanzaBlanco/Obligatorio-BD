@@ -27,18 +27,29 @@ def createUser(payload: CreateUserRequest):
     # Validaciones
     if not isinstance(correo, str) or correo.strip() == "":
         raise HTTPException(status_code=400, detail="correo es requerido")
-    if not isinstance(ci, int) or ci <= 0:
-        raise HTTPException(status_code=400, detail="ci debe ser un entero positivo")
+
+    if not isinstance(ci, int):
+        raise HTTPException(status_code=400, detail="ci debe ser un entero")
+
+    ci_str = str(ci)
+    if len(ci_str) != 8:
+        raise HTTPException(status_code=400, detail="ci debe tener exactamente 8 dígitos")
+
     if not isinstance(name, str) or name.strip() == "":
         raise HTTPException(status_code=400, detail="name es requerido")
+
     if not isinstance(lastName, str) or lastName.strip() == "":
         raise HTTPException(status_code=400, detail="lastName es requerido")
+
     if not isinstance(password, str) or password.strip() == "":
         raise HTTPException(status_code=400, detail="password es requerido")
+
+    if len(password) <= 6:
+        raise HTTPException(status_code=400, detail="password debe tener más de 6 caracteres")
+
     if not isinstance(academicProgram, str) or academicProgram.strip() == "":
         raise HTTPException(status_code=400, detail="academicProgram es requerido")
 
-    # Dominio -> rol
     try:
         local, domain = correo.split("@", 1)
     except ValueError:
@@ -52,7 +63,7 @@ def createUser(payload: CreateUserRequest):
         raise HTTPException(status_code=400, detail="correo inválido (debe ser @correo.* o @ucu.*)")
     
     verifyExisteUser(ci, correo, "Invitado")
-    # Hash de password
+
     passwordHashed = hashPassword(password)
 
     if insertLogin(correo, passwordHashed, "Invitado") == 0:
@@ -65,7 +76,6 @@ def createUser(payload: CreateUserRequest):
         raise HTTPException(status_code=400, detail="Error al insertar en participante_programa_academico")
 
     return {"status": "created"}
-
 
 @router.get("/createUser/programs")
 def getPrograms():

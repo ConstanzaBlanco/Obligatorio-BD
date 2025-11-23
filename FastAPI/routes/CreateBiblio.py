@@ -24,17 +24,10 @@ def createUser(payload: CreateBiblioRequest, user = Depends(requireRole("Adminis
 
     roleDb = user["rol"]
 
-    # Validaciones
+
+    # correo
     if not isinstance(correo, str) or correo.strip() == "":
         raise HTTPException(status_code=400, detail="correo es requerido")
-    if not isinstance(ci, int) or ci <= 0:
-        raise HTTPException(status_code=400, detail="ci debe ser un entero positivo")
-    if not isinstance(name, str) or name.strip() == "":
-        raise HTTPException(status_code=400, detail="name es requerido")
-    if not isinstance(lastName, str) or lastName.strip() == "":
-        raise HTTPException(status_code=400, detail="lastName es requerido")
-    if not isinstance(password, str) or password.strip() == "":
-        raise HTTPException(status_code=400, detail="password es requerido")
 
     if correo.count("@") != 1:
         raise HTTPException(status_code=400, detail="correo inválido")
@@ -42,12 +35,30 @@ def createUser(payload: CreateBiblioRequest, user = Depends(requireRole("Adminis
     local, domain = correo.split("@")
     if local.strip() == "" or domain.strip() == "":
         raise HTTPException(status_code=400, detail="correo inválido")
-    
+
+    if not isinstance(ci, int):
+        raise HTTPException(status_code=400, detail="ci debe ser un entero")
+
+    ci_str = str(ci)
+    if len(ci_str) != 8:
+        raise HTTPException(status_code=400, detail="ci debe tener exactamente 8 dígitos")
+
+    if not isinstance(name, str) or name.strip() == "":
+        raise HTTPException(status_code=400, detail="name es requerido")
+
+    if not isinstance(lastName, str) or lastName.strip() == "":
+        raise HTTPException(status_code=400, detail="lastName es requerido")
+
+    # password: no vacía + más de 6 caracteres
+    if not isinstance(password, str) or password.strip() == "":
+        raise HTTPException(status_code=400, detail="password es requerido")
+
+    if len(password) <= 6:
+        raise HTTPException(status_code=400, detail="password debe tener más de 6 caracteres")
+
     verifyExisteUser(ci, correo, "Invitado")
 
-
     passwordHashed = hashPassword(password)
-
 
     if insertBiblioLogin(correo, passwordHashed, roleDb) == 0:
         raise HTTPException(status_code=400, detail="Error al insertar en login")
