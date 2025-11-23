@@ -2,11 +2,11 @@
 
 ## Requisitos
 
-- Tener **Docker** instalado (y Docker Compose).
+- Tener **Docker** instalado y Docker Compose.
 
 ---
 
-## Instalación y Puesta en Marcha
+## Instalación
 
 1. **Clonar el repositorio**
 
@@ -38,7 +38,7 @@
      - El **Frontend**
      - **MySQL**
 
-   La base de datos MySQL se cargará automáticamente gracias a la configuración de Docker, que utiliza un archivo de inicialización para cargar datos base.
+   La base de datos MySQL se cargará automáticamente gracias a la configuración de Docker, que utiliza un archivo para cargar datos base.
 
 ---
 
@@ -46,7 +46,7 @@
 
 ### Frontend
 
-Para probar la aplicación completa, abrir en el navegador:
+Para probar la aplicación completa, abrir en el navegador y poner el siguiente LINK:
 
 ```text
 http://localhost:5173/
@@ -68,9 +68,9 @@ Para ver el listado completo de endpoints disponibles:
 http://localhost:8000/docs
 ```
 
-> ⚠️ **Importante:**  
-> Para probar la mayoría de los endpoints, es necesario contar con un **token JWT**.  
-> Ese token se obtiene realizando el **login** correspondiente en la aplicación.
+> **Importante:**  
+> Para probar la mayoría de los endpoints, es necesario contar con un **TOKEN**.  
+> Ese token se obtiene realizando el **LOGIN** correspondiente en la aplicación.
 
 ---
 
@@ -82,7 +82,7 @@ Para probar la aplicación en su totalidad es necesario contar con credenciales 
 - **Bibliotecario**
 - **Usuarios**
 
-Las credenciales de prueba (usuarios, roles, contraseñas, etc.) están detalladas en la documentación del proyecto, a la cual se puede acceder desde el repositorio.
+Las credenciales de prueba (usuarios y contraseñas) están detalladas en la documentación del proyecto.
 
 ---
 
@@ -91,5 +91,4 @@ Las credenciales de prueba (usuarios, roles, contraseñas, etc.) están detallad
 - Asegurate de que no haya otros servicios usando los puertos:
   - `5173` (Frontend)
   - `8000` (API)
-  - `3306` u otro configurado para MySQL en el `docker-compose.yml`.
-- Si es la primera vez que se levanta el entorno, la descarga de imágenes puede demorar unos minutos.
+  - `3306` (MySQL).
