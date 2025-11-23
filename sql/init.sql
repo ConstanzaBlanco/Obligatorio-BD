@@ -323,7 +323,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON gestion_salas.login TO 'Administrador'@'
 GRANT SELECT, INSERT, UPDATE ON gestion_salas.notificacion TO 'Administrador'@'%';
 GRANT SELECT, INSERT, UPDATE, DELETE ON gestion_salas.participante TO 'Administrador'@'%';
 GRANT SELECT, INSERT, DELETE ON gestion_salas.participante_programa_academico TO 'Administrador'@'%';
-GRANT SELECT, INSERT, UPDATE ON gestion_salas.programa_academico TO 'Administrador'@'%';
+GRANT SELECT, INSERT, UPDATE, DELETE ON gestion_salas.programa_academico TO 'Administrador'@'%';
 GRANT SELECT, UPDATE ON gestion_salas.reserva TO 'Administrador'@'%';
 GRANT SELECT, INSERT, UPDATE, DELETE ON gestion_salas.reserva_participante TO 'Administrador'@'%';
 GRANT SELECT, INSERT, UPDATE, DELETE ON gestion_salas.sala TO 'Administrador'@'%';
