@@ -9,6 +9,7 @@ export default function Reservas() {
   const [modalCrearAbierto, setModalCrearAbierto] = useState(false);
 
   const [reservaEdit, setReservaEdit] = useState(null);
+  const [reservaOriginal, setReservaOriginal] = useState(null);
 
   const [salas, setSalas] = useState([]);
   const [turnos, setTurnos] = useState([]);
@@ -27,7 +28,6 @@ export default function Reservas() {
 
   const formatHora = (valor) => {
     if (!valor) return "";
-
     if (typeof valor === "string") return valor.slice(0, 5);
 
     if (typeof valor === "object") {
@@ -95,8 +95,17 @@ export default function Reservas() {
   };
 
   const abrirModalEditar = async (reserva) => {
+    // SET DE EDIT
     setReservaEdit({
       id_reserva: reserva.id_reserva,
+      sala: reserva.nombre_sala,
+      edificio: reserva.edificio,
+      fecha: reserva.fecha,
+      turno: reserva.id_turno,
+    });
+
+    // SET DE ORIGINAL
+    setReservaOriginal({
       sala: reserva.nombre_sala,
       edificio: reserva.edificio,
       fecha: reserva.fecha,
@@ -115,7 +124,7 @@ export default function Reservas() {
     setNuevaFecha("");
     setNuevoTurno("");
     setInvitadosInput("");
-    setCreadorCi(""); // limpiar CI creador
+    setCreadorCi("");
 
     await cargarEdificios();
     await cargarTurnos();
@@ -125,13 +134,24 @@ export default function Reservas() {
 
   const guardarCambios = async () => {
     try {
-      const payload = {
-        id_reserva: reservaEdit.id_reserva,
-        nueva_sala: reservaEdit.sala,
-        nuevo_edificio: reservaEdit.edificio,
-        nueva_fecha: reservaEdit.fecha,
-        nuevo_turno: Number(reservaEdit.turno),
-      };
+      const payload = { id_reserva: reservaEdit.id_reserva };
+
+      if (reservaEdit.sala !== reservaOriginal.sala)
+        payload.nueva_sala = reservaEdit.sala;
+
+      if (reservaEdit.edificio !== reservaOriginal.edificio)
+        payload.nuevo_edificio = reservaEdit.edificio;
+
+      if (reservaEdit.fecha !== reservaOriginal.fecha)
+        payload.nueva_fecha = reservaEdit.fecha;
+
+      if (Number(reservaEdit.turno) !== reservaOriginal.turno)
+        payload.nuevo_turno = Number(reservaEdit.turno);
+
+      if (Object.keys(payload).length === 1) {
+        alert("No se realizaron cambios.");
+        return;
+      }
 
       const res = await fetch("http://localhost:8000/reservas/modificar", {
         method: "PUT",
@@ -192,7 +212,7 @@ export default function Reservas() {
       fecha: nuevaFecha,
       id_turno: Number(nuevoTurno),
       participantes,
-      creador_ci: Number(creadorCi), // ← AGREGADO
+      creador_ci: Number(creadorCi),
     };
 
     try {
@@ -246,12 +266,21 @@ export default function Reservas() {
       <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
         {activas.map((r) => (
           <div key={r.id_reserva} style={cardStyle}>
-            <p><b>ID:</b> {r.id_reserva}</p>
-            <p><b>Sala:</b> {r.nombre_sala}</p>
-            <p><b>Edificio:</b> {r.edificio}</p>
-            <p><b>Fecha:</b> {r.fecha}</p>
             <p>
-              <b>Turno:</b> {formatHora(r.hora_inicio)} - {formatHora(r.hora_fin)}
+              <b>ID:</b> {r.id_reserva}
+            </p>
+            <p>
+              <b>Sala:</b> {r.nombre_sala}
+            </p>
+            <p>
+              <b>Edificio:</b> {r.edificio}
+            </p>
+            <p>
+              <b>Fecha:</b> {r.fecha}
+            </p>
+            <p>
+              <b>Turno:</b> {formatHora(r.hora_inicio)} -{" "}
+              {formatHora(r.hora_fin)}
             </p>
 
             <button onClick={() => abrirModalEditar(r)} style={btnEdit}>
@@ -271,12 +300,21 @@ export default function Reservas() {
       <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
         {pasadas.map((r) => (
           <div key={r.id_reserva} style={cardStyle}>
-            <p><b>ID:</b> {r.id_reserva}</p>
-            <p><b>Sala:</b> {r.nombre_sala}</p>
-            <p><b>Edificio:</b> {r.edificio}</p>
-            <p><b>Fecha:</b> {r.fecha}</p>
             <p>
-              <b>Turno:</b> {formatHora(r.hora_inicio)} - {formatHora(r.hora_fin)}
+              <b>ID:</b> {r.id_reserva}
+            </p>
+            <p>
+              <b>Sala:</b> {r.nombre_sala}
+            </p>
+            <p>
+              <b>Edificio:</b> {r.edificio}
+            </p>
+            <p>
+              <b>Fecha:</b> {r.fecha}
+            </p>
+            <p>
+              <b>Turno:</b> {formatHora(r.hora_inicio)} -{" "}
+              {formatHora(r.hora_fin)}
             </p>
             <p style={{ color: "gray" }}>
               <i>Reserva pasada</i>
