@@ -277,7 +277,7 @@ CREATE USER 'Usuario'@'%' IDENTIFIED BY 'shaw';
 GRANT SELECT ON gestion_salas.edificio TO 'gestion_salas_user'@'%';
 GRANT SELECT, INSERT, UPDATE ON gestion_salas.login TO 'gestion_salas_user'@'%';
 GRANT SELECT, INSERT ON gestion_salas.participante TO 'gestion_salas_user'@'%';
-GRANT INSERT ON gestion_salas.participante_programa_academico TO 'gestion_salas_user'@'%';
+GRANT SELECT, INSERT ON gestion_salas.participante_programa_academico TO 'gestion_salas_user'@'%';
 GRANT SELECT ON gestion_salas.reserva TO 'gestion_salas_user'@'%';
 GRANT SELECT ON gestion_salas.sala TO 'gestion_salas_user'@'%';
 
