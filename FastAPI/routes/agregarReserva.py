@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from core.security import requireRole
 from datetime import datetime, timedelta
 from db.notificationSentences import createNotification
+from zoneinfo import ZoneInfo     # ← IMPORTANTE
 
 router = APIRouter()
 
@@ -25,6 +26,10 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario","Bi
 
         rol_usuario = user["rol"].lower()
 
+        # HORA ACTUAL DEL SERVIDOR CON ZONA HORARIA DE URUGUAY
+        ahora_uy = datetime.now(ZoneInfo("America/Montevideo"))
+        hoy = ahora_uy.date()
+        hora_actual = ahora_uy.time()
 
         #      SELECCIONAR CI DEPENDIENDO DEL ROL
         if rol_usuario == "bibliotecario":  
@@ -33,7 +38,6 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario","Bi
             ci = request.creador_ci
         else:
             ci = user["ci"]
-
 
         # LIMITE DIARIO
         cur.execute("""
@@ -83,9 +87,7 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario","Bi
             return {"error": "El turno no existe"}
 
         # Validar turno pasado
-        hoy = datetime.now().date()
         if request.fecha == hoy.strftime("%Y-%m-%d"):
-            hora_actual = datetime.now().time()
             hora_turno = turno_info["hora_inicio"]
 
             if isinstance(hora_turno, timedelta):
@@ -140,7 +142,7 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario","Bi
         if limite_diario_superado and not es_excepcion:
             return {"error": "Ya reservaste 2 horas hoy"}
 
-        # LIMITE SEMANANAL
+        # LIMITE SEMANAL
         if not es_excepcion:
             cur.execute("""
                 SELECT COUNT(*) AS cantidad_reservas
@@ -180,7 +182,7 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario","Bi
 
         if cur.fetchone():
             return {"error": "Estás sancionado, no podés reservar"}
-        
+
         # Crear reserva
         cur.execute("""
             INSERT INTO reserva (nombre_sala, edificio, fecha, id_turno, estado, creador) 

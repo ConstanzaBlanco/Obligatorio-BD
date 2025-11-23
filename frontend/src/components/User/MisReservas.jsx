@@ -11,21 +11,23 @@ export default function MisReservas() {
   const token = localStorage.getItem("token");
   const { user: currentUser } = useUser();
 
-  function formatFechaCompleta(fechaStr) {
-    const fecha = new Date(fechaStr);
-    return fecha.toLocaleString("es-UY", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
+function formatFechaCompleta(fechaStr) {
+  const [y, m, d] = fechaStr.split("-");
+  const fecha = new Date(y, m - 1, d);
+  return fecha.toLocaleString("es-UY", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  });
+}
+
 
   function formatFecha(fechaStr) {
-    const fecha = new Date(fechaStr);
-    return fecha.toLocaleDateString("es-UY");
-  }
+  const [y, m, d] = fechaStr.split("-");
+  const fecha = new Date(y, m - 1, d); 
+  return fecha.toLocaleDateString("es-UY");
+}
+
 
   function formatHora(hora) {
     if (!hora) return "";
@@ -123,6 +125,40 @@ export default function MisReservas() {
     cargarActivas();
   }, []);
 
+
+  //  FUNCION PARA DESBLOQUEAR
+
+  const desbloquearReserva = async (id_reserva) => {
+    const confirmacion = window.confirm(
+      "¿Seguro que querés desbloquear esta reserva? Volverás a recibir invitaciones."
+    );
+    if (!confirmacion) return;
+
+    try {
+      const res = await fetch("http://localhost:8000/invitaciones/desbloquear", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id_reserva }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        alert(data.error || "No se pudo desbloquear la reserva");
+        return;
+      }
+
+      alert(data.mensaje);
+      cargarActivas();
+    } catch (err) {
+      console.error(err);
+      alert("Error al desbloquear la reserva");
+    }
+  };
+
   return (
     <div style={{ padding: 24 }}>
       <h2>Mis Reservas Activas</h2>
@@ -133,9 +169,7 @@ export default function MisReservas() {
         <p>No tenés reservas activas.</p>
       )}
 
-
-      {/*                 RESERVAS QUE CREASTE                     */}
-
+      {/* RESERVAS QUE CREASTE */}
       {misReservas.length > 0 && (
         <>
           <h3>Reservas que creaste</h3>
@@ -162,7 +196,7 @@ export default function MisReservas() {
                   <strong>Hora:</strong> {formatHora(r.hora_inicio)} → {formatHora(r.hora_fin)}
                 </p>
 
-                {/*       INVITAR PARTICIPANTES             */}
+                {/* INVITAR PARTICIPANTES */}
                 <div style={{ marginTop: 10 }}>
                   <input
                     type="text"
@@ -267,7 +301,7 @@ export default function MisReservas() {
 
                   {inviteInputs[r.id_reserva]?.list?.length > 0 && (
                     <button
-                      onClick={async () => {
+                                            onClick={async () => {
                         const list = inviteInputs[r.id_reserva].list;
                         if (!list.length) return;
 
@@ -391,9 +425,7 @@ export default function MisReservas() {
         </>
       )}
 
-
-      {/*            RESERVAS DONDE PARTICIPÁS                     */}
-
+      {/* RESERVAS DONDE PARTICIPÁS */}
       {reservasParticipando.length > 0 && (
         <>
           <h3>Reservas donde participás</h3>
@@ -430,10 +462,7 @@ export default function MisReservas() {
         </>
       )}
 
-
-      {/*                RESERVAS BLOQUEADAS                        */}
-
-
+      {/* RESERVAS BLOQUEADAS */}
       {reservasBloqueadas.length > 0 && (
         <>
           <h3>Reservas bloqueadas</h3>
@@ -455,7 +484,6 @@ export default function MisReservas() {
 
                 <p><strong>N°:</strong> {idx + 1}</p>
 
-
                 <p><strong>Fecha:</strong> {formatFecha(r.fecha)}</p>
 
                 <p>
@@ -466,7 +494,26 @@ export default function MisReservas() {
                   <strong>Estado invitación:</strong> {r.estado_invitacion}
                 </p>
 
-                <p style={{ fontSize: 12 }}>Bloqueaste recibir más invitaciones.</p>
+                <p style={{ fontSize: 12 }}>
+                  Bloqueaste recibir más invitaciones.
+                </p>
+
+                {/*DESBLOQUEAR */}
+                <button
+                  onClick={() => desbloquearReserva(r.id_reserva)}
+                  style={{
+                    marginTop: 10,
+                    padding: "8px 12px",
+                    background: "#0275d8",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 6,
+                    cursor: "pointer",
+                    width: "100%",
+                  }}
+                >
+                  🔓 Desbloquear
+                </button>
               </div>
             ))}
           </div>
@@ -475,3 +522,4 @@ export default function MisReservas() {
     </div>
   );
 }
+
