@@ -200,11 +200,11 @@ INSERT INTO turno (hora_inicio, hora_fin) VALUES
 
 -- Login
 INSERT INTO login (correo, contrasenia, rol) VALUES
-('juan.perez@ucu.edu.uy', '123456', 'Usuario'),
-('maria.gomez@ucu.edu.uy', 'abcdef', 'Usuario'),
+('juan.perez@ucu.edu.uy', '$2b$12$GYzbUMRzwsHC4GjbURXnaODhXDA/7sC6WB7JH0TTrb1O2SWoWF7mq', 'Usuario'),
+('maria.gomez@ucu.edu.uy', '$2b$12$6Vjd72Nw9M4Xkha.vmqQQeE6u9mlHhXTCPaGP.jMgm3D9Huqu/mni', 'Usuario'),
 ('ana.lopez@ucu.edu.uy', '$2b$12$FLBMHPrLRxW5odbuGVGUVezabc.i/EyC9XvhyZY4syAljzhEXrVHq', 'Usuario'),
-('carlos.mendez@ucu.edu.uy', 'cmz123', 'Usuario'),
-('sofia.ruiz@ucu.edu.uy', 'sfrz', 'Usuario'),
+('carlos.mendez@ucu.edu.uy', '$2b$12$dsWfcbJv0Dw58d7SUS9RMeCBQMcE3rR3Yvgt.wuN4JS/VqqcGJ/L2', 'Usuario'),
+('sofia.ruiz@ucu.edu.uy', '$2b$12$5NcUy4UAj1mUW9iiKGPzNeYGHciWE8xoP8t9SzD2I1wrDBsdDhk0W', 'Usuario'),
 ('jorge.diaz@ucu.edu.uy', 'jd123', 'Usuario'),
 ('biblio@ucu.edu.uy', '$2b$12$AEoMbeFCBivFTp6T5B0d5uB6zanKNo3PsZTh9fehJKNZyZjYNWioG', 'Bibliotecario'),
 ('admin@ucu.edu.uy', '$2b$12$AEoMbeFCBivFTp6T5B0d5uB6zanKNo3PsZTh9fehJKNZyZjYNWioG', 'Administrador');
@@ -314,12 +314,6 @@ GRANT SELECT ON gestion_salas.facultad TO 'Bibliotecario'@'%';
 GRANT SELECT, INSERT, UPDATE, DELETE ON gestion_salas.sancion_participante TO 'Bibliotecario'@'%';
 GRANT DELETE ON gestion_salas.participante_programa_academico TO 'Bibliotecario'@'%';
 GRANT DELETE ON gestion_salas.sancion_participante TO 'Bibliotecario'@'%';
-
-
-
-
-
-
 
 -- Permisos para Administrador
 GRANT SELECT, INSERT, DELETE ON gestion_salas.bloqueos TO 'Administrador'@'%';
