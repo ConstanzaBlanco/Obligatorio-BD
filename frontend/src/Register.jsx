@@ -35,6 +35,16 @@ export default function Register() {
     setError("");
     setOk("");
 
+    if (ci.length !== 8) {
+      setError("El CI debe tener exactamente 8 dígitos");
+      return;
+    }
+
+    if (password.length <= 6) {
+      setError("La contraseña debe tener más de 6 caracteres");
+      return;
+    }
+
     try {
       const payload = {
         correo,
@@ -61,7 +71,6 @@ export default function Register() {
       setOk("Usuario creado correctamente ✔");
 
       setTimeout(() => navigate("/login"), 1200);
-
     } catch (err) {
       console.error(err);
       setError("No se pudo registrar el usuario");
@@ -174,8 +183,12 @@ export default function Register() {
               pattern="[0-9]*"
               placeholder="CI"
               value={ci}
-              onChange={(e) => setCi(e.target.value.replace(/\D/g, ""))}
+              onChange={(e) =>
+                setCi(e.target.value.replace(/\D/g, "").slice(0, 8))
+              }
               required
+              minLength={8}
+              maxLength={8}
             />
 
             <input
@@ -200,6 +213,7 @@ export default function Register() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              minLength={7}
             />
 
             <select

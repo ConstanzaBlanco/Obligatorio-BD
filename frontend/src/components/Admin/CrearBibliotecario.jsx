@@ -18,20 +18,30 @@ export default function CreateBiblioUser() {
     setError("");
     setOk("");
 
+    if (ci.length !== 8) {
+      setError("La cédula debe tener exactamente 8 dígitos");
+      return;
+    }
+
+    if (password.length <= 6) {
+      setError("La contraseña debe tener más de 6 caracteres");
+      return;
+    }
+
     try {
       const payload = {
         correo,
         ci: Number(ci),
         name,
         lastName,
-        password
+        password,
       };
 
       const res = await fetch("http://localhost:8000/createBiblioUser", {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify(payload),
       });
@@ -54,7 +64,6 @@ export default function CreateBiblioUser() {
       setName("");
       setLastName("");
       setPassword("");
-
     } catch (err) {
       console.error(err);
       setError("No se pudo crear el bibliotecario");
@@ -96,7 +105,7 @@ export default function CreateBiblioUser() {
 
 /* INPUTS — reducidos y con buen aire a los costados */
 .biblio-form input {
-  width: 80x  %;
+  width: 80%;
   padding: 11px 14px;        /* 🔥 padding perfecto */
   margin-bottom: 12px;       /* 🔥 menos espacio => menos altura total */
   border: 1px solid #c7c7c7;
@@ -160,7 +169,6 @@ export default function CreateBiblioUser() {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
-        }
       `}</style>
 
       <div className="biblio-container">
@@ -168,11 +176,52 @@ export default function CreateBiblioUser() {
           <h2 className="biblio-title">Crear Bibliotecario</h2>
 
           <form onSubmit={handleSubmit} className="biblio-form">
-            <input type="email" placeholder="Correo institucional" value={correo} onChange={(e) => setCorreo(e.target.value)} required />
-            <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="Cédula" value={ci} onChange={(e) => setCi(e.target.value.replace(/\D/g, ""))} required />
-            <input type="text" placeholder="Nombre" value={name} onChange={(e) => setName(e.target.value)} required />
-            <input type="text" placeholder="Apellido" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
-            <input type="password" placeholder="Contraseña" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <input
+              type="email"
+              placeholder="Correo institucional"
+              value={correo}
+              onChange={(e) => setCorreo(e.target.value)}
+              required
+            />
+
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              placeholder="Cédula"
+              value={ci}
+              onChange={(e) =>
+                setCi(e.target.value.replace(/\D/g, "").slice(0, 8))
+              }
+              required
+              minLength={8}
+              maxLength={8}
+            />
+
+            <input
+              type="text"
+              placeholder="Nombre"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+
+            <input
+              type="text"
+              placeholder="Apellido"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              required
+            />
+
+            <input
+              type="password"
+              placeholder="Contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={7}
+            />
 
             <button type="submit" className="biblio-btn">
               Crear Bibliotecario
