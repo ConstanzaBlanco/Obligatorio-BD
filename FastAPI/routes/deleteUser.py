@@ -18,7 +18,7 @@ def deleteUserEndpoint(correo: str, user = Depends(requireRole("Administrador", 
     if not local or not domain:
         raise HTTPException(status_code=400, detail="correo inválido")
 
-    # Ejecutar delete físico o lógico según tu función
+    # Ejecutar delete
     result = deleteUser(correo, roleDb)
 
     if result == 0:

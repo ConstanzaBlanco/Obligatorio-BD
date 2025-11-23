@@ -19,7 +19,7 @@ def cancelar_reserva(request: CancelReservationRequest, user=Depends(requireRole
         # CI del usuario autenticado
         ci = user["ci"]
 
-        # Obtener reserva + datos importantes
+        # Obtener reserva
         cur.execute("""
             SELECT r.id_reserva, r.estado, r.fecha, t.hora_inicio, 
                    r.creador, r.nombre_sala, r.edificio
@@ -48,7 +48,7 @@ def cancelar_reserva(request: CancelReservationRequest, user=Depends(requireRole
         if str(reserva["fecha"]) == str(now.date()) and str(reserva["hora_inicio"]) <= str(now.time()):
             raise HTTPException(400, "La reserva ya empezó, no puede cancelarse")
 
-        # --- CANCELAR ---
+        # CANCELAR 
         cur.execute("""
             UPDATE reserva
             SET estado = 'cancelada'

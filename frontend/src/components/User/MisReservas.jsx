@@ -133,9 +133,8 @@ export default function MisReservas() {
         <p>No tenés reservas activas.</p>
       )}
 
-      {/* ========================================================= */}
+
       {/*                 RESERVAS QUE CREASTE                     */}
-      {/* ========================================================= */}
 
       {misReservas.length > 0 && (
         <>
@@ -162,9 +161,8 @@ export default function MisReservas() {
                 <p>
                   <strong>Hora:</strong> {formatHora(r.hora_inicio)} → {formatHora(r.hora_fin)}
                 </p>
-                {/* --------------------------------------- */}
+
                 {/*       INVITAR PARTICIPANTES             */}
-                {/* --------------------------------------- */}
                 <div style={{ marginTop: 10 }}>
                   <input
                     type="text"
@@ -393,9 +391,8 @@ export default function MisReservas() {
         </>
       )}
 
-      {/* ========================================================= */}
+
       {/*            RESERVAS DONDE PARTICIPÁS                     */}
-      {/* ========================================================= */}
 
       {reservasParticipando.length > 0 && (
         <>
@@ -417,7 +414,6 @@ export default function MisReservas() {
 
                 <p><strong>N°:</strong> {idx + 1}</p>
 
-                {/* ← FECHA AGREGADA */}
                 <p><strong>Fecha:</strong> {formatFecha(r.fecha)}</p>
 
                 <p>
@@ -434,9 +430,9 @@ export default function MisReservas() {
         </>
       )}
 
-      {/* ========================================================= */}
+
       {/*                RESERVAS BLOQUEADAS                        */}
-      {/* ========================================================= */}
+
 
       {reservasBloqueadas.length > 0 && (
         <>
@@ -459,7 +455,7 @@ export default function MisReservas() {
 
                 <p><strong>N°:</strong> {idx + 1}</p>
 
-                {/* ← FECHA AGREGADA */}
+
                 <p><strong>Fecha:</strong> {formatFecha(r.fecha)}</p>
 
                 <p>

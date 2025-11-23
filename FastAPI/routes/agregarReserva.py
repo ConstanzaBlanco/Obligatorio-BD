@@ -13,7 +13,7 @@ class ReservationRequest(BaseModel):
     fecha: str
     id_turno: int
     participantes: list[int]
-    creador_ci: int | None = None   # <-- OPCIONAL
+    creador_ci: int | None = None  
 
 
 @router.post("/reservar")
@@ -25,16 +25,15 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario","Bi
 
         rol_usuario = user["rol"].lower()
 
-        # ----------------------------------------------------
+
         #      SELECCIONAR CI DEPENDIENDO DEL ROL
-        # ----------------------------------------------------
-        if rol_usuario == "bibliotecario":   # <-- CORREGIDO
+        if rol_usuario == "bibliotecario":  
             if request.creador_ci is None:
                 return {"error": "Debe enviar creador_ci siendo bibliotecario"}
             ci = request.creador_ci
         else:
             ci = user["ci"]
-        # ----------------------------------------------------
+
 
         # LIMITE DIARIO
         cur.execute("""

@@ -10,7 +10,7 @@ export default function Login() {
   const [error, setError] = useState("");
   
   const navigate = useNavigate();
-  const { setUser } = useUser(); //para guardar el usuario
+  const { setUser } = useUser(); 
 
   const handleLogin = async (e) => {
     e.preventDefault();

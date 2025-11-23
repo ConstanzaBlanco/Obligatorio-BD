@@ -12,7 +12,7 @@ def eliminar_edificio(nombre_edificio: str, user=Depends(requireRole("Administra
     cur = cn.cursor(dictionary=True)
 
     try:
-        # 1. Verificar si el edificio existe
+        # Verificar si el edificio existe
         cur.execute("""
             SELECT * FROM edificio WHERE nombre_edificio = %s
         """, (nombre_edificio,))
@@ -21,7 +21,7 @@ def eliminar_edificio(nombre_edificio: str, user=Depends(requireRole("Administra
         if not edificio:
             raise HTTPException(status_code=404, detail="El edificio no existe.")
 
-        # 2. Verificar si el edificio tiene salas asociadas
+        # Verificar si el edificio tiene salas asociadas
         cur.execute("""
             SELECT COUNT(*) AS cantidad
             FROM sala
@@ -36,7 +36,7 @@ def eliminar_edificio(nombre_edificio: str, user=Depends(requireRole("Administra
                 detail=f"No se puede eliminar el edificio porque tiene {cantidad_salas} sala(s) asociada(s)."
             )
 
-        # 3. Eliminar edificio
+        # Eliminar edificio
         cur.execute("""
             DELETE FROM edificio WHERE nombre_edificio = %s
         """, (nombre_edificio,))

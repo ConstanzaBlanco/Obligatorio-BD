@@ -8,7 +8,6 @@ export default function Header() {
   return (
     <nav style={navStyle}>
       <div style={innerContainer}>
-        {/* IZQUIERDA */}
         <div style={leftSection}>
           <NavLink to="/">Home</NavLink>
 
@@ -43,7 +42,6 @@ export default function Header() {
           )}
         </div>
 
-        {/* DERECHA */}
         <div style={rightSection}>
           <button 
             onClick={() => window.location.href = "/me"}
@@ -62,7 +60,7 @@ export default function Header() {
 }
 
 
-/* Componente básico de navegación */
+
 
 function NavLink({ to, children }) {
   return (
@@ -73,7 +71,7 @@ function NavLink({ to, children }) {
 }
 
 
-/* ESTILOS  */
+
 
 const navStyle = {
   width: "100%",

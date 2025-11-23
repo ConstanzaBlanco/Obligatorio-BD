@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 export default function ReservasVencidas() {
   const [reservas, setReservas] = useState([]);
   const [mensaje, setMensaje] = useState("");
-  const [checks, setChecks] = useState({}); // guardar CIs tildados
+  const [checks, setChecks] = useState({});
 
   const token = localStorage.getItem("token");
 
@@ -56,7 +56,7 @@ export default function ReservasVencidas() {
         },
         body: JSON.stringify({
           reserveId: idReserva,
-          cis: cisSeleccionados  // si está vacío → backend sanciona a todos
+          cis: cisSeleccionados  // si está vacío entonces el backend sanciona a todos
         })
       });
 

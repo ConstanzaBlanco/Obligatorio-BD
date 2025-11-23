@@ -81,7 +81,6 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
   );
 }
 
-/* --------------------- ESTILOS ---------------------- */
 
 const overlayStyle = {
   position: "fixed",

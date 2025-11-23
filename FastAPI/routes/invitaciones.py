@@ -233,7 +233,7 @@ def inviteByCI(request: InviteByCIRequest, user=Depends(currentUser)):
 
             actions.append({"ci": ci_part, "action": 'insert'})
 
-        # 4) Verificar capacidad y aplicar
+        # Verificar capacidad y aplicar
         
         to_add = len([a for a in actions if a["action"] in ("insert", "update")])
         if actuales + to_add > capacidad:
@@ -304,7 +304,7 @@ def blockInvitationEndpoint(request: AcceptRejectRequest, user=Depends(currentUs
                 (ci, request.id_reserva)
             )
 
-        # Nota: no crear bloqueo global aquí. Bloquear una reserva
+        # No crea bloqueo global aquí. Bloquea una reserva especifiac
         # solo aplica a esta reserva y NO impide que el creador te invite a otras reservas.
 
         cn.commit()
