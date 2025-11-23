@@ -13,15 +13,28 @@ class ReservationRequest(BaseModel):
     fecha: str
     id_turno: int
     participantes: list[int]
+    creador_ci: int | None = None   # <-- OPCIONAL
+
 
 @router.post("/reservar")
-def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
+def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario","Bibliotecario"))):
     try:
         roleDb = user["rol"]
         cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
 
-        ci = user["ci"]
+        rol_usuario = user["rol"].lower()
+
+        # ----------------------------------------------------
+        #      SELECCIONAR CI DEPENDIENDO DEL ROL
+        # ----------------------------------------------------
+        if rol_usuario == "bibliotecario":   # <-- CORREGIDO
+            if request.creador_ci is None:
+                return {"error": "Debe enviar creador_ci siendo bibliotecario"}
+            ci = request.creador_ci
+        else:
+            ci = user["ci"]
+        # ----------------------------------------------------
 
         # LIMITE DIARIO
         cur.execute("""
@@ -128,7 +141,7 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         if limite_diario_superado and not es_excepcion:
             return {"error": "Ya reservaste 2 horas hoy"}
 
-        # LIMITE SEMANAL
+        # LIMITE SEMANANAL
         if not es_excepcion:
             cur.execute("""
                 SELECT COUNT(*) AS cantidad_reservas
@@ -185,12 +198,15 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
         """, (ci, id_reserva))
         cn.commit()
 
-        # Invitados + notificación
+        # Invitados
         errores_invitacion = []
         invitados_enviados = []
+
         for ci_participantes in request.participantes:
-            # Verificar si el participante bloqueó al creador (entonces no enviar invitación)
-            cur.execute("SELECT 1 FROM bloqueos WHERE ci_bloqueador = %s AND ci_bloqueado = %s", (ci_participantes, ci))
+
+            cur.execute("SELECT 1 FROM bloqueos WHERE ci_bloqueador = %s AND ci_bloqueado = %s",
+                        (ci_participantes, ci))
+
             if cur.fetchone():
                 errores_invitacion.append({"ci": ci_participantes, "error": "El usuario te tiene bloqueado"})
                 continue
@@ -201,7 +217,7 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
             """, (ci_participantes, id_reserva))
 
             createNotification(
-                ci_participantes,  
+                ci_participantes,
                 "invitacion",
                 f"Fuiste invitado por {ci} a una reserva en la sala {request.nombre_sala} ({request.edificio}) "
                 f"para el día {request.fecha} en el turno {request.id_turno}",
@@ -210,7 +226,6 @@ def reservar(request: ReservationRequest, user=Depends(requireRole("Usuario"))):
             )
 
             invitados_enviados.append(ci_participantes)
-
 
         cn.commit()
 

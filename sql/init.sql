@@ -309,6 +309,9 @@ GRANT SELECT ON gestion_salas.sala TO 'Bibliotecario'@'%';
 GRANT SELECT, INSERT, UPDATE ON gestion_salas.sancion_participante TO 'Bibliotecario'@'%';
 GRANT SELECT ON gestion_salas.turno TO 'Bibliotecario'@'%';
 GRANT SELECT ON gestion_salas.facultad TO 'Bibliotecario'@'%';
+GRANT INSERT ON gestion_salas.reserva TO 'Bibliotecario'@'%';
+GRANT INSERT ON gestion_salas.reserva_participante TO 'Bibliotecario'@'%';
+
 
 -- Permisos para Administrador
 GRANT SELECT, INSERT, DELETE ON gestion_salas.bloqueos TO 'Administrador'@'%';
