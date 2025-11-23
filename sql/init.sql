@@ -205,7 +205,7 @@ INSERT INTO login (correo, contrasenia, rol) VALUES
 ('ana.lopez@ucu.edu.uy', '$2b$12$FLBMHPrLRxW5odbuGVGUVezabc.i/EyC9XvhyZY4syAljzhEXrVHq', 'Usuario'),
 ('carlos.mendez@ucu.edu.uy', '$2b$12$dsWfcbJv0Dw58d7SUS9RMeCBQMcE3rR3Yvgt.wuN4JS/VqqcGJ/L2', 'Usuario'),
 ('sofia.ruiz@ucu.edu.uy', '$2b$12$5NcUy4UAj1mUW9iiKGPzNeYGHciWE8xoP8t9SzD2I1wrDBsdDhk0W', 'Usuario'),
-('jorge.diaz@ucu.edu.uy', 'jd123', 'Usuario'),
+('jorge.diaz@ucu.edu.uy', '$2b$12$L1DxZ8cjb/PNrbNOn8w0teQlTtuZzRBN8DfJIwXeh4pMeXiO1vbf.', 'Usuario'),
 ('biblio@ucu.edu.uy', '$2b$12$AEoMbeFCBivFTp6T5B0d5uB6zanKNo3PsZTh9fehJKNZyZjYNWioG', 'Bibliotecario'),
 ('admin@ucu.edu.uy', '$2b$12$AEoMbeFCBivFTp6T5B0d5uB6zanKNo3PsZTh9fehJKNZyZjYNWioG', 'Administrador');
 
