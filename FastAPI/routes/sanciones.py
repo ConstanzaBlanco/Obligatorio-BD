@@ -4,7 +4,6 @@ from core.security import requireRole
 from db.connector import getConnection
 from db.sanctionsSentences import createOtherSanction
 from datetime import date
-from core.input_validation import asegurar_input
 from db.notificationSentences import createNotification
 
 router = APIRouter(prefix="/sancion", tags=["Sanciones"])
@@ -23,9 +22,6 @@ def crear_sancion(payload: SancionCreate, user=Depends(requireRole("Bibliotecari
 
     descripcion_limpia = payload.descripcion.strip()
 
-    # Validación de seguridad
-    asegurar_input(str(payload.ci), "ci")
-    asegurar_input(descripcion_limpia, "descripcion")
 
     # Validación fechas
     if payload.fechaFin < payload.fechaInicio:
