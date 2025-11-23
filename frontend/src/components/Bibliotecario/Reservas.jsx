@@ -20,25 +20,24 @@ export default function Reservas() {
   const [nuevoTurno, setNuevoTurno] = useState("");
   const [invitadosInput, setInvitadosInput] = useState("");
 
+  // NUEVO: CI del creador
+  const [creadorCi, setCreadorCi] = useState("");
+
   const token = localStorage.getItem("token");
 
   const formatHora = (valor) => {
-  if (!valor) return "";
+    if (!valor) return "";
 
-  // Si ya es string -> recortar
-  if (typeof valor === "string") return valor.slice(0, 5);
+    if (typeof valor === "string") return valor.slice(0, 5);
 
-  // Si viene como objeto {hours, minutes, seconds}
-  if (typeof valor === "object") {
-    const h = String(valor.hours).padStart(2, "0");
-    const m = String(valor.minutes).padStart(2, "0");
-    return `${h}:${m}`;
-  }
+    if (typeof valor === "object") {
+      const h = String(valor.hours).padStart(2, "0");
+      const m = String(valor.minutes).padStart(2, "0");
+      return `${h}:${m}`;
+    }
 
-  // Si viene como número -> ignorar
-  return String(valor).slice(0, 5);
-};
-
+    return String(valor).slice(0, 5);
+  };
 
   const cargarActivas = async () => {
     try {
@@ -116,6 +115,7 @@ export default function Reservas() {
     setNuevaFecha("");
     setNuevoTurno("");
     setInvitadosInput("");
+    setCreadorCi(""); // limpiar CI creador
 
     await cargarEdificios();
     await cargarTurnos();
@@ -181,11 +181,10 @@ export default function Reservas() {
 
   const crearReserva = async () => {
     const participantes = invitadosInput
-    .split(",")
-    .map((ci) => ci.trim())
-    .filter((ci) => ci !== "")
-    .map((ci) => Number(ci));
-
+      .split(",")
+      .map((ci) => ci.trim())
+      .filter((ci) => ci !== "")
+      .map((ci) => Number(ci));
 
     const payload = {
       nombre_sala: nuevaSala,
@@ -193,6 +192,7 @@ export default function Reservas() {
       fecha: nuevaFecha,
       id_turno: Number(nuevoTurno),
       participantes,
+      creador_ci: Number(creadorCi), // ← AGREGADO
     };
 
     try {
@@ -227,7 +227,6 @@ export default function Reservas() {
     <div style={{ marginTop: 30 }}>
       <h1>Reservas</h1>
 
-      {/* BOTÓN CREAR */}
       <button
         onClick={abrirModalCrear}
         style={{
@@ -242,9 +241,7 @@ export default function Reservas() {
         Crear reserva
       </button>
 
-      {/* ============================
-           RESERVAS ACTIVAS
-      ============================= */}
+      {/* RESERVAS ACTIVAS */}
       <h2>Reservas Activas</h2>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
         {activas.map((r) => (
@@ -268,9 +265,7 @@ export default function Reservas() {
         ))}
       </div>
 
-      {/* ============================
-           RESERVAS PASADAS
-      ============================= */}
+      {/* RESERVAS PASADAS */}
       <h2 style={{ marginTop: 40 }}>Reservas Pasadas</h2>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
@@ -290,11 +285,8 @@ export default function Reservas() {
         ))}
       </div>
 
-      {/* =====================
-           MODALES
-      ====================== */}
+      {/* MODALES */}
 
-      {/* Modal Crear */}
       {modalCrearAbierto && (
         <div style={modalStyles.overlay}>
           <div style={modalStyles.modal}>
@@ -346,6 +338,15 @@ export default function Reservas() {
               ))}
             </select>
 
+            {/* NUEVO CAMPO */}
+            <label>CI del creador de la reserva:</label>
+            <input
+              type="text"
+              value={creadorCi}
+              onChange={(e) => setCreadorCi(e.target.value)}
+              placeholder="Ej: 51234567"
+            />
+
             <label>Invitados (CI separados por coma):</label>
             <input
               type="text"
@@ -369,7 +370,6 @@ export default function Reservas() {
         </div>
       )}
 
-      {/* Modal Editar */}
       {modalAbierto && reservaEdit && (
         <div style={modalStyles.overlay}>
           <div style={modalStyles.modal}>
