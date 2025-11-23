@@ -134,9 +134,7 @@ export default function NotificationsPanel() {
   );
 }
 
-//
-// ESTILOS — botón abajo a la derecha
-//
+
 const styles = {
   container: {
     padding: "20px",
@@ -181,7 +179,7 @@ const styles = {
   },
 
   card: {
-    position: "relative",   // ⭐ Necesario para ubicar el botón abajo
+    position: "relative",   
     padding: "18px",
     borderRadius: "12px",
     border: "1px solid #ddd",

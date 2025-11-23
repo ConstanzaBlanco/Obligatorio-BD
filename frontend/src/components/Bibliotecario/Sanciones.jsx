@@ -56,7 +56,7 @@ export default function Sanciones() {
 
   const token = localStorage.getItem("token");
 
-  // --- MODAL CREAR ---
+  // MODAL CREAR 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newCi, setNewCi] = useState("");
   const [newFechaInicio, setNewFechaInicio] = useState("");
@@ -64,7 +64,7 @@ export default function Sanciones() {
   const [newDescripcion, setNewDescripcion] = useState("");
   const [loadingCrear, setLoadingCrear] = useState(false);
 
-  // --- MODAL EDITAR ---
+  // MODAL EDITAR 
   const [showEditModal, setShowEditModal] = useState(false);
   const [editData, setEditData] = useState({
     ci: "",
@@ -75,7 +75,7 @@ export default function Sanciones() {
     nueva_descripcion: "",
   });
 
-  // --- FETCH ACTIVES ---
+  //  FETCH ACTIVAS
   const cargarSancionesActivas = async () => {
     try {
       const res = await fetch("http://localhost:8000/sanctionsActive", {
@@ -89,7 +89,7 @@ export default function Sanciones() {
     }
   };
 
-  // --- FETCH PAST ---
+  // FETCH PAS
   const cargarSancionesPasadas = async () => {
     try {
       const res = await fetch("http://localhost:8000/sanctionsPast", {
@@ -108,7 +108,7 @@ export default function Sanciones() {
     cargarSancionesPasadas();
   }, []);
 
-  // --- QUITAR SANCIÓN ---
+  // QUITAR SANCIÓN 
 const quitarSancion = async (id) => {
   setMensaje("");
   setError("");
@@ -136,7 +136,7 @@ const quitarSancion = async (id) => {
   }
 };
 
-  // --- CREAR SANCIÓN ---
+  // CREAR SANCIÓN 
   const crearSancionManual = async (e) => {
     e.preventDefault();
     setMensaje("");
@@ -185,7 +185,7 @@ const quitarSancion = async (id) => {
     }
   };
 
-  // --- EDITAR SANCIÓN ---
+  // EDITAR SANCIÓN 
   const abrirModalEditar = (s) => {
     setEditData({
       ci: s.ci_participante,
@@ -233,9 +233,7 @@ const quitarSancion = async (id) => {
     <div style={{ marginTop: 30 }}>
       <h1>Sanciones</h1>
 
-      {/* ========================================================
-         ALERTS — NUEVO
-      ======================================================= */}
+      {/* ALERTS */}
       {error && (
         <Alert type="error" message={error} onClose={() => setError("")} />
       )}
@@ -248,16 +246,15 @@ const quitarSancion = async (id) => {
         />
       )}
 
-      {/* ---------------------------------- */}
+
       {/* BOTÓN CREAR */}
-      {/* ---------------------------------- */}
       <button onClick={() => setShowCreateModal(true)} style={btnPrimary}>
         Agregar sanción
       </button>
 
-      {/* ---------------------------------- */}
+
       {/* SANCIONES ACTIVAS */}
-      {/* ---------------------------------- */}
+
       <h2>Sanciones Activas</h2>
       {activas.length === 0 ? (
         <p>No hay sanciones activas</p>
@@ -335,9 +332,8 @@ const quitarSancion = async (id) => {
         </div>
       )}
 
-      {/* ---------------------------------- */}
+
       {/* MODAL CREAR SANCIÓN */}
-      {/* ---------------------------------- */}
       {showCreateModal && (
         <Modal onClose={() => setShowCreateModal(false)}>
           <h3>Nueva sanción</h3>
@@ -378,9 +374,7 @@ const quitarSancion = async (id) => {
         </Modal>
       )}
 
-      {/* ---------------------------------- */}
       {/* MODAL EDITAR SANCIÓN */}
-      {/* ---------------------------------- */}
       {showEditModal && (
         <Modal onClose={() => setShowEditModal(false)}>
           <h3>Editar sanción</h3>
@@ -435,9 +429,6 @@ const quitarSancion = async (id) => {
   );
 }
 
-/* ---------------------------------------------
-   COMPONENTES REUTILIZABLES
----------------------------------------------- */
 function Modal({ children, onClose }) {
   return (
     <div style={modalOverlay}>
@@ -479,9 +470,7 @@ function Textarea({ label, value, onChange }) {
   );
 }
 
-/* ---------------------------------------------
-        ESTILOS
----------------------------------------------- */
+
 
 const contenedor = {
   display: "flex",

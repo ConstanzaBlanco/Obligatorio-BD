@@ -149,7 +149,6 @@ export default function Usuarios() {
 
   return (
     <>
-      {/* estilos iguales */}
       <style>{`
         .users-container {
           max-width: 900px;

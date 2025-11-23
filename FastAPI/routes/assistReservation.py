@@ -78,10 +78,10 @@ def update_reservation_state(
 
     existing_cis = rows  
 
-    # Filtrar bibliotecarios → no sancionables
+    # Filtrar bibliotecarios -> no sancionables
     sancionables = [ci for ci in existing_cis if not es_bibliotecario(ci)]
 
-    # Filtrar asistieron → solo si son sancionables
+    # Filtrar asistieron -> solo si son sancionables
     attended_cis = [ci for ci in attended_cis if ci in sancionables]
 
     # Si no hay nadie sancionable
@@ -122,7 +122,7 @@ def handle_non_assistance(reserveId: int, cis_sancionables: list[int], roleDb):
 
     for ci in cis_sancionables:
 
-        # Nuevo: NO sancionar si ya está sancionado hoy
+        # NO sancionar si ya está sancionado hoy
         if esta_sancionado(ci):
             continue  
 

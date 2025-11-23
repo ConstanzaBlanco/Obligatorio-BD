@@ -117,7 +117,7 @@ export default function Me() {
 }
 
 
-// ===== ESTILOS =====
+
 const container = { maxWidth: "700px", margin: "40px auto", padding: "20px" };
 const title = { textAlign: "center", fontSize: "28px", marginBottom: "20px" };
 const card = { background: "white", padding: "25px", borderRadius: "12px", boxShadow: "0 4px 18px rgba(0,0,0,0.1)", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" };

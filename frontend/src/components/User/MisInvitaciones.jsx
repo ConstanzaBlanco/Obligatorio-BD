@@ -7,14 +7,33 @@ export default function MisInvitaciones() {
 
   const token = localStorage.getItem("token");
 
-  // Convierte "2025-11-16" → "16/11/2025"
   function formatFecha(fechaStr) {
     const fecha = new Date(fechaStr);
     return fecha.toLocaleDateString("es-UY");
   }
 
+  function formatHora(hora) {
+    if (!hora) return "";
+    if (typeof hora === "string") {
+      const parts = hora.split(":");
+      if (parts.length >= 2) return `${parts[0]}:${parts[1]}`;
+      return hora;
+    }
+    if (typeof hora === "number") {
+      const h = Math.floor(hora / 3600);
+      const m = Math.floor((hora % 3600) / 60);
+      return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    }
+    if (typeof hora === "object") {
+      const h = hora.hour ?? hora.H ?? null;
+      const m = hora.minute ?? hora.M ?? null;
+      if (h !== null && m !== null)
+        return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    }
+    return String(hora);
+  }
+
   const cargarInvitaciones = async () => {
-    console.log("Cargando invitaciones...");
     setLoading(true);
     try {
       const res = await fetch("http://localhost:8000/invitaciones/pendientes", {
@@ -33,7 +52,6 @@ export default function MisInvitaciones() {
         setInvitaciones([]);
       }
     } catch (err) {
-      console.error(err);
       setError("Error conectando con el servidor");
       setInvitaciones([]);
     } finally {
@@ -61,8 +79,7 @@ export default function MisInvitaciones() {
 
       alert(data.mensaje || "Invitación aceptada");
       cargarInvitaciones();
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert("Error al aceptar la invitación");
     }
   };
@@ -92,8 +109,7 @@ export default function MisInvitaciones() {
 
       alert(data.mensaje || "Invitación rechazada");
       cargarInvitaciones();
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert("Error al rechazar la invitación");
     }
   };
@@ -123,8 +139,7 @@ export default function MisInvitaciones() {
 
       alert(data.mensaje || "Invitaciones bloqueadas");
       cargarInvitaciones();
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert("Error al bloquear las invitaciones");
     }
   };
@@ -153,8 +168,7 @@ export default function MisInvitaciones() {
 
       alert(data.mensaje || "Usuario bloqueado");
       cargarInvitaciones();
-    } catch (err) {
-      console.error(err);
+    } catch {
       alert("Error al bloquear usuario");
     }
   };
@@ -191,19 +205,28 @@ export default function MisInvitaciones() {
             <h4 style={{ marginTop: 0, color: "#333" }}>
               {inv.nombre_sala} - {inv.edificio}
             </h4>
+
             <div style={{ marginBottom: 6 }}>
-              {inv.estado === 'cancelada' ? (
-                <span style={{ color: '#c0392b', fontWeight: 700 }}>Reserva Cancelada</span>
+              {inv.estado === "cancelada" ? (
+                <span style={{ color: "#c0392b", fontWeight: 700 }}>
+                  Reserva Cancelada
+                </span>
               ) : (
-                <span style={{ color: '#27ae60', fontWeight: 700 }}>Reserva Activa</span>
+                <span style={{ color: "#27ae60", fontWeight: 700 }}>
+                  Reserva Activa
+                </span>
               )}
             </div>
+
             <p>
               <strong>N°:</strong> {i + 1}
             </p>
+
             <p>
-              <strong>Hora:</strong> {inv.hora_inicio} → {inv.hora_fin}
+              <strong>Hora:</strong> {formatHora(inv.hora_inicio)} →{" "}
+              {formatHora(inv.hora_fin)}
             </p>
+
             <p style={{ color: "#666", fontSize: 14 }}>
               <strong>De:</strong> {inv.creador_nombre} {inv.creador_apellido}
             </p>
@@ -216,55 +239,63 @@ export default function MisInvitaciones() {
                 flexDirection: "column",
               }}
             >
-              {/*Se desabilita si la reserva fue cancelada */}
               <button
                 onClick={() => aceptarInvitacion(inv.id_reserva)}
-                disabled={inv.estado === 'cancelada'}
+                disabled={inv.estado === "cancelada"}
                 style={{
                   padding: "8px 12px",
-                  background: inv.estado === 'cancelada' ? '#9dd7b2' : '#5cb85c',
+                  background:
+                    inv.estado === "cancelada" ? "#9dd7b2" : "#5cb85c",
                   color: "white",
                   border: "none",
                   borderRadius: 6,
-                  cursor: inv.estado === 'cancelada' ? 'not-allowed' : 'pointer',
+                  cursor:
+                    inv.estado === "cancelada" ? "not-allowed" : "pointer",
                   fontSize: 14,
                   fontWeight: "bold",
                 }}
               >
                 ✓ Aceptar
               </button>
+
               <button
                 onClick={() => rechazarInvitacion(inv.id_reserva)}
-                disabled={inv.estado === 'cancelada'}
+                disabled={inv.estado === "cancelada"}
                 style={{
                   padding: "8px 12px",
-                  background: inv.estado === 'cancelada' ? '#f3b6b6' : '#d9534f',
+                  background:
+                    inv.estado === "cancelada" ? "#f3b6b6" : "#d9534f",
                   color: "white",
                   border: "none",
                   borderRadius: 6,
-                  cursor: inv.estado === 'cancelada' ? 'not-allowed' : 'pointer',
+                  cursor:
+                    inv.estado === "cancelada" ? "not-allowed" : "pointer",
                   fontSize: 14,
                   fontWeight: "bold",
                 }}
               >
                 ✗ Rechazar
               </button>
+
               <button
                 onClick={() => bloquearInvitacion(inv.id_reserva)}
-                disabled={inv.estado === 'cancelada'}
+                disabled={inv.estado === "cancelada"}
                 style={{
                   padding: "8px 12px",
-                  background: inv.estado === 'cancelada' ? '#9e9e9e' : '#555',
+                  background:
+                    inv.estado === "cancelada" ? "#9e9e9e" : "#555",
                   color: "white",
                   border: "none",
                   borderRadius: 6,
-                  cursor: inv.estado === 'cancelada' ? 'not-allowed' : 'pointer',
+                  cursor:
+                    inv.estado === "cancelada" ? "not-allowed" : "pointer",
                   fontSize: 14,
                   fontWeight: "bold",
                 }}
               >
                 🔒 Bloquear
               </button>
+
               <button
                 onClick={() => bloquearUsuario(inv.creador)}
                 style={{

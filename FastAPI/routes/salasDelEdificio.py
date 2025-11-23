@@ -16,9 +16,8 @@ def salas_del_edificio(
         cn = getConnection(roleDb)
         cur = cn.cursor(dictionary=True)
 
-        # ===============================
+
         # VALIDAR EDIFICIO + SABER SI ESTÁ HABILITADO
-        # ===============================
         cur.execute("""
             SELECT habilitado
             FROM edificio

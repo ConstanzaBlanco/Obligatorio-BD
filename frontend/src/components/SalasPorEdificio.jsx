@@ -28,14 +28,14 @@ export default function SalasPorEdificio() {
   // MODAL
   const [modalOpen, setModalOpen] = useState(false);
   const [editNombreSala, setEditNombreSala] = useState("");
-  const [salaOriginalNombre, setSalaOriginalNombre] = useState("");  // 👈 AGREGADO
+  const [salaOriginalNombre, setSalaOriginalNombre] = useState(""); 
   const [editCapacidad, setEditCapacidad] = useState("");
   const [editTipoSala, setEditTipoSala] = useState("");
   const [editHabilitada, setEditHabilitada] = useState(true);
 
   const abrirModal = (sala) => {
     setEditNombreSala(sala.nombre_sala);
-    setSalaOriginalNombre(sala.nombre_sala); // 👈 AGREGADO
+    setSalaOriginalNombre(sala.nombre_sala); 
     setEditCapacidad(sala.capacidad);
     setEditTipoSala(sala.tipo_sala);
     setEditHabilitada(sala.habilitada === 1 || sala.habilitada === true);
@@ -53,8 +53,8 @@ export default function SalasPorEdificio() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          nombre_sala: salaOriginalNombre,   // 👈 AGREGADO
-          nuevo_nombre_sala: editNombreSala, // 👈 AGREGADO
+          nombre_sala: salaOriginalNombre, 
+          nuevo_nombre_sala: editNombreSala, 
           edificio: nombreEdificio,
           capacidad: Number(editCapacidad),
           tipo_sala: editTipoSala,
@@ -453,7 +453,7 @@ export default function SalasPorEdificio() {
           <div style={modalBox}>
             <h3>Editar sala</h3>
 
-            {/* NOMBRE DE SALA - AGREGADO */}
+
             <input
               type="text"
               value={editNombreSala}

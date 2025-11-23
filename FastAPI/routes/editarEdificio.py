@@ -65,7 +65,7 @@ def editar_edificio(data: EditarEdificioRequest, user=Depends(requireRole("Admin
                     detail="Ya existe un edificio con ese nombre."
                 )
 
-            # Cambiar el nombre → ON UPDATE CASCADE se ocupa del resto
+            # Cambiar el nombre -> ON UPDATE CASCADE 
             cur.execute("""
                 UPDATE edificio
                 SET nombre_edificio = %s

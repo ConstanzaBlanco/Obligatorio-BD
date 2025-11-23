@@ -106,8 +106,8 @@ export default function CreateBiblioUser() {
 /* INPUTS — reducidos y con buen aire a los costados */
 .biblio-form input {
   width: 80%;
-  padding: 11px 14px;        /* 🔥 padding perfecto */
-  margin-bottom: 12px;       /* 🔥 menos espacio => menos altura total */
+  padding: 11px 14px;        
+  margin-bottom: 12px;       
   border: 1px solid #c7c7c7;
   border-radius: 8px;
   font-size: 14px;

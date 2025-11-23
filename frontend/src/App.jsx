@@ -8,9 +8,9 @@ import Login from "./Login";
 import Register from "./Register";
 import { useUser } from "./components/UserContext";
 
-import PrivateLayout from "./protect/PrivateLayout"; // <-- AGREGADO
+import PrivateLayout from "./protect/PrivateLayout"; 
 
-// Componentes privados
+
 import MisReservas from "./components/User/MisReservas";
 import MisInvitaciones from "./components/User/MisInvitaciones";
 import BlockedUsers from "./components/User/PersonasBloqueadas";

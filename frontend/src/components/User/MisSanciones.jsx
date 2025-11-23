@@ -15,7 +15,7 @@ export default function MisSanciones() {
       const [datePart] = fecha.split("T");
       const [year, month, day] = datePart.split("-").map(Number);
 
-      const dateObj = new Date(year, month - 1, day); // 👈 local, no UTC
+      const dateObj = new Date(year, month - 1, day); 
 
       return dateObj.toLocaleDateString("es-UY", {
         year: "numeric",

@@ -30,7 +30,7 @@ def admin_cancelar_reserva(id_reserva: int, user=Depends(requireRole("Biblioteca
         if reserva["estado"] != "activa":
             raise HTTPException(400, f"La reserva ya está '{reserva['estado']}'")
 
-        # NO verificamos "creador" → bibliotecario puede cancelar cualquier reserva
+        # NO verificamos "creador"-> bibliotecario puede cancelar cualquier reserva
         # También evitamos reglas de "ya empezó", porque el admin puede forzar cancelación
 
         # --- CANCELAR ---

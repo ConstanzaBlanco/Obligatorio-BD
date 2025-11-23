@@ -51,7 +51,7 @@ def quitar_sancion(
             "SANCION ELIMINADA",
             "Tu sanción activa ha sido levantada.",
             referencia_tipo="sancion",
-            referencia_id=sancion["id"],   # 👈 acá también era id_sancion antes
+            referencia_id=sancion["id"],  
         )
 
         return {"mensaje": "Sanción quitada correctamente"}
