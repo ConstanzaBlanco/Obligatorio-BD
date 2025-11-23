@@ -117,7 +117,7 @@ CREATE TABLE reserva_participante (
     id_reserva INT NOT NULL,
     fecha_solicitud_reserva DATETIME DEFAULT CURRENT_TIMESTAMP,
     asistencia BOOLEAN DEFAULT FALSE,
-    estado_invitacion ENUM('pendiente','aceptada','rechazada','creador') NOT NULL DEFAULT 'aceptada',
+    estado_invitacion ENUM('pendiente','aceptada','rechazada','creador','bloqueada') NOT NULL DEFAULT 'pendiente',
     PRIMARY KEY (ci_participante, id_reserva),
     FOREIGN KEY (ci_participante) REFERENCES participante(ci),
     FOREIGN KEY (id_reserva) REFERENCES reserva(id_reserva)
