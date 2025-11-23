@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import { useUser } from "../UserContext";
 
-/* ========================================================
-   ALERT COMPONENTE
-======================================================== */
 function Alert({ type = "error", message, onClose }) {
   const colors = {
     error: "#dc3545",
@@ -46,9 +43,6 @@ function Alert({ type = "error", message, onClose }) {
   );
 }
 
-/* ========================================================
-   COMPONENTE PRINCIPAL — SANCIONES
-======================================================== */
 export default function Sanciones() {
   const { user } = useUser();
   const rol = user?.rol?.toLowerCase();
@@ -115,29 +109,32 @@ export default function Sanciones() {
   }, []);
 
   // --- QUITAR SANCIÓN ---
-  const quitarSancion = async (ci) => {
-    setMensaje("");
-    setError("");
+const quitarSancion = async (id) => {
+  setMensaje("");
+  setError("");
 
-    try {
-      const res = await fetch(`http://localhost:8000/quitarSancion?ci=${ci}`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+  try {
+    const res = await fetch(`http://localhost:8000/sancion/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-      const data = await res.json();
+    const data = await res.json().catch(() => ({}));
 
-      if (!res.ok) {
-        return setError(data.detail || "Error al quitar sanción.");
-      }
-
-      setMensaje(data.mensaje || "Sanción quitada.");
-      await cargarSancionesActivas();
-      await cargarSancionesPasadas();
-    } catch {
-      setError("Error al quitar la sanción.");
+    if (!res.ok) {
+      return setError(data.detail || "Error al quitar sanción.");
     }
-  };
+
+    setMensaje(data.mensaje || "Sanción quitada correctamente.");
+    await cargarSancionesActivas();
+    await cargarSancionesPasadas();
+  } catch (err) {
+    console.error(err);
+    setError("Error al quitar la sanción.");
+  }
+};
 
   // --- CREAR SANCIÓN ---
   const crearSancionManual = async (e) => {
@@ -269,7 +266,7 @@ export default function Sanciones() {
           {activas.map((s, i) => (
             <div key={i} style={card}>
               <p>
-                <b>ID:</b> {s.id_sancion}
+                <b>ID:</b> {s.id}
               </p>
               <p>
                 <b>CI:</b> {s.ci_participante}
@@ -294,7 +291,7 @@ export default function Sanciones() {
 
                 <button
                   style={btnDanger}
-                  onClick={() => quitarSancion(s.ci_participante)}
+                  onClick={() => quitarSancion(s.id)}
                 >
                   Quitar
                 </button>
@@ -304,9 +301,6 @@ export default function Sanciones() {
         </div>
       )}
 
-      {/* ---------------------------------- */}
-      {/* SANCIONES PASADAS */}
-      {/* ---------------------------------- */}
       <h2 style={{ marginTop: 40 }}>Sanciones Pasadas</h2>
       {pasadas.length === 0 ? (
         <p>No hay sanciones pasadas</p>
@@ -315,7 +309,7 @@ export default function Sanciones() {
           {pasadas.map((s, i) => (
             <div key={i} style={{ ...card, opacity: 0.6 }}>
               <p>
-                <b>ID:</b> {s.id_sancion}
+                <b>ID:</b> {s.id}
               </p>
               <p>
                 <b>CI:</b> {s.ci_participante}
