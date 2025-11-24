@@ -77,7 +77,7 @@ http://localhost:8000/docs
 ## Credenciales de Prueba
 
 Para probar la aplicación en su totalidad es necesario contar con credenciales de:
-## MySQL
+### MySQL
 **Usuario "INVITADO"**  
 usuario: gestion_salas_user  
 contraseña: shaw  
@@ -98,7 +98,7 @@ contraseña: shaw
 usuario: root  
 contraseña: rootpassword
 
-## Usuarios
+### Usuarios
 **Juan Perez – Alumno**  
 correo: juan.perez@ucu.edu.uy  
 contraseña: Juan123  
