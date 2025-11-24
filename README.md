@@ -79,57 +79,57 @@ http://localhost:8000/docs
 Para probar la aplicación en su totalidad es necesario contar con credenciales de:
 ### MySQL
 **Usuario "INVITADO"**  
-usuario: gestion_salas_user  
-contraseña: shaw  
+- usuario: gestion_salas_user  
+- contraseña: shaw  
 
 **Usuario "USUARIO"**  
-usuario: Usuario  
-contraseña: shaw  
+- usuario: Usuario  
+- contraseña: shaw  
 
 **Usuario "BIBLIOTECARIO"**  
-usuario: Bibliotecario  
-contraseña: shaw  
+- usuario: Bibliotecario  
+- contraseña: shaw  
 
 **Usuario "ADMINISTRADOR"**  
-usuario: Administrador  
-contraseña: shaw  
+- usuario: Administrador  
+- contraseña: shaw  
 
 **Usuario "ROOT"**  
-usuario: root  
-contraseña: rootpassword
+- usuario: root  
+- contraseña: rootpassword
 
 ### Usuarios
 **Juan Perez – Alumno**  
-correo: juan.perez@ucu.edu.uy  
-contraseña: Juan123  
+- correo: juan.perez@ucu.edu.uy  
+- contraseña: Juan123  
 
 **Maria Gomez – Docente**  
-correo: maria.gomez@ucu.edu.uy  
-contraseña: Maria123  
+- correo: maria.gomez@ucu.edu.uy  
+- contraseña: Maria123  
 
 **Ana Lopez – Docente**  
-correo: ana.lopez@ucu.edu.uy  
-contraseña: Ana1234  
+- correo: ana.lopez@ucu.edu.uy  
+- contraseña: Ana1234  
 
 **Carlos Mendez – Alumno**  
-correo: carlos.mendez@ucu.edu.uy  
-contraseña: Carlos123  
+- correo: carlos.mendez@ucu.edu.uy  
+- contraseña: Carlos123  
 
 **Sofia Ruiz – Docente**  
-correo: sofia.ruiz@ucu.edu.uy  
-contraseña: Sofia123  
+- correo: sofia.ruiz@ucu.edu.uy  
+- contraseña: Sofia123  
 
 **Jorge Diaz – Alumno**  
-correo: jorge.diaz@ucu.edu.uy  
-contraseña: Jorge123  
+- correo: jorge.diaz@ucu.edu.uy  
+- contraseña: Jorge123  
 
 **Bibliotecario – Bibliotecario**  
-correo: biblio@ucu.edu.uy  
-contraseña: Biblio  
+- correo: biblio@ucu.edu.uy  
+- contraseña: Biblio  
 
 **Administrador – Administrador**  
-correo: admin@ucu.edu.uy  
-contraseña: biblio
+- correo: admin@ucu.edu.uy  
+- contraseña: biblio
 
 
 Las credenciales de prueba (usuarios y contraseñas) están detalladas en la documentación del proyecto.
