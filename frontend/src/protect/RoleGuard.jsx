@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import { useUser } from "../components/UserContext";
+import { useUser } from "../components/useUser";
 import { PageSpinner } from "../components/ui/Spinner";
-import { useToast } from "../components/ui/Toast";
+import { useToast } from "../components/ui/useToast";
 
 /**
  * RoleGuard — gate a nested route to a set of roles.

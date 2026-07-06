@@ -6,6 +6,7 @@ import styles from "./Card.module.css";
  * `interactive` adds hover elevation (use for clickable cards).
  */
 export default function Card({
+  // eslint-disable-next-line no-unused-vars -- used below as a dynamic JSX tag; core no-unused-vars doesn't track that.
   as: Tag = "div",
   tone,
   interactive = false,

@@ -1,21 +1,7 @@
-import { createContext, useContext, useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import Modal from "./Modal";
 import Button from "./Button";
-
-const ConfirmContext = createContext(null);
-
-/**
- * useConfirm() -> confirm(options) : Promise<boolean>
- * A styled, accessible replacement for window.confirm().
- *
- *   const confirm = useConfirm();
- *   if (!(await confirm({ title: "¿Cancelar reserva?" }))) return;
- */
-export function useConfirm() {
-  const ctx = useContext(ConfirmContext);
-  if (!ctx) throw new Error("useConfirm debe usarse dentro de <ConfirmProvider>");
-  return ctx;
-}
+import { ConfirmContext } from "./useConfirm";
 
 export function ConfirmProvider({ children }) {
   const [state, setState] = useState(null);

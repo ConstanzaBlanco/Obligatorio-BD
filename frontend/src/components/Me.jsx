@@ -5,7 +5,7 @@ import Card from "./ui/Card";
 import Button from "./ui/Button";
 import Field, { Input } from "./ui/Field";
 import { PageSpinner } from "./ui/Spinner";
-import { useToast } from "./ui/Toast";
+import { useToast } from "./ui/useToast";
 import styles from "./Me.module.css";
 
 export default function Me() {

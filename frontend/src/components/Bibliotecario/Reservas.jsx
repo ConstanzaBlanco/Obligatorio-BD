@@ -7,8 +7,8 @@ import Field, { Input, Select } from "../ui/Field";
 import Modal from "../ui/Modal";
 import EmptyState from "../ui/EmptyState";
 import { SkeletonCard } from "../ui/Skeleton";
-import { useToast } from "../ui/Toast";
-import { useConfirm } from "../ui/Confirm";
+import { useToast } from "../ui/useToast";
+import { useConfirm } from "../ui/useConfirm";
 import styles from "./Reservas.module.css";
 
 export default function Reservas() {
@@ -212,6 +212,7 @@ export default function Reservas() {
 
   useEffect(() => {
     Promise.all([cargarActivas(), cargarPasadas()]).finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch once on mount
   }, []);
 
   const renderCard = (r, pasada) => (

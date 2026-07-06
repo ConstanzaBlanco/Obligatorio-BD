@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useUser } from "./UserContext";
+import { useUser } from "./useUser";
 import CrearReserva from "./User/CrearReserva";
 import NotFound from "./NotFound";
 import { PageContainer, PageHeader } from "./ui/Page";
@@ -11,8 +11,8 @@ import Field, { Input, Select } from "./ui/Field";
 import Modal from "./ui/Modal";
 import EmptyState from "./ui/EmptyState";
 import { SkeletonCard } from "./ui/Skeleton";
-import { useToast } from "./ui/Toast";
-import { useConfirm } from "./ui/Confirm";
+import { useToast } from "./ui/useToast";
+import { useConfirm } from "./ui/useConfirm";
 import styles from "./SalasPorEdificio.module.css";
 
 export default function SalasPorEdificio() {
@@ -129,6 +129,7 @@ export default function SalasPorEdificio() {
 
   useEffect(() => {
     cargarSalas();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- re-fetch when the filters change
   }, [nombreEdificio, fecha, idTurno]);
 
   const crearSala = async (e) => {

@@ -1,21 +1,7 @@
-import { createContext, useContext, useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { ToastContext } from "./useToast";
 import styles from "./Toast.module.css";
-
-const ToastContext = createContext(null);
-
-/**
- * useToast() -> { toast, success, error, info, warning }
- * Each returns void and shows a transient, accessible notification.
- *   const { success, error } = useToast();
- *   success("Reserva cancelada");
- *   error("No se pudo cancelar la reserva");
- */
-export function useToast() {
-  const ctx = useContext(ToastContext);
-  if (!ctx) throw new Error("useToast debe usarse dentro de <ToastProvider>");
-  return ctx;
-}
 
 const ICONS = {
   success: "M20 6 9 17l-5-5",

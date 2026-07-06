@@ -2,7 +2,7 @@ import { useState } from "react";
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 import Field, { Input } from "../ui/Field";
-import { useToast } from "../ui/Toast";
+import { useToast } from "../ui/useToast";
 
 export default function ChangePasswordModal({ isOpen, onClose }) {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -52,7 +52,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
       success("Contraseña actualizada correctamente");
       reset();
       onClose();
-    } catch (e) {
+    } catch {
       setError("Error al conectar con el servidor");
     } finally {
       setLoading(false);

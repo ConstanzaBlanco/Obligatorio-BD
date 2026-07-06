@@ -70,6 +70,7 @@ export default function NotificationsPanel() {
       await fetchUnread();
       setLoading(false);
     })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch once on mount
   }, []);
 
   return (

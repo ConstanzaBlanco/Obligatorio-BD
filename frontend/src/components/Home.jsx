@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useUser } from "./UserContext";
+import { useUser } from "./useUser";
 import { PageContainer, PageHeader } from "./ui/Page";
 import Card, { CardHeader } from "./ui/Card";
 import Table from "./ui/Table";
@@ -61,6 +61,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch once on mount
   }, []);
 
   const isStaff = rol === "bibliotecario" || rol === "administrador";

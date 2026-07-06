@@ -4,7 +4,7 @@ import Card from "../ui/Card";
 import Badge from "../ui/Badge";
 import EmptyState from "../ui/EmptyState";
 import { SkeletonCard } from "../ui/Skeleton";
-import { useToast } from "../ui/Toast";
+import { useToast } from "../ui/useToast";
 import styles from "./Sanciones.module.css";
 
 export default function MisSanciones() {
@@ -39,7 +39,7 @@ export default function MisSanciones() {
         return;
       }
       setActivas(data.sanciones || []);
-    } catch (e) {
+    } catch {
       toastError("Error al cargar sanciones activas");
     }
   };
@@ -55,13 +55,14 @@ export default function MisSanciones() {
         return;
       }
       setPasadas(data.sanciones || []);
-    } catch (e) {
+    } catch {
       toastError("Error al cargar sanciones pasadas");
     }
   };
 
   useEffect(() => {
     Promise.all([cargarActivas(), cargarPasadas()]).finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch once on mount
   }, []);
 
   return (

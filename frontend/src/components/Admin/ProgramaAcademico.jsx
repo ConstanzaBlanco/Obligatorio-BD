@@ -7,8 +7,8 @@ import Table from "../ui/Table";
 import Badge from "../ui/Badge";
 import EmptyState from "../ui/EmptyState";
 import { SkeletonRows } from "../ui/Skeleton";
-import { useToast } from "../ui/Toast";
-import { useConfirm } from "../ui/Confirm";
+import { useToast } from "../ui/useToast";
+import { useConfirm } from "../ui/useConfirm";
 import styles from "./Admin.module.css";
 
 export default function ProgramaManager() {
@@ -47,6 +47,7 @@ export default function ProgramaManager() {
 
   useEffect(() => {
     cargarProgramas();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch once on mount
   }, []);
 
   const handleCreate = async (e) => {

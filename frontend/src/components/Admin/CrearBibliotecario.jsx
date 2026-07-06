@@ -4,7 +4,7 @@ import { PageContainer, PageHeader } from "../ui/Page";
 import Card from "../ui/Card";
 import Button from "../ui/Button";
 import Field, { Input } from "../ui/Field";
-import { useToast } from "../ui/Toast";
+import { useToast } from "../ui/useToast";
 
 export default function CreateBiblioUser() {
   const [correo, setCorreo] = useState("");

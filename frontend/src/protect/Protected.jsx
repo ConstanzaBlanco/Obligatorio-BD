@@ -1,5 +1,5 @@
 import { Outlet, Navigate } from "react-router-dom";
-import { useUser } from "../components/UserContext";
+import { useUser } from "../components/useUser";
 import { PageSpinner } from "../components/ui/Spinner";
 
 export default function Protected() {
