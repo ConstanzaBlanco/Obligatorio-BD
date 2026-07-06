@@ -20,7 +20,7 @@
   height: 96px;
   border-radius: var(--radius-full);
   background: linear-gradient(140deg, var(--blue-500), var(--blue-700));
-  color: #fff;
+  color: var(--color-on-primary);
   font-size: var(--text-3xl);
   font-weight: var(--font-bold);
   box-shadow: var(--shadow-md);
