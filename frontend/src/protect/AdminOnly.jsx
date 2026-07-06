@@ -1,15 +1,5 @@
-import { Navigate, Outlet } from "react-router-dom";
-import { useUser } from "../components/UserContext";
+import RoleGuard from "./RoleGuard";
 
 export default function AdminOnly() {
-  const { user, loadingUser } = useUser();
-
-  if (loadingUser) return <p>Cargando...</p>;
-
-  if (!user || user.rol !== "Administrador") {
-    alert("❌ No tienes los permisos necesarios (Administrador)");
-    return <Navigate to="/" replace />;
-  }
-
-  return <Outlet />;
+  return <RoleGuard allow={["Administrador"]} message="No tenés los permisos necesarios (Administrador)." />;
 }
