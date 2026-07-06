@@ -2,18 +2,22 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "./components/UserContext";
-import "./Login.css";
+import { Button, Field, Input } from "./components/ui";
+import styles from "./styles/Auth.module.css";
 
 export default function Login() {
   const [correo, setCorreo] = useState("");
   const [contrasenia, setContrasenia] = useState("");
   const [error, setError] = useState("");
-  
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
-  const { setUser } = useUser(); 
+  const { setUser } = useUser();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
     try {
       // LOGIN
       const res = await axios.post("http://localhost:8000/login", {
@@ -35,42 +39,67 @@ export default function Login() {
       setUser({
         token: res.data.access_token,
         rol: res.data.rol,
-        ...me.data
+        ...me.data,
       });
-      navigate("/")
-
+      navigate("/");
     } catch (el) {
-      setError("Credenciales inválidas. Inténtalo de nuevo.", el);
-
+      setError("Credenciales inválidas. Intentá de nuevo.", el);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="login-container">
-      <h2 className="login-title">Iniciar Sesión</h2>
+    <div className={styles.screen}>
+      <div className={styles.card}>
+        <div className={styles.brand}>
+          <span className={styles.mark}>B</span>
+          <span>
+            <div className={styles.brandName}>Salas · Biblioteca</div>
+            <div className={styles.brandSub}>Reserva de salas de estudio</div>
+          </span>
+        </div>
 
-      <button type="button" className="register-button" onClick={() => { navigate("/registro") }}>Registrarse</button>
+        <h1 className={styles.title}>Iniciar sesión</h1>
+        <p className={styles.subtitle}>Ingresá con tu correo institucional.</p>
 
-      <form className="login-form" onSubmit={handleLogin}>
-        <input
-          type="email"
-          placeholder="Correo"
-          value={correo}
-          onChange={(e) => setCorreo(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={contrasenia}
-          onChange={(e) => setContrasenia(e.target.value)}
-          required
-        />
+        <form className={styles.form} onSubmit={handleLogin}>
+          <Field label="Correo">
+            <Input
+              type="email"
+              placeholder="nombre@correo.ucu.edu.uy"
+              value={correo}
+              onChange={(e) => setCorreo(e.target.value)}
+              autoComplete="email"
+              required
+            />
+          </Field>
 
-        <button type="submit" className="login-button">Entrar</button>
-      </form>
+          <Field label="Contraseña">
+            <Input
+              type="password"
+              placeholder="Tu contraseña"
+              value={contrasenia}
+              onChange={(e) => setContrasenia(e.target.value)}
+              autoComplete="current-password"
+              required
+            />
+          </Field>
 
-      {error && <p className="login-error">{error}</p>}
+          {error && <div className={`${styles.alert} ${styles.alertError}`}>{error}</div>}
+
+          <Button type="submit" fullWidth disabled={loading}>
+            {loading ? "Ingresando…" : "Entrar"}
+          </Button>
+        </form>
+
+        <p className={styles.footNote}>
+          ¿No tenés cuenta?{" "}
+          <button type="button" onClick={() => navigate("/registro")}>
+            Registrate
+          </button>
+        </p>
+      </div>
     </div>
   );
 }

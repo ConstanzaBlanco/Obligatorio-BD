@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Button, Field, Input, Select } from "./components/ui";
+import styles from "./styles/Auth.module.css";
 
 export default function Register() {
   const [correo, setCorreo] = useState("");
@@ -13,6 +15,7 @@ export default function Register() {
 
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -45,6 +48,7 @@ export default function Register() {
       return;
     }
 
+    setLoading(true);
     try {
       const payload = {
         correo,
@@ -68,177 +72,121 @@ export default function Register() {
         return;
       }
 
-      setOk("Usuario creado correctamente ✔");
+      setOk("Usuario creado correctamente. Redirigiendo…");
 
       setTimeout(() => navigate("/login"), 1200);
     } catch (err) {
       console.error(err);
       setError("No se pudo registrar el usuario");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <>
-      <style>{`
-        .register-container {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          min-height: 90vh;
-          background: #f4f6f9;
-          padding: 20px;
-        }
+    <div className={styles.screen}>
+      <div className={`${styles.card} ${styles.wide}`}>
+        <div className={styles.brand}>
+          <span className={styles.mark}>B</span>
+          <span>
+            <div className={styles.brandName}>Salas · Biblioteca</div>
+            <div className={styles.brandSub}>Reserva de salas de estudio</div>
+          </span>
+        </div>
 
-        .register-card {
-          background: white;
-          padding: 30px 40px;
-          border-radius: 12px;
-          box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-          width: 350px;
-          text-align: center;
-          animation: fadeIn 0.4s ease-in-out;
-        }
+        <h1 className={styles.title}>Crear cuenta</h1>
+        <p className={styles.subtitle}>Registrate para reservar salas y recibir invitaciones.</p>
 
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-
-        .register-card h2 {
-          margin-bottom: 20px;
-          color: #333;
-        }
-
-        .register-form input,
-        .register-form select {
-          width: 100%;
-          margin-bottom: 12px;
-          padding: 12px;
-          border-radius: 6px;
-          border: 1px solid #ccc;
-          font-size: 14px;
-          transition: all 0.2s ease;
-          background: #fff;
-        }
-
-        .register-form select {
-          cursor: pointer;
-        }
-
-        .register-form input:focus,
-        .register-form select:focus {
-          border-color: #0066ff;
-          outline: none;
-          box-shadow: 0 0 4px rgba(0, 102, 255, 0.3);
-        }
-
-        .btn-register {
-          width: 100%;
-          padding: 12px;
-          background: #0066ff;
-          color: white;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-          font-size: 15px;
-          transition: 0.2s ease;
-          margin-top: 5px;
-        }
-
-        .btn-register:hover {
-          background: #0053cc;
-        }
-
-        .error-msg {
-          margin-top: 15px;
-          color: #d9534f;
-          font-weight: bold;
-        }
-
-        .ok-msg {
-          margin-top: 15px;
-          color: #28a745;
-          font-weight: bold;
-        }
-      `}</style>
-
-      <div className="register-container">
-        <div className="register-card">
-
-          <h2>Crear cuenta</h2>
-
-          <form onSubmit={handleRegister} className="register-form">
-
-            <input
+        <form className={styles.form} onSubmit={handleRegister}>
+          <Field label="Correo">
+            <Input
               type="email"
-              placeholder="Correo"
+              placeholder="nombre@correo.ucu.edu.uy"
               value={correo}
               onChange={(e) => setCorreo(e.target.value)}
+              autoComplete="email"
               required
             />
+          </Field>
 
-            <input
+          <Field label="Cédula de identidad" hint="8 dígitos, sin puntos ni guiones.">
+            <Input
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
-              placeholder="CI"
+              placeholder="Ej. 51234567"
               value={ci}
-              onChange={(e) =>
-                setCi(e.target.value.replace(/\D/g, "").slice(0, 8))
-              }
+              onChange={(e) => setCi(e.target.value.replace(/\D/g, "").slice(0, 8))}
               required
               minLength={8}
               maxLength={8}
             />
+          </Field>
 
-            <input
+          <Field label="Nombre">
+            <Input
               type="text"
-              placeholder="Nombre"
+              placeholder="Tu nombre"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              autoComplete="given-name"
               required
             />
+          </Field>
 
-            <input
+          <Field label="Apellido">
+            <Input
               type="text"
-              placeholder="Apellido"
+              placeholder="Tu apellido"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
+              autoComplete="family-name"
               required
             />
+          </Field>
 
-            <input
+          <Field label="Contraseña" hint="Más de 6 caracteres.">
+            <Input
               type="password"
-              placeholder="Contraseña"
+              placeholder="Elegí una contraseña"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete="new-password"
               required
               minLength={7}
             />
+          </Field>
 
-            <select
+          <Field label="Programa académico">
+            <Select
               value={academicProgram}
               onChange={(e) => setAcademicProgram(e.target.value)}
               required
             >
-              <option value="">Selecciona un programa académico</option>
-
+              <option value="">Seleccioná un programa académico</option>
               {programs.map((p, i) => (
                 <option key={i} value={p.nombre_programa}>
                   {p.nombre_programa}
                 </option>
               ))}
-            </select>
+            </Select>
+          </Field>
 
-            <button type="submit" className="btn-register">
-              Registrarse
-            </button>
-          </form>
+          {error && <div className={`${styles.alert} ${styles.alertError}`}>{error}</div>}
+          {ok && <div className={`${styles.alert} ${styles.alertSuccess}`}>{ok}</div>}
 
-          {error && <p className="error-msg">{error}</p>}
-          {ok && <p className="ok-msg">{ok}</p>}
-        </div>
+          <Button type="submit" fullWidth disabled={loading}>
+            {loading ? "Creando cuenta…" : "Registrarse"}
+          </Button>
+        </form>
+
+        <p className={styles.footNote}>
+          ¿Ya tenés cuenta?{" "}
+          <button type="button" onClick={() => navigate("/login")}>
+            Iniciá sesión
+          </button>
+        </p>
       </div>
-    </>
+    </div>
   );
 }
