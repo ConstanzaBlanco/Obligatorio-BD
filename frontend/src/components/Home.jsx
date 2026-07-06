@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
 import { useUser } from "./UserContext";
+import { PageContainer, PageHeader } from "./ui/Page";
+import Card, { CardHeader } from "./ui/Card";
+import Table from "./ui/Table";
+import { SkeletonCard } from "./ui/Skeleton";
+import EmptyState from "./ui/EmptyState";
+import styles from "./Home.module.css";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -14,10 +20,10 @@ export default function Home() {
     usoReservas: null,
     topMes: [],
     promedioSanciones: [],
-    diaMasReservas: null   
+    diaMasReservas: null,
   });
 
-  const { user, logout } = useUser();
+  const { user } = useUser();
   const rol = user?.rol?.toLowerCase();
   const token = localStorage.getItem("token");
 
@@ -33,21 +39,20 @@ export default function Home() {
         usoReservas: "/estadisticas/uso-reservas",
         topMes: "/estadisticas/top-participantes-mes",
         promedioSanciones: "/estadisticas/promedio-sanciones",
-        diaMasReservas: "/estadisticas/dia-mas-reservas"
+        diaMasReservas: "/estadisticas/dia-mas-reservas",
       };
 
       const results = {};
 
       for (const key in urls) {
         const res = await fetch("http://localhost:8000" + urls[key], {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         results[key] = await res.json();
       }
 
       setData(results);
       setLoading(false);
-
     } catch (err) {
       console.error(err);
       setLoading(false);
@@ -58,242 +63,202 @@ export default function Home() {
     fetchData();
   }, []);
 
-  if (loading) return <h2 style={{ textAlign: "center" }}>Cargando estadísticas...</h2>;
+  const isStaff = rol === "bibliotecario" || rol === "administrador";
 
   return (
-    <>
-      <style>{`
-        .home-container {
-          padding: 40px;
-          background: #f5f7fb;
-          min-height: 100vh;
-        }
-        .title {
-          font-size: 32px;
-          font-weight: bold;
-          color: #2c3e50;
-          margin-bottom: 30px;
-        }
-        .grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
-          gap: 25px;
-        }
-        .card {
-          background: white;
-          padding: 22px;
-          border-radius: 14px;
-          box-shadow: 0 4px 18px rgba(0,0,0,0.08);
-          border: 1px solid #e1e1e1;
-        }
-        .card h3 {
-          margin-bottom: 12px;
-          color: #2c3e50;
-          font-size: 20px;
-        }
-        table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-        th, td {
-          padding: 8px;
-          border-bottom: 1px solid #ddd;
-          text-align: left;
-        }
-        th {
-          background: #e8effc;
-          font-weight: bold;
-        }
-        .bar {
-          height: 12px;
-          background: #2980b9;
-          border-radius: 6px;
-        }
-      `}</style>
+    <PageContainer>
+      <PageHeader
+        eyebrow={`Hola, ${user?.name || ""}`}
+        title="Panel de estadísticas"
+        description="Un resumen del uso de las salas de estudio del sistema."
+      />
 
-      <h2>Bienvenido/a {user.name}</h2>
-      <h3>Tu rol es: <strong>{user.rol}</strong></h3>
+      {loading ? (
+        <div className={styles.grid}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+      ) : (
+        <div className={styles.grid}>
+          {/* Salas más reservadas */}
+          <Card>
+            <CardHeader title="Salas más reservadas" />
+            {data.salas.length ? (
+              <Table>
+                <thead><tr><th>Sala</th><th>Reservas</th></tr></thead>
+                <tbody>
+                  {data.salas.map((s, i) => (
+                    <tr key={i}><td>{s.nombre_sala}</td><td>{s.cant_reservas}</td></tr>
+                  ))}
+                </tbody>
+              </Table>
+            ) : (
+              <EmptyState title="Sin datos" description="Todavía no hay reservas registradas." />
+            )}
+          </Card>
 
-      <button
-        onClick={logout}
-        style={{
-          padding: "8px 14px",
-          marginBottom: 25,
-          backgroundColor: "#dc3545",
-          color: "white",
-          border: "none",
-          borderRadius: 5,
-          cursor: "pointer",
-        }}
-      >
-        Cerrar sesión
-      </button>
+          {/* Promedio de participantes */}
+          <Card>
+            <CardHeader title="Promedio de participantes por sala" />
+            {data.promedioParticipantes.length ? (
+              <Table>
+                <thead><tr><th>Sala</th><th>Promedio</th></tr></thead>
+                <tbody>
+                  {data.promedioParticipantes.map((p, i) => (
+                    <tr key={i}><td>{p.nombre_sala}</td><td>{Number(p.promedio_participantes).toFixed(1)}</td></tr>
+                  ))}
+                </tbody>
+              </Table>
+            ) : (
+              <EmptyState title="Sin datos" description="No hay participantes registrados aún." />
+            )}
+          </Card>
 
-      <div className="home-container">
-        <h2 className="title">Dashboard — Estadísticas del Sistema</h2>
+          {/* Reservas por facultad y carrera */}
+          <Card>
+            <CardHeader title="Reservas por facultad y carrera" />
+            {data.reservasCarrera.length ? (
+              <Table>
+                <thead><tr><th>Facultad</th><th>Programa</th><th>Total</th></tr></thead>
+                <tbody>
+                  {data.reservasCarrera.map((r, i) => (
+                    <tr key={i}><td>{r.facultad}</td><td>{r.nombre_programa}</td><td>{r.cantidadReservas}</td></tr>
+                  ))}
+                </tbody>
+              </Table>
+            ) : (
+              <EmptyState title="Sin datos" description="No hay reservas por carrera todavía." />
+            )}
+          </Card>
 
-        <div className="grid">
+          {/* Ocupación de edificios */}
+          <Card>
+            <CardHeader title="Ocupación actual de edificios" />
+            <div className={styles.cardBody}>
+              {data.ocupacionEdificios.length ? (
+                data.ocupacionEdificios.map((o, i) => (
+                  <div key={i} className={styles.barRow}>
+                    <div className={styles.barLabel}>
+                      <strong>{o.edificio}</strong>
+                      <span>{o.porcentaje_ocupadas.toFixed(1)}%</span>
+                    </div>
+                    <div className={styles.barTrack}>
+                      <div className={styles.barFill} style={{ width: `${o.porcentaje_ocupadas}%` }} />
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <EmptyState title="Sin datos" description="No hay información de ocupación." />
+              )}
+            </div>
+          </Card>
 
-          {/* TARJETA 1 */}
-          <div className="card">
-            <h3>Salas más reservadas</h3>
-            <table>
-              <thead>
-                <tr><th>Sala</th><th>Reservas</th></tr>
-              </thead>
-              <tbody>
-                {data.salas.map((s, i) => (
-                  <tr key={i}>
-                    <td>{s.nombre_sala}</td>
-                    <td>{s.cant_reservas}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/*TARJETA 2 */}
-          <div className="card">
-            <h3>Promedio de participantes por sala</h3>
-            <table>
-              <thead><tr><th>Sala</th><th>Promedio</th></tr></thead>
-              <tbody>
-                {data.promedioParticipantes.map((p, i) => (
-                  <tr key={i}>
-                    <td>{p.nombre_sala}</td>
-                    <td>{Number(p.promedio_participantes).toFixed(1)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* TARJETA 3  */}
-          <div className="card">
-            <h3>Reservas por facultad y carrera</h3>
-            <table>
-              <thead><tr><th>Facultad</th><th>Programa</th><th>Total</th></tr></thead>
-              <tbody>
-                {data.reservasCarrera.map((r, i) => (
-                  <tr key={i}>
-                    <td>{r.facultad}</td>
-                    <td>{r.nombre_programa}</td>
-                    <td>{r.cantidadReservas}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* TARJETA 4  */}
-          <div className="card">
-            <h3>Ocupación actual de edificios (%)</h3>
-            {data.ocupacionEdificios.map((o, i) => (
-              <div key={i} style={{ marginBottom: "12px" }}>
-                <strong>{o.edificio}</strong> — {o.porcentaje_ocupadas.toFixed(1)}%
-                <div className="bar" style={{ width: `${o.porcentaje_ocupadas}%` }}></div>
-              </div>
-            ))}
-          </div>
-
-          {/* BLOQUE SOLO ADM/BIBLIO */}
-          {(rol === "bibliotecario" || rol === "administrador") && (
+          {isStaff && (
             <>
-
-              {/* Tarjeta 6 */}
-              <div className="card">
-                <h3>Asistencias y Reservas</h3>
-                <table>
-                  <thead>
-                    <tr><th>Participante</th><th>Rol</th><th>Tipo</th><th>Asistencias</th></tr>
-                  </thead>
-                  <tbody>
-                    {data.asistencias.map((a, i) => (
-                      <tr key={i}>
-                        <td>{a.nombre} {a.apellido}</td>
-                        <td>{a.rol}</td>
-                        <td>{a.tipo}</td>
-                        <td>{a.asistencias}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Tarjeta 7 */}
-              <div className="card">
-                <h3>Sanciones por Rol y Programa</h3>
-                <table>
-                  <thead><tr><th>Rol</th><th>Programa</th><th>Total</th></tr></thead>
-                  <tbody>
-                    {data.sanciones.map((s, i) => (
-                      <tr key={i}>
-                        <td>{s.rol}</td>
-                        <td>{s.tipo}</td>
-                        <td>{s.cant_sanciones}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Tarjeta 8 */}
-              <div className="card">
-                <h3>Uso de Reservas</h3>
-                <p>Utilizadas: <strong>{data.usoReservas?.Utilizadas?.toFixed(1)}%</strong></p>
-                <p>No utilizadas: <strong>{data.usoReservas?.NoUtilizadas?.toFixed(1)}%</strong></p>
-              </div>
-
-              {/* Tarjeta 9 */}
-              <div className="card">
-                <h3>Top participantes del mes</h3>
-                <table>
-                  <thead><tr><th>Participante</th><th>Reservas</th></tr></thead>
-                  <tbody>
-                    {data.topMes.map((p, i) => (
-                      <tr key={i}>
-                        <td>{p.nombre} {p.apellido}</td>
-                        <td>{p.cant_reservas}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Tarjeta 10 */}
-              <div className="card">
-                <h3>Promedio duración de sanciones (días)</h3>
-                <table>
-                  <thead><tr><th>CI</th><th>Promedio</th></tr></thead>
-                  <tbody>
-                    {data.promedioSanciones.map((p, i) => (
-                      <tr key={i}>
-                        <td>{p.ci}</td>
-                        <td>{Number(p.promedio_dias).toFixed(1)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/*Tarjeta 11 */}
-              <div className="card">
-                <h3>Día de la semana con más reservas</h3>
-                {data.diaMasReservas ? (
-                  <p>
-                    <strong>{data.diaMasReservas.dia_semana}</strong>  
-                    — {data.diaMasReservas.total_reservas} reservas
-                  </p>
+              {/* Asistencias */}
+              <Card>
+                <CardHeader title="Asistencias y reservas" />
+                {data.asistencias.length ? (
+                  <Table>
+                    <thead><tr><th>Participante</th><th>Rol</th><th>Tipo</th><th>Asist.</th></tr></thead>
+                    <tbody>
+                      {data.asistencias.map((a, i) => (
+                        <tr key={i}><td>{a.nombre} {a.apellido}</td><td>{a.rol}</td><td>{a.tipo}</td><td>{a.asistencias}</td></tr>
+                      ))}
+                    </tbody>
+                  </Table>
                 ) : (
-                  <p>No hay datos.</p>
+                  <EmptyState title="Sin datos" description="No hay asistencias registradas." />
                 )}
-              </div>
+              </Card>
 
+              {/* Sanciones por rol y programa */}
+              <Card>
+                <CardHeader title="Sanciones por rol y programa" />
+                {data.sanciones.length ? (
+                  <Table>
+                    <thead><tr><th>Rol</th><th>Programa</th><th>Total</th></tr></thead>
+                    <tbody>
+                      {data.sanciones.map((s, i) => (
+                        <tr key={i}><td>{s.rol}</td><td>{s.tipo}</td><td>{s.cant_sanciones}</td></tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                ) : (
+                  <EmptyState title="Sin datos" description="No hay sanciones registradas." />
+                )}
+              </Card>
+
+              {/* Uso de reservas */}
+              <Card>
+                <CardHeader title="Uso de reservas" />
+                <div className={styles.cardBody}>
+                  <div className={styles.statRow}>
+                    <span className={styles.statCaption}>Utilizadas</span>
+                    <span className={styles.statValue}>{data.usoReservas?.Utilizadas?.toFixed(1)}%</span>
+                  </div>
+                  <div className={styles.statRow}>
+                    <span className={styles.statCaption}>No utilizadas</span>
+                    <span className={styles.statValue}>{data.usoReservas?.NoUtilizadas?.toFixed(1)}%</span>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Top participantes del mes */}
+              <Card>
+                <CardHeader title="Top participantes del mes" />
+                {data.topMes.length ? (
+                  <Table>
+                    <thead><tr><th>Participante</th><th>Reservas</th></tr></thead>
+                    <tbody>
+                      {data.topMes.map((p, i) => (
+                        <tr key={i}><td>{p.nombre} {p.apellido}</td><td>{p.cant_reservas}</td></tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                ) : (
+                  <EmptyState title="Sin datos" description="Nadie participó este mes todavía." />
+                )}
+              </Card>
+
+              {/* Promedio duración de sanciones */}
+              <Card>
+                <CardHeader title="Promedio de duración de sanciones (días)" />
+                {data.promedioSanciones.length ? (
+                  <Table>
+                    <thead><tr><th>CI</th><th>Promedio</th></tr></thead>
+                    <tbody>
+                      {data.promedioSanciones.map((p, i) => (
+                        <tr key={i}><td>{p.ci}</td><td>{Number(p.promedio_dias).toFixed(1)}</td></tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                ) : (
+                  <EmptyState title="Sin datos" description="No hay sanciones con duración registrada." />
+                )}
+              </Card>
+
+              {/* Día con más reservas */}
+              <Card>
+                <CardHeader title="Día de la semana con más reservas" />
+                <div className={styles.cardBody}>
+                  {data.diaMasReservas ? (
+                    <div className={styles.statRow}>
+                      <span className={styles.statValue} style={{ textTransform: "capitalize" }}>
+                        {data.diaMasReservas.dia_semana}
+                      </span>
+                      <span className={styles.statCaption}>{data.diaMasReservas.total_reservas} reservas</span>
+                    </div>
+                  ) : (
+                    <EmptyState title="Sin datos" description="No hay datos suficientes." />
+                  )}
+                </div>
+              </Card>
             </>
           )}
-
         </div>
-      </div>
-    </>
+      )}
+    </PageContainer>
   );
 }
