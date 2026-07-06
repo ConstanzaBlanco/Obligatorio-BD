@@ -10,6 +10,7 @@ import Badge from "./ui/Badge";
 import Field, { Input, Select } from "./ui/Field";
 import Modal from "./ui/Modal";
 import EmptyState from "./ui/EmptyState";
+import { SkeletonCard } from "./ui/Skeleton";
 import { useToast } from "./ui/Toast";
 import { useConfirm } from "./ui/Confirm";
 import styles from "./SalasPorEdificio.module.css";
@@ -22,6 +23,7 @@ export default function SalasPorEdificio() {
   const isStaff = rol === "administrador" || rol === "bibliotecario";
 
   const [salas, setSalas] = useState([]);
+  const [loadingSalas, setLoadingSalas] = useState(true);
   const [turnos, setTurnos] = useState([]);
   const [fecha, setFecha] = useState("");
   const [idTurno, setIdTurno] = useState("");
@@ -98,6 +100,7 @@ export default function SalasPorEdificio() {
   }, []);
 
   async function cargarSalas() {
+    setLoadingSalas(true);
     try {
       const token = localStorage.getItem("token");
       let url = `http://localhost:8000/salasDelEdificio?edificio=${nombreEdificio}`;
@@ -119,6 +122,8 @@ export default function SalasPorEdificio() {
       }
     } catch {
       toastError("Error cargando salas.");
+    } finally {
+      setLoadingSalas(false);
     }
   }
 
@@ -232,7 +237,13 @@ export default function SalasPorEdificio() {
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Salas habilitadas</h2>
-        {salasHabilitadas.length === 0 ? (
+        {loadingSalas ? (
+          <div className={styles.grid}>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        ) : salasHabilitadas.length === 0 ? (
           <EmptyState title="Sin salas disponibles" description="No hay salas habilitadas para este filtro." />
         ) : (
           <div className={styles.grid}>

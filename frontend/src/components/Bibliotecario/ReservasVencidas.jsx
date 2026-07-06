@@ -4,11 +4,13 @@ import Card from "../ui/Card";
 import Button from "../ui/Button";
 import Badge from "../ui/Badge";
 import EmptyState from "../ui/EmptyState";
+import { SkeletonCard } from "../ui/Skeleton";
 import { useToast } from "../ui/Toast";
 import styles from "./ReservasVencidas.module.css";
 
 export default function ReservasVencidas() {
   const [reservas, setReservas] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [checks, setChecks] = useState({});
 
   const token = localStorage.getItem("token");
@@ -24,6 +26,8 @@ export default function ReservasVencidas() {
     } catch (err) {
       console.error(err);
       toastError("Error cargando reservas vencidas.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -66,7 +70,13 @@ export default function ReservasVencidas() {
         description="Marcá quién asistió a cada reserva. Los participantes no tildados serán sancionados."
       />
 
-      {reservas.length === 0 ? (
+      {loading ? (
+        <div className={styles.grid}>
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      ) : reservas.length === 0 ? (
         <EmptyState title="Todo al día" description="No hay reservas vencidas pendientes de cierre." />
       ) : (
         <div className={styles.grid}>

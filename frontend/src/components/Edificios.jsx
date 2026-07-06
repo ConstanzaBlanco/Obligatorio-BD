@@ -8,6 +8,7 @@ import Badge from "./ui/Badge";
 import Field, { Input, Select } from "./ui/Field";
 import Modal from "./ui/Modal";
 import EmptyState from "./ui/EmptyState";
+import { SkeletonCard } from "./ui/Skeleton";
 import { useToast } from "./ui/Toast";
 import { useConfirm } from "./ui/Confirm";
 import styles from "./Edificios.module.css";
@@ -18,6 +19,7 @@ export default function Edificios() {
   const isAdmin = rol === "administrador";
 
   const [edificios, setEdificios] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [departamentoFiltro, setDepartamentoFiltro] = useState("");
   const [departamentos, setDepartamentos] = useState([]);
   const [facultades, setFacultades] = useState([]);
@@ -97,6 +99,8 @@ export default function Edificios() {
       setEdificios(data.edificios || []);
     } catch {
       toastError("Error cargando edificios.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -192,7 +196,13 @@ export default function Edificios() {
         </Field>
       </div>
 
-      {edificios.length === 0 ? (
+      {loading ? (
+        <div className={styles.grid}>
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      ) : edificios.length === 0 ? (
         <EmptyState title="No hay edificios" description="Todavía no hay edificios que coincidan con el filtro." />
       ) : (
         <div className={styles.grid}>

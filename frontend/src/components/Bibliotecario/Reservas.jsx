@@ -6,6 +6,7 @@ import Badge from "../ui/Badge";
 import Field, { Input, Select } from "../ui/Field";
 import Modal from "../ui/Modal";
 import EmptyState from "../ui/EmptyState";
+import { SkeletonCard } from "../ui/Skeleton";
 import { useToast } from "../ui/Toast";
 import { useConfirm } from "../ui/Confirm";
 import styles from "./Reservas.module.css";
@@ -13,6 +14,7 @@ import styles from "./Reservas.module.css";
 export default function Reservas() {
   const [activas, setActivas] = useState([]);
   const [pasadas, setPasadas] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [modalAbierto, setModalAbierto] = useState(false);
   const [modalCrearAbierto, setModalCrearAbierto] = useState(false);
@@ -209,8 +211,7 @@ export default function Reservas() {
   };
 
   useEffect(() => {
-    cargarActivas();
-    cargarPasadas();
+    Promise.all([cargarActivas(), cargarPasadas()]).finally(() => setLoading(false));
   }, []);
 
   const renderCard = (r, pasada) => (
@@ -245,7 +246,13 @@ export default function Reservas() {
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Reservas activas</h2>
-        {activas.length === 0 ? (
+        {loading ? (
+          <div className={styles.grid}>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        ) : activas.length === 0 ? (
           <EmptyState title="Sin reservas activas" description="No hay reservas activas en este momento." />
         ) : (
           <div className={styles.grid}>{activas.map((r) => renderCard(r, false))}</div>
@@ -254,7 +261,12 @@ export default function Reservas() {
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Reservas pasadas</h2>
-        {pasadas.length === 0 ? (
+        {loading ? (
+          <div className={styles.grid}>
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        ) : pasadas.length === 0 ? (
           <EmptyState title="Sin reservas pasadas" description="Todavía no hay historial de reservas." />
         ) : (
           <div className={styles.grid}>{pasadas.map((r) => renderCard(r, true))}</div>

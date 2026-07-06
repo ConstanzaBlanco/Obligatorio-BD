@@ -3,12 +3,14 @@ import { PageContainer, PageHeader } from "../ui/Page";
 import Card from "../ui/Card";
 import Badge from "../ui/Badge";
 import EmptyState from "../ui/EmptyState";
+import { SkeletonCard } from "../ui/Skeleton";
 import { useToast } from "../ui/Toast";
 import styles from "./Sanciones.module.css";
 
 export default function MisSanciones() {
   const [activas, setActivas] = useState([]);
   const [pasadas, setPasadas] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const token = localStorage.getItem("token");
   const { error: toastError } = useToast();
@@ -59,8 +61,7 @@ export default function MisSanciones() {
   };
 
   useEffect(() => {
-    cargarActivas();
-    cargarPasadas();
+    Promise.all([cargarActivas(), cargarPasadas()]).finally(() => setLoading(false));
   }, []);
 
   return (
@@ -76,7 +77,12 @@ export default function MisSanciones() {
           <h2 className={styles.sectionTitle}>Sanciones activas</h2>
           <Badge variant="error" dot>{activas.length}</Badge>
         </div>
-        {activas.length === 0 ? (
+        {loading ? (
+          <div className={styles.grid}>
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        ) : activas.length === 0 ? (
           <EmptyState title="Sin sanciones activas" description="No tenés ninguna sanción vigente." />
         ) : (
           <div className={styles.grid}>
@@ -98,7 +104,12 @@ export default function MisSanciones() {
           <h2 className={styles.sectionTitle}>Sanciones pasadas</h2>
           <Badge variant="neutral">{pasadas.length}</Badge>
         </div>
-        {pasadas.length === 0 ? (
+        {loading ? (
+          <div className={styles.grid}>
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        ) : pasadas.length === 0 ? (
           <EmptyState title="Sin sanciones pasadas" description="No tenés sanciones en tu historial." />
         ) : (
           <div className={styles.grid}>

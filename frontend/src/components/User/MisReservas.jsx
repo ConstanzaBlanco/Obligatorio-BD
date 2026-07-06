@@ -6,6 +6,7 @@ import Button from "../ui/Button";
 import Badge from "../ui/Badge";
 import { Input } from "../ui/Field";
 import EmptyState from "../ui/EmptyState";
+import { SkeletonCard } from "../ui/Skeleton";
 import { useToast } from "../ui/Toast";
 import { useConfirm } from "../ui/Confirm";
 import styles from "./Reservas.module.css";
@@ -257,6 +258,14 @@ export default function MisReservas() {
         title="Mis reservas activas"
         description="Gestioná tus reservas, invitá participantes y controlá tus invitaciones."
       />
+
+      {loading && (
+        <div className={styles.grid}>
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      )}
 
       {nothing && (
         <EmptyState
