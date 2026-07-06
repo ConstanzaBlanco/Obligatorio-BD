@@ -8,7 +8,7 @@ router = APIRouter(prefix="/estadisticas", tags=["Estadísticas"])
 # 1. Salas más reservadas
 # ---------------------------------------------
 @router.get("/salas-mas-reservadas")
-def salas_mas_reservadas(user=Depends(requireRole("Administrador", "Usuario", "Bibliotecario"))):
+def salas_mas_reservadas(user=Depends(requireRole("Administrador", "Bibliotecario"))):
     conn = getConnection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
@@ -47,7 +47,7 @@ def turnos_mas_demandados(user=Depends(requireRole("Administrador", "Bibliotecar
 # 3. Promedio de participantes por sala
 # ---------------------------------------------
 @router.get("/promedio-participantes")
-def promedio_participantes(user=Depends(requireRole("Administrador", "Usuario", "Bibliotecario"))):
+def promedio_participantes(user=Depends(requireRole("Administrador", "Bibliotecario"))):
     conn = getConnection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
@@ -69,7 +69,7 @@ def promedio_participantes(user=Depends(requireRole("Administrador", "Usuario", 
 # 4. Reservas por carrera y facultad
 # ---------------------------------------------
 @router.get("/reservas-por-carrera")
-def reservas_por_carrera(user=Depends(requireRole("Administrador", "Usuario", "Bibliotecario"))):
+def reservas_por_carrera(user=Depends(requireRole("Administrador", "Bibliotecario"))):
     conn = getConnection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
@@ -90,7 +90,7 @@ def reservas_por_carrera(user=Depends(requireRole("Administrador", "Usuario", "B
 # 5. Porcentaje ocupación por edificio (dinámico)
 # ---------------------------------------------
 @router.get("/ocupacion-edificios")
-def ocupacion_edificios(user=Depends(requireRole("Administrador", "Usuario", "Bibliotecario"))):
+def ocupacion_edificios(user=Depends(requireRole("Administrador", "Bibliotecario"))):
     conn = getConnection()
     cursor = conn.cursor(dictionary=True)
     cursor.execute("""
