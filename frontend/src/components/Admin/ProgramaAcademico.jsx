@@ -181,7 +181,7 @@ export default function ProgramaManager() {
                         <option value="posgrado">Posgrado</option>
                       </Select>
                     ) : (
-                      <Badge variant={p.tipo === "posgrado" ? "info" : "neutral"} style={{ textTransform: "capitalize" }}>{p.tipo}</Badge>
+                      <Badge variant={p.tipo === "posgrado" ? "info" : "neutral"} className="capitalize">{p.tipo}</Badge>
                     )}
                   </td>
                   <td className={styles.actionsCol}>

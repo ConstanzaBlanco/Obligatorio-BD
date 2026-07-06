@@ -122,6 +122,20 @@ table,
   width: 100%;
 }
 
+/* --- Small utilities --------------------------------------------------------
+   Reserved for one-off cases that would otherwise repeat identical inline
+   styles across unrelated components. Prefer a CSS Module for anything
+   component-specific. */
+.form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
 /* --- Reduced motion -------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
   *,

@@ -245,7 +245,7 @@ export default function Home() {
                 <div className={styles.cardBody}>
                   {data.diaMasReservas ? (
                     <div className={styles.statRow}>
-                      <span className={styles.statValue} style={{ textTransform: "capitalize" }}>
+                      <span className={`${styles.statValue} capitalize`}>
                         {data.diaMasReservas.dia_semana}
                       </span>
                       <span className={styles.statCaption}>{data.diaMasReservas.total_reservas} reservas</span>
