@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useUser } from "./useUser";
 import { PageContainer, PageHeader } from "./ui/Page";
-import Card, { CardHeader } from "./ui/Card";
+import Card from "./ui/Card";
 import Button from "./ui/Button";
 import Badge from "./ui/Badge";
 import Field, { Input, Select } from "./ui/Field";
@@ -25,6 +25,7 @@ export default function Edificios() {
   const [facultades, setFacultades] = useState([]);
 
   // CREAR
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [nuevoNombre, setNuevoNombre] = useState("");
   const [nuevaDireccion, setNuevaDireccion] = useState("");
   const [nuevoDepartamento, setNuevoDepartamento] = useState("");
@@ -171,6 +172,7 @@ export default function Edificios() {
       setNuevaDireccion("");
       setNuevoDepartamento("");
       setIdFacultad("");
+      setShowCreateModal(false);
       cargarEdificios();
     } catch {
       toastError("Error creando edificio.");
@@ -189,6 +191,7 @@ export default function Edificios() {
         eyebrow="Salas"
         title="Edificios"
         description={isAdmin ? "Consultá, creá y administrá los edificios del sistema." : "Elegí un edificio para ver sus salas y reservar."}
+        actions={isAdmin && <Button onClick={() => setShowCreateModal(true)}>Nuevo edificio</Button>}
       />
 
       <div className={styles.toolbar}>
@@ -255,9 +258,18 @@ export default function Edificios() {
       )}
 
       {isAdmin && (
-        <Card className={styles.createCard}>
-          <CardHeader title="Crear nuevo edificio" subtitle="Registrá un edificio y asignalo a una facultad." />
-          <form onSubmit={crearEdificio} className={styles.createForm}>
+        <Modal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          title="Nuevo edificio"
+          footer={
+            <>
+              <Button variant="secondary" onClick={() => setShowCreateModal(false)}>Cancelar</Button>
+              <Button type="submit" form="crear-edificio-form">Crear edificio</Button>
+            </>
+          }
+        >
+          <form id="crear-edificio-form" onSubmit={crearEdificio} className="form-stack">
             <Field label="Nombre del edificio" required>
               <Input value={nuevoNombre} onChange={(e) => setNuevoNombre(e.target.value)} required />
             </Field>
@@ -275,9 +287,8 @@ export default function Edificios() {
                 ))}
               </Select>
             </Field>
-            <Button type="submit">Crear edificio</Button>
           </form>
-        </Card>
+        </Modal>
       )}
 
       <Modal

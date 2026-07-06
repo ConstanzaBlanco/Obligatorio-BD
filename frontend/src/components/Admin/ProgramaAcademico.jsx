@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { PageContainer, PageHeader } from "../ui/Page";
-import Card, { CardHeader } from "../ui/Card";
 import Button from "../ui/Button";
 import Field, { Input, Select } from "../ui/Field";
 import Table from "../ui/Table";
 import Badge from "../ui/Badge";
+import Modal from "../ui/Modal";
 import EmptyState from "../ui/EmptyState";
 import { SkeletonRows } from "../ui/Skeleton";
 import { useToast } from "../ui/useToast";
@@ -14,6 +14,7 @@ import styles from "./Admin.module.css";
 export default function ProgramaManager() {
   const [programas, setProgramas] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [facultades, setFacultades] = useState([]);
   const [nombrePrograma, setNombrePrograma] = useState("");
   const [idFacultad, setIdFacultad] = useState("");
@@ -68,6 +69,7 @@ export default function ProgramaManager() {
       setNombrePrograma("");
       setIdFacultad("");
       setTipo("");
+      setShowCreateModal(false);
       cargarProgramas();
     } catch {
       toastError("Error de conexión");
@@ -126,11 +128,25 @@ export default function ProgramaManager() {
 
   return (
     <PageContainer>
-      <PageHeader eyebrow="Administración" title="Programas académicos" description="Gestioná los programas y su facultad asociada." />
+      <PageHeader
+        eyebrow="Administración"
+        title="Programas académicos"
+        description="Gestioná los programas y su facultad asociada."
+        actions={<Button onClick={() => setShowCreateModal(true)}>Nuevo programa</Button>}
+      />
 
-      <Card className={styles.createCard}>
-        <CardHeader title="Nuevo programa" />
-        <form onSubmit={handleCreate} className={styles.createForm}>
+      <Modal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title="Nuevo programa"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setShowCreateModal(false)}>Cancelar</Button>
+            <Button type="submit" form="crear-programa-form">Crear</Button>
+          </>
+        }
+      >
+        <form id="crear-programa-form" onSubmit={handleCreate} className="form-stack">
           <Field label="Nombre del programa">
             <Input value={nombrePrograma} onChange={(e) => setNombrePrograma(e.target.value)} placeholder="Ej. Ingeniería en Informática" required />
           </Field>
@@ -149,11 +165,8 @@ export default function ProgramaManager() {
               <option value="posgrado">Posgrado</option>
             </Select>
           </Field>
-          <div className={styles.submit}>
-            <Button type="submit">Crear</Button>
-          </div>
         </form>
-      </Card>
+      </Modal>
 
       {loading ? (
         <Table>

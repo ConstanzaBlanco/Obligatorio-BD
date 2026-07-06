@@ -4,7 +4,7 @@ import { useUser } from "./useUser";
 import CrearReserva from "./User/CrearReserva";
 import NotFound from "./NotFound";
 import { PageContainer, PageHeader } from "./ui/Page";
-import Card, { CardHeader } from "./ui/Card";
+import Card from "./ui/Card";
 import Button from "./ui/Button";
 import Badge from "./ui/Badge";
 import Field, { Input, Select } from "./ui/Field";
@@ -21,6 +21,7 @@ export default function SalasPorEdificio() {
   const rol = user?.rol?.toLowerCase();
   const isAdmin = rol === "administrador";
   const isStaff = rol === "administrador" || rol === "bibliotecario";
+  const isUsuario = rol === "usuario";
 
   const [salas, setSalas] = useState([]);
   const [loadingSalas, setLoadingSalas] = useState(true);
@@ -29,6 +30,8 @@ export default function SalasPorEdificio() {
   const [idTurno, setIdTurno] = useState("");
   const [notFound, setNotFound] = useState(false);
 
+  const [showCreateSalaModal, setShowCreateSalaModal] = useState(false);
+  const [showReservaModal, setShowReservaModal] = useState(false);
   const [nombreSala, setNombreSala] = useState("");
   const [capacidad, setCapacidad] = useState("");
   const [tipo, setTipo] = useState("");
@@ -155,6 +158,7 @@ export default function SalasPorEdificio() {
       setNombreSala("");
       setCapacidad("");
       setTipo("");
+      setShowCreateSalaModal(false);
       cargarSalas();
     } catch {
       toastError("Error creando sala.");
@@ -218,7 +222,17 @@ export default function SalasPorEdificio() {
 
   return (
     <PageContainer>
-      <PageHeader eyebrow="Edificio" title={nombreEdificio} description="Salas disponibles y sus turnos." />
+      <PageHeader
+        eyebrow="Edificio"
+        title={nombreEdificio}
+        description="Salas disponibles y sus turnos."
+        actions={
+          <>
+            {isUsuario && <Button onClick={() => setShowReservaModal(true)}>Reservar</Button>}
+            {isAdmin && <Button variant="secondary" onClick={() => setShowCreateSalaModal(true)}>Nueva sala</Button>}
+          </>
+        }
+      />
 
       <div className={styles.filters}>
         <Field label="Fecha">
@@ -262,12 +276,28 @@ export default function SalasPorEdificio() {
         </section>
       )}
 
-      <CrearReserva edificio={nombreEdificio} salas={salas} />
+      {isUsuario && (
+        <CrearReserva
+          edificio={nombreEdificio}
+          salas={salas}
+          isOpen={showReservaModal}
+          onClose={() => setShowReservaModal(false)}
+        />
+      )}
 
       {isAdmin && (
-        <Card className={styles.createCard}>
-          <CardHeader title={`Crear sala en ${nombreEdificio}`} />
-          <form onSubmit={crearSala} className={styles.createForm}>
+        <Modal
+          isOpen={showCreateSalaModal}
+          onClose={() => setShowCreateSalaModal(false)}
+          title={`Crear sala en ${nombreEdificio}`}
+          footer={
+            <>
+              <Button variant="secondary" onClick={() => setShowCreateSalaModal(false)}>Cancelar</Button>
+              <Button type="submit" form="crear-sala-form">Crear sala</Button>
+            </>
+          }
+        >
+          <form id="crear-sala-form" onSubmit={crearSala} className="form-stack">
             <Field label="Nombre de la sala" required>
               <Input value={nombreSala} onChange={(e) => setNombreSala(e.target.value)} required />
             </Field>
@@ -282,9 +312,8 @@ export default function SalasPorEdificio() {
                 <option value="docente">Docente</option>
               </Select>
             </Field>
-            <Button type="submit">Crear sala</Button>
           </form>
-        </Card>
+        </Modal>
       )}
 
       <Modal

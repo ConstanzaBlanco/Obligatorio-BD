@@ -20,7 +20,6 @@ import SalasPorEdificio from "./components/SalasPorEdificio";
 import ReservasVencidas from "./components/Bibliotecario/ReservasVencidas";
 import MisSanciones from "./components/User/MisSanciones";
 import Me from "./components/Me";
-import CrearReserva from "./components/User/CrearReserva";
 import Reservas from "./components/Bibliotecario/Reservas";
 import Sanciones from "./components/Bibliotecario/Sanciones";
 import CreateBiblioUser from "./components/Admin/CrearBibliotecario";
@@ -58,7 +57,6 @@ export default function App() {
               <Route path="/bloqueados" element={<BlockedUsers />} />
               <Route path="/edificios" element={<Edificios />} />
               <Route path="/edificios/:nombreEdificio" element={<SalasPorEdificio />} />
-              <Route path="/crear-reserva" element={<CrearReserva />} />
               <Route path="/mis-sanciones" element={<MisSanciones />} />
               <Route path="/me" element={<Me />} />
               <Route path="/notificaciones" element={<NotificationsPanel/>} />

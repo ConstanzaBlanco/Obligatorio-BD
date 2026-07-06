@@ -1,15 +1,10 @@
 import { useState, useEffect } from "react";
-import { useUser } from "../useUser";
-import Card, { CardHeader } from "../ui/Card";
 import Button from "../ui/Button";
 import Field, { Input, Select } from "../ui/Field";
+import Modal from "../ui/Modal";
 import { useToast } from "../ui/useToast";
-import styles from "./CrearReserva.module.css";
 
-export default function CrearReserva({ edificio, salas }) {
-  const { user } = useUser();
-  const rol = user?.rol?.toLowerCase();
-
+export default function CrearReserva({ edificio, salas, isOpen, onClose }) {
   const [nombreSala, setNombreSala] = useState("");
   const [fecha, setFecha] = useState("");
   const [idTurno, setIdTurno] = useState("");
@@ -37,9 +32,6 @@ export default function CrearReserva({ edificio, salas }) {
     };
     cargarTurnos();
   }, []);
-
-  // Solo los usuarios pueden crear reservas.
-  if (rol !== "usuario") return null;
 
   const crearReserva = async (e) => {
     e.preventDefault();
@@ -87,6 +79,7 @@ export default function CrearReserva({ edificio, salas }) {
         setFecha("");
         setIdTurno("");
         setParticipantes("");
+        onClose();
       }
     } catch {
       setError("Error al crear reserva.");
@@ -96,9 +89,20 @@ export default function CrearReserva({ edificio, salas }) {
   };
 
   return (
-    <Card className={styles.card}>
-      <CardHeader title={`Reservar una sala en ${edificio}`} subtitle="Elegí sala, fecha y turno disponible." />
-      <form className={styles.form} onSubmit={crearReserva}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Reservar una sala en ${edificio}`}
+      footer={
+        <>
+          <Button variant="secondary" onClick={onClose}>Cancelar</Button>
+          <Button type="submit" form="crear-reserva-form" disabled={saving}>
+            {saving ? "Creando…" : "Crear reserva"}
+          </Button>
+        </>
+      }
+    >
+      <form id="crear-reserva-form" className="form-stack" onSubmit={crearReserva}>
         <Field label="Sala" required>
           <Select value={nombreSala} onChange={(e) => setNombreSala(e.target.value)} required>
             <option value="">Seleccioná una sala</option>
@@ -130,11 +134,7 @@ export default function CrearReserva({ edificio, salas }) {
             onChange={(e) => setParticipantes(e.target.value)}
           />
         </Field>
-
-        <Button type="submit" disabled={saving}>
-          {saving ? "Creando…" : "Crear reserva"}
-        </Button>
       </form>
-    </Card>
+    </Modal>
   );
 }

@@ -1,20 +1,3 @@
-.createCard {
-  margin-bottom: var(--space-8);
-}
-.createForm {
-  display: flex;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-  align-items: flex-end;
-}
-.createForm > * {
-  flex: 1;
-  min-width: 180px;
-}
-.createForm .submit {
-  flex: none;
-  min-width: 0;
-}
 .rowActions {
   display: flex;
   gap: var(--space-2);

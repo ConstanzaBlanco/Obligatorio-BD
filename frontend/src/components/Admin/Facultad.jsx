@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { PageContainer, PageHeader } from "../ui/Page";
-import Card, { CardHeader } from "../ui/Card";
 import Button from "../ui/Button";
 import Field, { Input } from "../ui/Field";
 import Table from "../ui/Table";
+import Modal from "../ui/Modal";
 import EmptyState from "../ui/EmptyState";
 import { SkeletonRows } from "../ui/Skeleton";
 import { useToast } from "../ui/useToast";
@@ -13,6 +13,7 @@ import styles from "./Admin.module.css";
 export default function FacultadManager() {
   const [facultades, setFacultades] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [nombre, setNombre] = useState("");
   const [editId, setEditId] = useState(null);
   const [editNombre, setEditNombre] = useState("");
@@ -61,6 +62,7 @@ export default function FacultadManager() {
       }
       success("Facultad creada correctamente");
       setNombre("");
+      setShowCreateModal(false);
       cargarFacultades();
     } catch {
       toastError("Error de conexión");
@@ -118,19 +120,30 @@ export default function FacultadManager() {
 
   return (
     <PageContainer size="narrow">
-      <PageHeader eyebrow="Administración" title="Facultades" description="Creá y administrá las facultades del sistema." />
+      <PageHeader
+        eyebrow="Administración"
+        title="Facultades"
+        description="Creá y administrá las facultades del sistema."
+        actions={<Button onClick={() => setShowCreateModal(true)}>Nueva facultad</Button>}
+      />
 
-      <Card className={styles.createCard}>
-        <CardHeader title="Nueva facultad" />
-        <form onSubmit={handleCreate} className={styles.createForm}>
+      <Modal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title="Nueva facultad"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setShowCreateModal(false)}>Cancelar</Button>
+            <Button type="submit" form="crear-facultad-form">Crear</Button>
+          </>
+        }
+      >
+        <form id="crear-facultad-form" onSubmit={handleCreate} className="form-stack">
           <Field label="Nombre de la facultad">
             <Input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej. Facultad de Ingeniería" required />
           </Field>
-          <div className={styles.submit}>
-            <Button type="submit">Crear</Button>
-          </div>
         </form>
-      </Card>
+      </Modal>
 
       {loading ? (
         <Table>
