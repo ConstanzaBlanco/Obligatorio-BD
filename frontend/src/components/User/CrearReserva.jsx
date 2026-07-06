@@ -1,24 +1,24 @@
 import { useState, useEffect } from "react";
 import { useUser } from "../UserContext";
+import Card, { CardHeader } from "../ui/Card";
+import Button from "../ui/Button";
+import Field, { Input, Select } from "../ui/Field";
+import { useToast } from "../ui/Toast";
+import styles from "./CrearReserva.module.css";
 
 export default function CrearReserva({ edificio, salas }) {
-
   const { user } = useUser();
   const rol = user?.rol?.toLowerCase();
-
-  if (rol !== "usuario") {
-    return null;
-  }
 
   const [nombreSala, setNombreSala] = useState("");
   const [fecha, setFecha] = useState("");
   const [idTurno, setIdTurno] = useState("");
   const [participantes, setParticipantes] = useState("");
-
   const [turnos, setTurnos] = useState([]);
-  const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
+  const { success } = useToast();
   const hoy = new Date().toISOString().split("T")[0];
 
   // Cargar turnos desde backend
@@ -26,47 +26,51 @@ export default function CrearReserva({ edificio, salas }) {
     const cargarTurnos = async () => {
       try {
         const token = localStorage.getItem("token");
-
         const res = await fetch("http://localhost:8000/turnosPosibles", {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
-
         const data = await res.json();
-
         setTurnos(data.turnos_posibles || []);
-
       } catch (e) {
         console.error("Error cargando turnos:", e);
       }
     };
-
     cargarTurnos();
   }, []);
 
-  const crearReserva = async () => {
-    setMensaje("");
+  useEffect(() => {
+    async function verHoraSist() {
+      const resHora = await fetch("http://localhost:8000/hora-servidor");
+      const dataHora = await resHora.json();
+      const horaServidor = new Date(dataHora.hora_servidor);
+      console.log("HORA SERVIDOR:", horaServidor);
+    }
+    verHoraSist();
+  }, []);
+
+  // Solo los usuarios pueden crear reservas.
+  if (rol !== "usuario") return null;
+
+  const crearReserva = async (e) => {
+    e.preventDefault();
     setError("");
 
     if (!nombreSala || !fecha || !idTurno) {
-      setError("Todos los campos son obligatorios.");
+      setError("Completá todos los campos obligatorios.");
       return;
     }
-
     if (fecha < hoy) {
       setError("La fecha no puede ser menor a hoy.");
       return;
     }
 
-    let participantesArray =
+    const participantesArray =
       participantes.trim() === ""
         ? []
-        : participantes
-            .split(",")
-            .map((x) => parseInt(x.trim()))
-            .filter((x) => !isNaN(x));
+        : participantes.split(",").map((x) => parseInt(x.trim())).filter((x) => !isNaN(x));
 
     const token = localStorage.getItem("token");
-
+    setSaving(true);
     try {
       const res = await fetch("http://localhost:8000/reservar", {
         method: "POST",
@@ -88,7 +92,7 @@ export default function CrearReserva({ edificio, salas }) {
       if (data.error) {
         setError(data.error);
       } else {
-        setMensaje(`Reserva creada correctamente. ID: ${data.id_reserva}`);
+        success(`Reserva creada correctamente (ID ${data.id_reserva}).`);
         setNombreSala("");
         setFecha("");
         setIdTurno("");
@@ -96,82 +100,51 @@ export default function CrearReserva({ edificio, salas }) {
       }
     } catch {
       setError("Error al crear reserva.");
+    } finally {
+      setSaving(false);
     }
   };
 
-useEffect(() => {
-  async function verHoraSist() {
-    const resHora = await fetch("http://localhost:8000/hora-servidor");
-    const dataHora = await resHora.json();
-    const horaServidor = new Date(dataHora.hora_servidor);
-    console.log("HORA SERVIDOR:", horaServidor);
-  }
-  verHoraSist();
-}, []);
-
-
-
   return (
-    <div style={{ marginTop: 40 }}>
-      <h2>Crear Reserva en {edificio}</h2>
+    <Card className={styles.card}>
+      <CardHeader title={`Reservar una sala en ${edificio}`} subtitle="Elegí sala, fecha y turno disponible." />
+      <form className={styles.form} onSubmit={crearReserva}>
+        <Field label="Sala" required>
+          <Select value={nombreSala} onChange={(e) => setNombreSala(e.target.value)} required>
+            <option value="">Seleccioná una sala</option>
+            {salas.map((s, i) => (
+              <option key={i} value={s.nombre_sala}>{s.nombre_sala}</option>
+            ))}
+          </Select>
+        </Field>
 
-      <div
-        style={{
-          maxWidth: 350,
-          margin: "auto",
-          display: "flex",
-          flexDirection: "column",
-          gap: 10,
-        }}
-      >
-        <select value={nombreSala} onChange={(e) => setNombreSala(e.target.value)}>
-          <option value="">Seleccione una sala</option>
-          {salas.map((s, i) => (
-            <option key={i} value={s.nombre_sala}>
-              {s.nombre_sala}
-            </option>
-          ))}
-        </select>
+        <Field label="Fecha" required>
+          <Input type="date" min={hoy} value={fecha} onChange={(e) => setFecha(e.target.value)} required />
+        </Field>
 
-        <input
-          type="date"
-          min={hoy}
-          value={fecha}
-          onChange={(e) => setFecha(e.target.value)}
-        />
+        <Field label="Turno" required>
+          <Select value={idTurno} onChange={(e) => setIdTurno(e.target.value)} required>
+            <option value="">Seleccioná un turno</option>
+            {turnos.map((t) => (
+              <option key={t.id_turno} value={t.id_turno}>
+                {t.hora_inicio.slice(0, 5)} – {t.hora_fin.slice(0, 5)}
+              </option>
+            ))}
+          </Select>
+        </Field>
 
-        <select value={idTurno} onChange={(e) => setIdTurno(e.target.value)}>
-          <option value="">Seleccione turno</option>
+        <Field label="Participantes" hint="CI separados por coma (opcional)." error={error}>
+          <Input
+            placeholder="Ej. 51234567, 49871203"
+            value={participantes}
+            onChange={(e) => setParticipantes(e.target.value)}
+          />
+        </Field>
 
-          {turnos.map((t) => (
-            <option key={t.id_turno} value={t.id_turno}>
-              {t.hora_inicio.slice(0, 5)} - {t.hora_fin.slice(0, 5)}
-            </option>
-          ))}
-        </select>
-
-        <input
-          placeholder="Participantes (CI separados por coma)"
-          value={participantes}
-          onChange={(e) => setParticipantes(e.target.value)}
-        />
-
-        <button
-          onClick={crearReserva}
-          style={{
-            padding: 10,
-            backgroundColor: "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: 5,
-          }}
-        >
-          Crear Reserva
-        </button>
-
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        {mensaje && <p style={{ color: "green" }}>{mensaje}</p>}
-      </div>
-    </div>
+        <Button type="submit" disabled={saving}>
+          {saving ? "Creando…" : "Crear reserva"}
+        </Button>
+      </form>
+    </Card>
   );
 }
