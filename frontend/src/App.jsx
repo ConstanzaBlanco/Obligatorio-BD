@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 
+import ScrollToTop from "./components/ScrollToTop";
 import Protected from "./protect/Protected";
 import AdminOnly from "./protect/AdminOnly";
 import BiblioOnly from "./protect/BiblioOnly";
@@ -36,6 +37,7 @@ export default function App() {
 
   return (
     <div className="app-wrapper">
+      <ScrollToTop />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Register />} />
