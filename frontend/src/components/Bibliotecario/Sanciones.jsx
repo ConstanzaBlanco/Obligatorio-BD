@@ -7,6 +7,7 @@ import Badge from "../ui/Badge";
 import Field, { Input, Textarea } from "../ui/Field";
 import Modal from "../ui/Modal";
 import EmptyState from "../ui/EmptyState";
+import { SkeletonCard } from "../ui/Skeleton";
 import { useToast } from "../ui/Toast";
 import { useConfirm } from "../ui/Confirm";
 import styles from "./Sanciones.module.css";
@@ -17,6 +18,7 @@ export default function Sanciones() {
 
   const [activas, setActivas] = useState([]);
   const [pasadas, setPasadas] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const token = localStorage.getItem("token");
   const { success, error: toastError } = useToast();
@@ -63,8 +65,7 @@ export default function Sanciones() {
   };
 
   useEffect(() => {
-    cargarSancionesActivas();
-    cargarSancionesPasadas();
+    Promise.all([cargarSancionesActivas(), cargarSancionesPasadas()]).finally(() => setLoading(false));
   }, []);
 
   const quitarSancion = async (id) => {
@@ -202,7 +203,13 @@ export default function Sanciones() {
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Sanciones activas</h2>
-        {activas.length === 0 ? (
+        {loading ? (
+          <div className={styles.grid}>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        ) : activas.length === 0 ? (
           <EmptyState title="Sin sanciones activas" description="No hay sanciones vigentes." />
         ) : (
           <div className={styles.grid}>{activas.map((s) => renderCard(s, false))}</div>
@@ -211,7 +218,12 @@ export default function Sanciones() {
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Sanciones pasadas</h2>
-        {pasadas.length === 0 ? (
+        {loading ? (
+          <div className={styles.grid}>
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        ) : pasadas.length === 0 ? (
           <EmptyState title="Sin sanciones pasadas" description="Todavía no hay historial de sanciones." />
         ) : (
           <div className={styles.grid}>{pasadas.map((s) => renderCard(s, true))}</div>

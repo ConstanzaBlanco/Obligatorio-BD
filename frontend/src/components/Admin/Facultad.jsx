@@ -5,12 +5,14 @@ import Button from "../ui/Button";
 import Field, { Input } from "../ui/Field";
 import Table from "../ui/Table";
 import EmptyState from "../ui/EmptyState";
+import { SkeletonRows } from "../ui/Skeleton";
 import { useToast } from "../ui/Toast";
 import { useConfirm } from "../ui/Confirm";
 import styles from "./Admin.module.css";
 
 export default function FacultadManager() {
   const [facultades, setFacultades] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [nombre, setNombre] = useState("");
   const [editId, setEditId] = useState(null);
   const [editNombre, setEditNombre] = useState("");
@@ -33,6 +35,8 @@ export default function FacultadManager() {
     } catch {
       toastError("Error de conexión");
       setFacultades([]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -127,7 +131,16 @@ export default function FacultadManager() {
         </form>
       </Card>
 
-      {facultades.length === 0 ? (
+      {loading ? (
+        <Table>
+          <thead>
+            <tr><th>Nombre</th><th className={styles.actionsCol}>Acciones</th></tr>
+          </thead>
+          <tbody>
+            <SkeletonRows rows={4} columns={2} />
+          </tbody>
+        </Table>
+      ) : facultades.length === 0 ? (
         <EmptyState title="No hay facultades" description="Creá la primera facultad con el formulario de arriba." />
       ) : (
         <Table>

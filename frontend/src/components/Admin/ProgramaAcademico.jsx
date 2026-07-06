@@ -6,12 +6,14 @@ import Field, { Input, Select } from "../ui/Field";
 import Table from "../ui/Table";
 import Badge from "../ui/Badge";
 import EmptyState from "../ui/EmptyState";
+import { SkeletonRows } from "../ui/Skeleton";
 import { useToast } from "../ui/Toast";
 import { useConfirm } from "../ui/Confirm";
 import styles from "./Admin.module.css";
 
 export default function ProgramaManager() {
   const [programas, setProgramas] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [facultades, setFacultades] = useState([]);
   const [nombrePrograma, setNombrePrograma] = useState("");
   const [idFacultad, setIdFacultad] = useState("");
@@ -38,6 +40,8 @@ export default function ProgramaManager() {
       setFacultades(data.facultades || []);
     } catch {
       toastError("Error de conexión");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -150,7 +154,16 @@ export default function ProgramaManager() {
         </form>
       </Card>
 
-      {programas.length === 0 ? (
+      {loading ? (
+        <Table>
+          <thead>
+            <tr><th>Programa</th><th>Facultad</th><th>Tipo</th><th className={styles.actionsCol}>Acciones</th></tr>
+          </thead>
+          <tbody>
+            <SkeletonRows rows={4} columns={4} />
+          </tbody>
+        </Table>
+      ) : programas.length === 0 ? (
         <EmptyState title="No hay programas" description="Creá el primer programa con el formulario de arriba." />
       ) : (
         <Table>

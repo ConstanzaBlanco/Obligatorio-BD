@@ -6,6 +6,7 @@ import Badge from "../ui/Badge";
 import Table from "../ui/Table";
 import { Select } from "../ui/Field";
 import EmptyState from "../ui/EmptyState";
+import { SkeletonRows } from "../ui/Skeleton";
 import { useToast } from "../ui/Toast";
 import { useConfirm } from "../ui/Confirm";
 import styles from "./Admin.module.css";
@@ -18,6 +19,7 @@ const ROLE_VARIANT = {
 
 export default function Usuarios() {
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [miRol, setMiRol] = useState("");
   const navigate = useNavigate();
 
@@ -120,8 +122,7 @@ export default function Usuarios() {
   };
 
   useEffect(() => {
-    loadMyRole();
-    loadUsers();
+    Promise.all([loadMyRole(), loadUsers()]).finally(() => setLoading(false));
   }, []);
 
   const canModify = miRol === "Administrador" || miRol === "Bibliotecario";
@@ -139,7 +140,21 @@ export default function Usuarios() {
         }
       />
 
-      {users.length === 0 ? (
+      {loading ? (
+        <Table>
+          <thead>
+            <tr>
+              <th>Correo</th>
+              <th>Rol</th>
+              <th>Último acceso</th>
+              <th className={styles.actionsCol}>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <SkeletonRows rows={5} columns={4} />
+          </tbody>
+        </Table>
+      ) : users.length === 0 ? (
         <EmptyState title="No hay usuarios" description="Todavía no hay usuarios para mostrar." />
       ) : (
         <Table>
