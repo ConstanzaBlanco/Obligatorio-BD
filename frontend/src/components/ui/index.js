@@ -7,7 +7,7 @@ export { default as Table } from "./Table";
 export { default as Modal } from "./Modal";
 export { default as EmptyState } from "./EmptyState";
 export { default as Skeleton, SkeletonCard } from "./Skeleton";
-export { default as Spinner } from "./Spinner";
+export { default as Spinner, PageSpinner } from "./Spinner";
 export { PageContainer, PageHeader } from "./Page";
 export { ToastProvider, useToast } from "./Toast";
 export { ConfirmProvider, useConfirm } from "./Confirm";

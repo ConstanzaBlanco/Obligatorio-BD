@@ -11,3 +11,13 @@ export default function Spinner({ size = 20, label = "Cargando", className = "" 
     />
   );
 }
+
+/** PageSpinner — centered loading state for a full route/page, optionally with a caption. */
+export function PageSpinner({ label, size = 28 }) {
+  return (
+    <div className={styles.pageSpinner}>
+      <Spinner size={size} />
+      {label && <p>{label}</p>}
+    </div>
+  );
+}
