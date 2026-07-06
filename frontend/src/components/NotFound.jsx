@@ -1,48 +1,39 @@
-export default function NotFound({ mensaje = "Página no encontrada" }) {
-  return (
-    <div style={styles.container}>
-      <h1 style={styles.code}>404</h1>
-      <h2 style={styles.title}>{mensaje}</h2>
+import { useNavigate } from "react-router-dom";
+import Button from "./ui/Button";
 
-      <p style={styles.text}>
+export default function NotFound({ mensaje = "Página no encontrada" }) {
+  const navigate = useNavigate();
+
+  return (
+    <div
+      style={{
+        minHeight: "60vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        gap: "var(--space-3)",
+        padding: "var(--space-6)",
+      }}
+    >
+      <p
+        style={{
+          fontSize: "var(--text-4xl)",
+          fontWeight: "var(--font-bold)",
+          color: "var(--color-primary)",
+          letterSpacing: "var(--tracking-tight)",
+        }}
+      >
+        404
+      </p>
+      <h1 style={{ fontSize: "var(--text-2xl)" }}>{mensaje}</h1>
+      <p style={{ color: "var(--color-text-muted)", maxWidth: "40ch" }}>
         La página que buscás no existe o fue movida.
       </p>
-
-      <a href="/" style={styles.button}>
+      <Button onClick={() => navigate("/")} style={{ marginTop: "var(--space-3)" }}>
         Volver al inicio
-      </a>
+      </Button>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    textAlign: "center",
-    marginTop: "80px",
-    color: "#333",
-    padding: "20px",
-  },
-  code: {
-    fontSize: "80px",
-    fontWeight: "bold",
-    marginBottom: "10px",
-    color: "#cc0000",
-  },
-  title: {
-    fontSize: "28px",
-    marginBottom: "10px",
-  },
-  text: {
-    fontSize: "16px",
-    marginBottom: "30px",
-    color: "#666",
-  },
-  button: {
-    padding: "10px 18px",
-    backgroundColor: "#007bff",
-    color: "white",
-    textDecoration: "none",
-    borderRadius: "6px",
-    fontSize: "16px",
-  },
-};
