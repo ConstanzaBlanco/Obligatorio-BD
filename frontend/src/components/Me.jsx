@@ -4,7 +4,7 @@ import { PageContainer, PageHeader } from "./ui/Page";
 import Card from "./ui/Card";
 import Button from "./ui/Button";
 import Field, { Input } from "./ui/Field";
-import Spinner from "./ui/Spinner";
+import { PageSpinner } from "./ui/Spinner";
 import { useToast } from "./ui/Toast";
 import styles from "./Me.module.css";
 
@@ -87,9 +87,7 @@ export default function Me() {
   if (!user) {
     return (
       <PageContainer size="narrow">
-        <div style={{ display: "flex", justifyContent: "center", padding: "var(--space-16)" }}>
-          <Spinner size={28} />
-        </div>
+        <PageSpinner />
       </PageContainer>
     );
   }

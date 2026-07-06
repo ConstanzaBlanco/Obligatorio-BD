@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useUser } from "../components/UserContext";
-import Spinner from "../components/ui/Spinner";
+import { PageSpinner } from "../components/ui/Spinner";
 import { useToast } from "../components/ui/Toast";
 
 /**
@@ -19,13 +19,7 @@ export default function RoleGuard({ allow, message = "No tenés los permisos nec
     if (denied) error(message);
   }, [denied, message, error]);
 
-  if (loadingUser) {
-    return (
-      <div style={{ display: "flex", justifyContent: "center", padding: "var(--space-16)" }}>
-        <Spinner size={28} />
-      </div>
-    );
-  }
+  if (loadingUser) return <PageSpinner />;
 
   if (denied) return <Navigate to="/" replace />;
 
