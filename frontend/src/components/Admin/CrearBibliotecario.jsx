@@ -74,7 +74,7 @@ export default function CreateBiblioUser() {
         description="Registrá una cuenta con permisos de bibliotecario."
       />
       <Card>
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>
+        <form onSubmit={handleSubmit} className="form-stack">
           <Field label="Correo institucional" required>
             <Input type="email" value={correo} onChange={(e) => setCorreo(e.target.value)} autoComplete="email" required />
           </Field>

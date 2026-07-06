@@ -380,9 +380,7 @@ export default function MisReservas() {
                     <span><strong>{formatFecha(r.fecha)}</strong></span>
                     <span>{formatHora(r.hora_inicio)} → {formatHora(r.hora_fin)}</span>
                   </div>
-                  <p style={{ fontSize: "var(--text-sm)", color: "var(--color-text-muted)" }}>
-                    Bloqueaste recibir más invitaciones.
-                  </p>
+                  <p className={styles.caption}>Bloqueaste recibir más invitaciones.</p>
                   <div className={styles.cardActions}>
                     <Button variant="secondary" size="sm" fullWidth onClick={() => desbloquearReserva(r.id_reserva)}>
                       Desbloquear

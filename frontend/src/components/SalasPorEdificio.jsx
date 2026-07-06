@@ -199,7 +199,7 @@ export default function SalasPorEdificio() {
       </div>
       <dl className={styles.meta}>
         <div><dt>Capacidad</dt><dd>{s.capacidad}</dd></div>
-        <div><dt>Tipo</dt><dd style={{ textTransform: "capitalize" }}>{s.tipo_sala}</dd></div>
+        <div><dt>Tipo</dt><dd className="capitalize">{s.tipo_sala}</dd></div>
       </dl>
       {isAdmin && (
         <div className={styles.actions}>

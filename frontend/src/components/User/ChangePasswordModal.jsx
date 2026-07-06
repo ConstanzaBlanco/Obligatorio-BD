@@ -76,11 +76,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
         </>
       }
     >
-      <form
-        id="change-password-form"
-        onSubmit={handleSubmit}
-        style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}
-      >
+      <form id="change-password-form" onSubmit={handleSubmit} className="form-stack">
         <Field label="Contraseña actual">
           <Input
             type="password"
