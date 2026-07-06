@@ -1,4 +1,11 @@
 import { useEffect, useState } from "react";
+import { PageContainer, PageHeader } from "../ui/Page";
+import Card from "../ui/Card";
+import Button from "../ui/Button";
+import Badge from "../ui/Badge";
+import EmptyState from "../ui/EmptyState";
+import { SkeletonCard } from "../ui/Skeleton";
+import styles from "./Notificaciones.module.css";
 
 export default function NotificationsPanel() {
   const [notificaciones, setNotificaciones] = useState([]);
@@ -65,173 +72,71 @@ export default function NotificationsPanel() {
     })();
   }, []);
 
-  if (loading) return <p>Cargando notificaciones...</p>;
-
   return (
-    <div style={styles.container}>
-      <h2 style={styles.title}>🔔 Notificaciones</h2>
+    <PageContainer size="narrow">
+      <PageHeader
+        eyebrow="Actividad"
+        title="Notificaciones"
+        description="Avisos sobre tus reservas, invitaciones y sanciones."
+        actions={
+          notificaciones.length > 0 && (
+            <Button variant="secondary" onClick={marcarTodas}>
+              Marcar todas como leídas
+            </Button>
+          )
+        }
+      />
 
-      <div style={styles.header}>
-        <p style={styles.unreadText}>
-          <strong>No leídas:</strong> {unreadCount}
-        </p>
-        <button style={styles.markAllButton} onClick={marcarTodas}>
-          Marcar todas como leídas
-        </button>
-      </div>
+      {!loading && (
+        <div className={styles.summary}>
+          <Badge variant={unreadCount > 0 ? "info" : "neutral"} dot>
+            {unreadCount} sin leer
+          </Badge>
+        </div>
+      )}
 
-      <div style={styles.list}>
-        {notificaciones.length === 0 ? (
-          <p>No tienes notificaciones.</p>
-        ) : (
-          notificaciones.map((n) => (
-            <div
+      {loading ? (
+        <div className={styles.list}>
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      ) : notificaciones.length === 0 ? (
+        <EmptyState title="Estás al día" description="No tenés notificaciones por ahora." />
+      ) : (
+        <div className={styles.list}>
+          {notificaciones.map((n) => (
+            <Card
               key={n.id_notificacion}
-              style={{
-                ...styles.card,
-                backgroundColor: n.leido ? "#ececec" : "#ffffff",
-                boxShadow: n.leido
-                  ? "0 2px 4px rgba(0,0,0,0.08)"
-                  : "0 3px 8px rgba(0,0,0,0.15)",
-                borderLeft: n.leido
-                  ? "6px solid #888"
-                  : "6px solid #0A3D62",
-              }}
+              tone={n.leido ? "muted" : undefined}
+              className={n.leido ? styles.read : styles.unread}
             >
-              <div style={styles.cardContent}>
-                <h3 style={styles.tipo}>{n.tipo.toUpperCase()}</h3>
-
-                <p style={styles.mensaje}>{n.mensaje}</p>
-
-                {n.referencia_tipo === "reserva" && (
-                  <div style={styles.extraBox}>
-                    <p><strong>Invitado por:</strong> {n.creador_nombre || "Desconocido"}</p>
-                    <p><strong>Sala:</strong> {n.sala || "-"}</p>
-                    <p><strong>Edificio:</strong> {n.edificio || "-"}</p>
-                    <p><strong>Fecha:</strong> {n.fecha_reserva || "-"}</p>
-                    <p><strong>Turno:</strong> {n.hora_inicio || "-"}</p>
-                  </div>
-                )}
-
-                <small style={styles.fecha}>
-                  {new Date(n.fecha).toLocaleString("es-UY")}
-                </small>
+              <div className={styles.head}>
+                <span className={styles.tipo}>{n.tipo}</span>
+                {!n.leido && <Badge variant="info" dot>Nueva</Badge>}
               </div>
 
-              {!n.leido && (
-                <button
-                  style={styles.readButton}
-                  onClick={() => marcarLeida(n.id_notificacion)}
-                >
-                  ✔ Marcar como leída
-                </button>
+              <p className={styles.mensaje}>{n.mensaje}</p>
+
+              {n.referencia_tipo === "reserva" && (
+                <div className={styles.extra}>
+                  <span>Invitado por <strong>{n.creador_nombre || "Desconocido"}</strong></span>
+                  <span>Sala <strong>{n.sala || "-"}</strong> · {n.edificio || "-"}</span>
+                  <span>{n.fecha_reserva || "-"} · {n.hora_inicio || "-"}</span>
+                </div>
               )}
-            </div>
-          ))
-        )}
-      </div>
-    </div>
+
+              <div className={styles.foot}>
+                <span className={styles.fecha}>{new Date(n.fecha).toLocaleString("es-UY")}</span>
+                {!n.leido && (
+                  <Button size="sm" variant="ghost" onClick={() => marcarLeida(n.id_notificacion)}>
+                    Marcar como leída
+                  </Button>
+                )}
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </PageContainer>
   );
 }
-
-
-const styles = {
-  container: {
-    padding: "20px",
-    maxWidth: "760px",
-    margin: "0 auto",
-    fontFamily: "Segoe UI, Roboto, Arial",
-  },
-
-  title: {
-    fontSize: "28px",
-    marginBottom: "15px",
-    color: "#0A3D62",
-    fontWeight: "700",
-  },
-
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "25px",
-  },
-
-  unreadText: {
-    fontSize: "16px",
-  },
-
-  markAllButton: {
-    backgroundColor: "#0A3D62",
-    color: "white",
-    padding: "10px 16px",
-    borderRadius: "6px",
-    border: "none",
-    cursor: "pointer",
-    fontSize: "14px",
-    fontWeight: "bold",
-  },
-
-  list: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "20px",
-  },
-
-  card: {
-    position: "relative",   
-    padding: "18px",
-    borderRadius: "12px",
-    border: "1px solid #ddd",
-  },
-
-  cardContent: {
-    paddingRight: "20px",
-  },
-
-  tipo: {
-    margin: 0,
-    marginBottom: "6px",
-    fontSize: "20px",
-    color: "#0A3D62",
-    fontWeight: "600",
-  },
-
-  mensaje: {
-    fontSize: "15px",
-    marginBottom: "12px",
-    color: "#333",
-  },
-
-  extraBox: {
-    backgroundColor: "#e8f1ff",
-    padding: "12px",
-    borderRadius: "6px",
-    marginTop: "12px",
-    border: "1px solid #cddfff",
-    fontSize: "14px",
-    color: "#0A3D62",
-  },
-
-  fecha: {
-    display: "block",
-    marginTop: "14px",
-    fontSize: "12px",
-    color: "#666",
-  },
-
-
-  readButton: {
-    position: "absolute",
-    bottom: "12px",
-    right: "12px",
-    backgroundColor: "#28a745",
-    color: "white",
-    border: "none",
-    borderRadius: "8px",
-    padding: "9px 14px",
-    cursor: "pointer",
-    fontWeight: "bold",
-    fontSize: "14px",
-  },
-};
