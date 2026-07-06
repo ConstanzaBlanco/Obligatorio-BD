@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useUser } from "../UserContext";
+import { useUser } from "../useUser";
 import { PageContainer, PageHeader } from "../ui/Page";
 import Card from "../ui/Card";
 import Button from "../ui/Button";
@@ -7,8 +7,8 @@ import Badge from "../ui/Badge";
 import { Input } from "../ui/Field";
 import EmptyState from "../ui/EmptyState";
 import { SkeletonCard } from "../ui/Skeleton";
-import { useToast } from "../ui/Toast";
-import { useConfirm } from "../ui/Confirm";
+import { useToast } from "../ui/useToast";
+import { useConfirm } from "../ui/useConfirm";
 import styles from "./Reservas.module.css";
 
 export default function MisReservas() {
@@ -125,6 +125,7 @@ export default function MisReservas() {
 
   useEffect(() => {
     cargarActivas();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch once on mount
   }, []);
 
   const desbloquearReserva = async (id_reserva) => {

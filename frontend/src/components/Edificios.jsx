@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useUser } from "./UserContext";
+import { useUser } from "./useUser";
 import { PageContainer, PageHeader } from "./ui/Page";
 import Card, { CardHeader } from "./ui/Card";
 import Button from "./ui/Button";
@@ -9,8 +9,8 @@ import Field, { Input, Select } from "./ui/Field";
 import Modal from "./ui/Modal";
 import EmptyState from "./ui/EmptyState";
 import { SkeletonCard } from "./ui/Skeleton";
-import { useToast } from "./ui/Toast";
-import { useConfirm } from "./ui/Confirm";
+import { useToast } from "./ui/useToast";
+import { useConfirm } from "./ui/useConfirm";
 import styles from "./Edificios.module.css";
 
 export default function Edificios() {
@@ -75,7 +75,9 @@ export default function Edificios() {
       });
       const data = await res.json();
       setDepartamentos(Array.isArray(data.departamentos) ? data.departamentos : []);
-    } catch {}
+    } catch {
+      // Non-critical: the filter dropdown just stays empty.
+    }
   };
 
   const cargarFacultades = async () => {
@@ -86,7 +88,9 @@ export default function Edificios() {
       });
       const data = await res.json();
       setFacultades(data || []);
-    } catch {}
+    } catch {
+      // Non-critical: the "crear edificio" facultad select just stays empty.
+    }
   };
 
   const cargarEdificios = async () => {
@@ -108,10 +112,12 @@ export default function Edificios() {
     cargarDepartamentos();
     cargarFacultades();
     cargarEdificios();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch once on mount
   }, []);
 
   useEffect(() => {
     cargarEdificios();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- re-fetch on filter change only
   }, [departamentoFiltro]);
 
   const eliminarEdificio = async (nombre_edificio) => {

@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { useUser } from "./UserContext";
+import { useUser } from "./useUser";
 import styles from "./Header.module.css";
 
 const NAV_BY_ROLE = {

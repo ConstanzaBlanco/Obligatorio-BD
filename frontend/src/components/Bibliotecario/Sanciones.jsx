@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useUser } from "../UserContext";
+import { useUser } from "../useUser";
 import { PageContainer, PageHeader } from "../ui/Page";
 import Card from "../ui/Card";
 import Button from "../ui/Button";
@@ -8,8 +8,8 @@ import Field, { Input, Textarea } from "../ui/Field";
 import Modal from "../ui/Modal";
 import EmptyState from "../ui/EmptyState";
 import { SkeletonCard } from "../ui/Skeleton";
-import { useToast } from "../ui/Toast";
-import { useConfirm } from "../ui/Confirm";
+import { useToast } from "../ui/useToast";
+import { useConfirm } from "../ui/useConfirm";
 import styles from "./Sanciones.module.css";
 
 export default function Sanciones() {
@@ -66,6 +66,7 @@ export default function Sanciones() {
 
   useEffect(() => {
     Promise.all([cargarSancionesActivas(), cargarSancionesPasadas()]).finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch once on mount
   }, []);
 
   const quitarSancion = async (id) => {

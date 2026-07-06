@@ -5,8 +5,8 @@ import Button from "../ui/Button";
 import Badge from "../ui/Badge";
 import EmptyState from "../ui/EmptyState";
 import { SkeletonCard } from "../ui/Skeleton";
-import { useToast } from "../ui/Toast";
-import { useConfirm } from "../ui/Confirm";
+import { useToast } from "../ui/useToast";
+import { useConfirm } from "../ui/useConfirm";
 import styles from "./Invitaciones.module.css";
 
 export default function MisInvitaciones() {
@@ -51,7 +51,7 @@ export default function MisInvitaciones() {
         toastError(data.error || data.detail || "Error al cargar invitaciones");
         setInvitaciones([]);
       }
-    } catch (err) {
+    } catch {
       toastError("Error conectando con el servidor");
       setInvitaciones([]);
     } finally {
@@ -159,6 +159,7 @@ export default function MisInvitaciones() {
 
   useEffect(() => {
     cargarInvitaciones();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch once on mount
   }, []);
 
   return (

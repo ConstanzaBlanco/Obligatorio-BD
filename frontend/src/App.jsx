@@ -7,7 +7,7 @@ import BiblioOnly from "./protect/BiblioOnly";
 
 import Login from "./Login";
 import Register from "./Register";
-import { useUser } from "./components/UserContext";
+import { useUser } from "./components/useUser";
 
 import PrivateLayout from "./protect/PrivateLayout"; 
 
@@ -33,7 +33,7 @@ import NotFound from "./components/NotFound";
 import NotificationsPanel from "./components/User/NotificacionesPendientes";
 
 export default function App() {
-  const { user, logout } = useUser();
+  const { user } = useUser();
 
   return (
     <div className="app-wrapper">

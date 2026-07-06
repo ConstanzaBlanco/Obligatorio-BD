@@ -7,8 +7,8 @@ import Table from "../ui/Table";
 import { Select } from "../ui/Field";
 import EmptyState from "../ui/EmptyState";
 import { SkeletonRows } from "../ui/Skeleton";
-import { useToast } from "../ui/Toast";
-import { useConfirm } from "../ui/Confirm";
+import { useToast } from "../ui/useToast";
+import { useConfirm } from "../ui/useConfirm";
 import styles from "./Admin.module.css";
 
 const ROLE_VARIANT = {
@@ -108,7 +108,6 @@ export default function Usuarios() {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
-      const data = await res.json();
       if (!res.ok) {
         toastError("Error al eliminar usuario");
         return;
@@ -123,6 +122,7 @@ export default function Usuarios() {
 
   useEffect(() => {
     Promise.all([loadMyRole(), loadUsers()]).finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch once on mount
   }, []);
 
   const canModify = miRol === "Administrador" || miRol === "Bibliotecario";

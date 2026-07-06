@@ -5,7 +5,7 @@ import Button from "../ui/Button";
 import Badge from "../ui/Badge";
 import EmptyState from "../ui/EmptyState";
 import { SkeletonCard } from "../ui/Skeleton";
-import { useToast } from "../ui/Toast";
+import { useToast } from "../ui/useToast";
 import styles from "./ReservasVencidas.module.css";
 
 export default function ReservasVencidas() {
@@ -33,6 +33,7 @@ export default function ReservasVencidas() {
 
   useEffect(() => {
     cargarReservas();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch once on mount
   }, []);
 
   const toggleCheck = (idReserva, ci) => {

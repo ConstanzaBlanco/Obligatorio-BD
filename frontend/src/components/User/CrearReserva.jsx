@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { useUser } from "../UserContext";
+import { useUser } from "../useUser";
 import Card, { CardHeader } from "../ui/Card";
 import Button from "../ui/Button";
 import Field, { Input, Select } from "../ui/Field";
-import { useToast } from "../ui/Toast";
+import { useToast } from "../ui/useToast";
 import styles from "./CrearReserva.module.css";
 
 export default function CrearReserva({ edificio, salas }) {
@@ -36,16 +36,6 @@ export default function CrearReserva({ edificio, salas }) {
       }
     };
     cargarTurnos();
-  }, []);
-
-  useEffect(() => {
-    async function verHoraSist() {
-      const resHora = await fetch("http://localhost:8000/hora-servidor");
-      const dataHora = await resHora.json();
-      const horaServidor = new Date(dataHora.hora_servidor);
-      console.log("HORA SERVIDOR:", horaServidor);
-    }
-    verHoraSist();
   }, []);
 
   // Solo los usuarios pueden crear reservas.
