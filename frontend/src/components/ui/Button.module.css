@@ -61,7 +61,7 @@
 
 .danger {
   background: var(--color-error);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 .danger:hover:not(:disabled) {
   background: var(--red-700);
@@ -69,7 +69,7 @@
 
 .success {
   background: var(--color-success);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 .success:hover:not(:disabled) {
   background: var(--green-700);
