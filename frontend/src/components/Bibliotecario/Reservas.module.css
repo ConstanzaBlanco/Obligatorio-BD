@@ -1,0 +1,52 @@
+.section {
+  margin-bottom: var(--space-8);
+}
+.sectionTitle {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  margin-bottom: var(--space-4);
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-4);
+}
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+.room {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.meta strong {
+  color: var(--color-text);
+  font-weight: var(--font-medium);
+}
+.pastNote {
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  font-style: italic;
+  color: var(--color-text-subtle);
+}
+.actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}

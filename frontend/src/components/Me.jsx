@@ -1,17 +1,24 @@
 import { useEffect, useState } from "react";
 import ChangePasswordModal from "./User/ChangePasswordModal";
+import { PageContainer, PageHeader } from "./ui/Page";
+import Card from "./ui/Card";
+import Button from "./ui/Button";
+import Field, { Input } from "./ui/Field";
+import { PageSpinner } from "./ui/Spinner";
+import { useToast } from "./ui/useToast";
+import styles from "./Me.module.css";
 
 export default function Me() {
   const [user, setUser] = useState(null);
   const [openPassModal, setOpenPassModal] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const [name, setName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
 
-  const [mensaje, setMensaje] = useState("");
-
   const token = localStorage.getItem("token");
+  const { success, error: toastError } = useToast();
 
   useEffect(() => {
     const cargarUsuario = async () => {
@@ -30,8 +37,8 @@ export default function Me() {
     cargarUsuario();
   }, [token]);
 
-  const guardarCambios = async () => {
-    setMensaje("");
+  const guardarCambios = async (e) => {
+    e.preventDefault();
 
     const payload = {
       name: name.trim(),
@@ -39,6 +46,7 @@ export default function Me() {
       email: email.trim().toLowerCase(),
     };
 
+    setSaving(true);
     try {
       const res = await fetch("http://localhost:8000/me/modify", {
         method: "PATCH",
@@ -52,7 +60,7 @@ export default function Me() {
       const data = await res.json();
 
       if (!res.ok) {
-        setMensaje(data.detail || "Error al actualizar");
+        toastError(data.detail || "Error al actualizar");
         return;
       }
 
@@ -67,62 +75,76 @@ export default function Me() {
         mail: payload.email,
       }));
 
-      setMensaje("Datos actualizados ✔");
+      success("Datos actualizados");
     } catch (err) {
       console.error(err);
-      setMensaje("Error al guardar cambios");
+      toastError("Error al guardar cambios");
+    } finally {
+      setSaving(false);
     }
   };
 
-  if (!user)
-    return <p style={{ textAlign: "center", marginTop: 40 }}>Cargando...</p>;
+  if (!user) {
+    return (
+      <PageContainer size="narrow">
+        <PageSpinner />
+      </PageContainer>
+    );
+  }
+
+  const initial = (user.name?.[0] || "U").toUpperCase();
 
   return (
-    <div style={container}>
-      <h2 style={title}>Mi Perfil</h2>
+    <PageContainer size="narrow">
+      <PageHeader eyebrow="Tu cuenta" title="Mi perfil" description="Actualizá tus datos personales y tu contraseña." />
 
-      <div style={card}>
-        <div style={avatar}>👤</div>
+      <div className={styles.grid}>
+        <Card>
+          <div className={styles.identity}>
+            <div className={styles.avatar} aria-hidden="true">{initial}</div>
+            <div className={styles.name}>{user.name} {user.lastName}</div>
+            <div className={styles.meta}>
+              <div className={styles.metaRow}>
+                <span className={styles.metaLabel}>CI</span>
+                <span className={styles.metaValue}>{user.ci}</span>
+              </div>
+              <div className={styles.metaRow}>
+                <span className={styles.metaLabel}>Rol</span>
+                <span className={styles.metaValue}>{user.rol}</span>
+              </div>
+              <div className={styles.metaRow}>
+                <span className={styles.metaLabel}>Último acceso</span>
+                <span className={styles.metaValue}>{user.last_access}</span>
+              </div>
+            </div>
+          </div>
+        </Card>
 
-        <div style={infoSection}>
-          <label><strong>Nombre:</strong></label>
-          <input style={input} value={name} onChange={(e) => setName(e.target.value)} />
+        <Card>
+          <form className={styles.form} onSubmit={guardarCambios}>
+            <Field label="Nombre">
+              <Input value={name} onChange={(e) => setName(e.target.value)} required />
+            </Field>
+            <Field label="Apellido">
+              <Input value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+            </Field>
+            <Field label="Email">
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </Field>
 
-          <label><strong>Apellido:</strong></label>
-          <input style={input} value={lastName} onChange={(e) => setLastName(e.target.value)} />
-
-          <label><strong>Email:</strong></label>
-          <input style={input} value={email} onChange={(e) => setEmail(e.target.value)} />
-
-          <p><strong>CI:</strong> {user.ci}</p>
-          <p><strong>Rol:</strong> {user.rol}</p>
-          <p><strong>Último acceso:</strong> {user.last_access}</p>
-        </div>
-
-        {mensaje && <p style={{ color: "green" }}>{mensaje}</p>}
-
-        <button style={btnSave} onClick={guardarCambios}>Guardar cambios</button>
-
-        <button style={btn} onClick={() => setOpenPassModal(true)}>
-          Cambiar contraseña
-        </button>
+            <div className={styles.actions}>
+              <Button type="submit" disabled={saving}>
+                {saving ? "Guardando…" : "Guardar cambios"}
+              </Button>
+              <Button type="button" variant="secondary" onClick={() => setOpenPassModal(true)}>
+                Cambiar contraseña
+              </Button>
+            </div>
+          </form>
+        </Card>
       </div>
 
-      <ChangePasswordModal
-        isOpen={openPassModal}
-        onClose={() => setOpenPassModal(false)}
-      />
-    </div>
+      <ChangePasswordModal isOpen={openPassModal} onClose={() => setOpenPassModal(false)} />
+    </PageContainer>
   );
 }
-
-
-
-const container = { maxWidth: "700px", margin: "40px auto", padding: "20px" };
-const title = { textAlign: "center", fontSize: "28px", marginBottom: "20px" };
-const card = { background: "white", padding: "25px", borderRadius: "12px", boxShadow: "0 4px 18px rgba(0,0,0,0.1)", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" };
-const avatar = { width: "90px", height: "90px", background: "#eef", borderRadius: "50%", fontSize: "40px", display: "flex", justifyContent: "center", alignItems: "center" };
-const infoSection = { width: "100%", background: "#f7f7f7", padding: "15px", borderRadius: "10px" };
-const input = { width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc", marginBottom: "10px" };
-const btn = { padding: "10px 20px", background: "#6c63ff", color: "white", borderRadius: "6px", cursor: "pointer" };
-const btnSave = { ...btn, background: "#4CAF50" };

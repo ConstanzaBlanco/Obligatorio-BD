@@ -1,5 +1,23 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import AuthLayout from "./components/AuthLayout";
+import {
+  Button,
+  Field,
+  Input,
+  Select,
+  IconInput,
+  PasswordInput,
+  PasswordStrength,
+  Spinner,
+  passwordScore,
+} from "./components/ui";
+import { MailIcon, IdIcon, UserIcon, CheckIcon } from "./components/ui/icons";
+import styles from "./styles/Auth.module.css";
+
+function isEmailLike(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
 
 export default function Register() {
   const [correo, setCorreo] = useState("");
@@ -7,12 +25,15 @@ export default function Register() {
   const [name, setName] = useState("");
   const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [academicProgram, setAcademicProgram] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const [programs, setPrograms] = useState([]);
-
+  const [touched, setTouched] = useState({});
   const [error, setError] = useState("");
   const [ok, setOk] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -30,21 +51,44 @@ export default function Register() {
     fetchPrograms();
   }, []);
 
+  const touch = (field) => setTouched((t) => ({ ...t, [field]: true }));
+
+  const correoValid = isEmailLike(correo);
+  const ciValid = ci.length === 8;
+  const nameValid = name.trim().length > 0;
+  const lastNameValid = lastName.trim().length > 0;
+  const passwordValid = password.length > 6;
+  const confirmValid = confirmPassword.length > 0 && confirmPassword === password;
+  const programValid = academicProgram !== "";
+  const score = passwordScore(password);
+
+  const canSubmit =
+    correoValid &&
+    ciValid &&
+    nameValid &&
+    lastNameValid &&
+    passwordValid &&
+    confirmValid &&
+    programValid &&
+    acceptedTerms &&
+    !loading;
+
   const handleRegister = async (e) => {
     e.preventDefault();
+    setTouched({
+      correo: true,
+      ci: true,
+      name: true,
+      lastName: true,
+      password: true,
+      confirmPassword: true,
+      academicProgram: true,
+    });
+    if (!canSubmit) return;
+
     setError("");
     setOk("");
-
-    if (ci.length !== 8) {
-      setError("El CI debe tener exactamente 8 dígitos");
-      return;
-    }
-
-    if (password.length <= 6) {
-      setError("La contraseña debe tener más de 6 caracteres");
-      return;
-    }
-
+    setLoading(true);
     try {
       const payload = {
         correo,
@@ -68,177 +112,166 @@ export default function Register() {
         return;
       }
 
-      setOk("Usuario creado correctamente ✔");
-
+      setOk("Cuenta creada correctamente. Redirigiendo…");
       setTimeout(() => navigate("/login"), 1200);
-    } catch (err) {
-      console.error(err);
-      setError("No se pudo registrar el usuario");
+    } catch {
+      setError("No se pudo registrar el usuario. Intentá de nuevo.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <>
-      <style>{`
-        .register-container {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          min-height: 90vh;
-          background: #f4f6f9;
-          padding: 20px;
-        }
+    <AuthLayout>
+      <span className={styles.eyebrow}>Primera vez por acá</span>
+      <h1 className={styles.title}>Creá tu cuenta</h1>
+      <p className={styles.subtitle}>Registrate para reservar salas y recibir invitaciones.</p>
 
-        .register-card {
-          background: white;
-          padding: 30px 40px;
-          border-radius: 12px;
-          box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-          width: 350px;
-          text-align: center;
-          animation: fadeIn 0.4s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-
-        .register-card h2 {
-          margin-bottom: 20px;
-          color: #333;
-        }
-
-        .register-form input,
-        .register-form select {
-          width: 100%;
-          margin-bottom: 12px;
-          padding: 12px;
-          border-radius: 6px;
-          border: 1px solid #ccc;
-          font-size: 14px;
-          transition: all 0.2s ease;
-          background: #fff;
-        }
-
-        .register-form select {
-          cursor: pointer;
-        }
-
-        .register-form input:focus,
-        .register-form select:focus {
-          border-color: #0066ff;
-          outline: none;
-          box-shadow: 0 0 4px rgba(0, 102, 255, 0.3);
-        }
-
-        .btn-register {
-          width: 100%;
-          padding: 12px;
-          background: #0066ff;
-          color: white;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-          font-size: 15px;
-          transition: 0.2s ease;
-          margin-top: 5px;
-        }
-
-        .btn-register:hover {
-          background: #0053cc;
-        }
-
-        .error-msg {
-          margin-top: 15px;
-          color: #d9534f;
-          font-weight: bold;
-        }
-
-        .ok-msg {
-          margin-top: 15px;
-          color: #28a745;
-          font-weight: bold;
-        }
-      `}</style>
-
-      <div className="register-container">
-        <div className="register-card">
-
-          <h2>Crear cuenta</h2>
-
-          <form onSubmit={handleRegister} className="register-form">
-
-            <input
-              type="email"
-              placeholder="Correo"
-              value={correo}
-              onChange={(e) => setCorreo(e.target.value)}
+      <form className={styles.form} onSubmit={handleRegister} noValidate>
+        <div className={styles.fieldRow}>
+          <Field label="Nombre" error={touched.name && !nameValid ? "Requerido." : undefined}>
+            <IconInput
+              icon={<UserIcon />}
+              placeholder="Tu nombre"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onBlur={() => touch("name")}
+              autoComplete="given-name"
               required
             />
+          </Field>
+          <Field label="Apellido" error={touched.lastName && !lastNameValid ? "Requerido." : undefined}>
+            <Input
+              placeholder="Tu apellido"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              onBlur={() => touch("lastName")}
+              autoComplete="family-name"
+              required
+            />
+          </Field>
+        </div>
 
-            <input
+        <Field label="Correo" error={touched.correo && !correoValid ? "Ingresá un correo válido." : undefined}>
+          <IconInput
+            icon={<MailIcon />}
+            type="email"
+            placeholder="nombre@correo.ucu.edu.uy"
+            value={correo}
+            onChange={(e) => setCorreo(e.target.value)}
+            onBlur={() => touch("correo")}
+            autoComplete="email"
+            required
+          />
+        </Field>
+
+        <div className={styles.fieldRow}>
+          <Field
+            label="Cédula de identidad"
+            hint={!touched.ci || ciValid ? "8 dígitos, sin puntos." : undefined}
+            error={touched.ci && !ciValid ? "Deben ser 8 dígitos." : undefined}
+          >
+            <IconInput
+              icon={<IdIcon />}
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
-              placeholder="CI"
+              placeholder="Ej. 51234567"
               value={ci}
-              onChange={(e) =>
-                setCi(e.target.value.replace(/\D/g, "").slice(0, 8))
-              }
+              onChange={(e) => setCi(e.target.value.replace(/\D/g, "").slice(0, 8))}
+              onBlur={() => touch("ci")}
               required
               minLength={8}
               maxLength={8}
             />
+          </Field>
 
-            <input
-              type="text"
-              placeholder="Nombre"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-
-            <input
-              type="text"
-              placeholder="Apellido"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              required
-            />
-
-            <input
-              type="password"
-              placeholder="Contraseña"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={7}
-            />
-
-            <select
+          <Field label="Programa académico" error={touched.academicProgram && !programValid ? "Seleccioná uno." : undefined}>
+            <Select
               value={academicProgram}
               onChange={(e) => setAcademicProgram(e.target.value)}
+              onBlur={() => touch("academicProgram")}
               required
             >
-              <option value="">Selecciona un programa académico</option>
-
+              <option value="">Seleccioná…</option>
               {programs.map((p, i) => (
                 <option key={i} value={p.nombre_programa}>
                   {p.nombre_programa}
                 </option>
               ))}
-            </select>
-
-            <button type="submit" className="btn-register">
-              Registrarse
-            </button>
-          </form>
-
-          {error && <p className="error-msg">{error}</p>}
-          {ok && <p className="ok-msg">{ok}</p>}
+            </Select>
+          </Field>
         </div>
-      </div>
-    </>
+
+        <div className={styles.passwordGroup}>
+          <Field label="Contraseña" error={touched.password && !passwordValid ? "Debe tener más de 6 caracteres." : undefined}>
+            <PasswordInput
+              placeholder="Elegí una contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onBlur={() => touch("password")}
+              autoComplete="new-password"
+              required
+              minLength={7}
+            />
+          </Field>
+          <PasswordStrength score={score} visible={password.length > 0} />
+          <div className={styles.requirements}>
+            <span className={`${styles.requirement} ${passwordValid ? styles.met : ""}`}>
+              <span className={styles.requirementDot}>{passwordValid && <CheckIcon width={9} height={9} />}</span>
+              Al menos 7 caracteres
+            </span>
+            <span className={`${styles.requirement} ${/[A-Z]/.test(password) && /[a-z]/.test(password) ? styles.met : ""}`}>
+              <span className={styles.requirementDot}>
+                {/[A-Z]/.test(password) && /[a-z]/.test(password) && <CheckIcon width={9} height={9} />}
+              </span>
+              Mayúsculas y minúsculas
+            </span>
+            <span className={`${styles.requirement} ${/[0-9]/.test(password) ? styles.met : ""}`}>
+              <span className={styles.requirementDot}>{/[0-9]/.test(password) && <CheckIcon width={9} height={9} />}</span>
+              Un número
+            </span>
+          </div>
+        </div>
+
+        <Field
+          label="Confirmar contraseña"
+          error={touched.confirmPassword && !confirmValid ? "Las contraseñas no coinciden." : undefined}
+        >
+          <PasswordInput
+            placeholder="Repetí tu contraseña"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            onBlur={() => touch("confirmPassword")}
+            autoComplete="new-password"
+            required
+          />
+        </Field>
+
+        <label className={styles.termsRow}>
+          <input
+            type="checkbox"
+            checked={acceptedTerms}
+            onChange={(e) => setAcceptedTerms(e.target.checked)}
+            required
+          />
+          <span className={styles.termsLabel}>Acepto los términos de uso del sistema de reservas.</span>
+        </label>
+
+        {error && <div className={`${styles.alert} ${styles.alertError}`} role="alert">{error}</div>}
+        {ok && <div className={`${styles.alert} ${styles.alertSuccess}`} role="status">{ok}</div>}
+
+        <Button type="submit" fullWidth disabled={!canSubmit} className={styles.submitBtn}>
+          {loading ? <Spinner size={16} label="Creando cuenta" /> : "Crear cuenta"}
+        </Button>
+      </form>
+
+      <p className={styles.footNote}>
+        ¿Ya tenés cuenta?{" "}
+        <button type="button" onClick={() => navigate("/login")}>
+          Iniciá sesión
+        </button>
+      </p>
+    </AuthLayout>
   );
 }

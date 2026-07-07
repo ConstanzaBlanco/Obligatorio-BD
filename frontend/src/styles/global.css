@@ -1,0 +1,155 @@
+/* =============================================================================
+   GLOBAL BASE — the only global stylesheet, imported once in main.jsx.
+   Depends on tokens.css. Everything else is a CSS Module scoped to a component.
+   ============================================================================= */
+
+@import "./tokens.css";
+
+/* --- Reset ---------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: var(--font-normal);
+  line-height: var(--leading-normal);
+  color: var(--color-text);
+  background-color: var(--color-canvas);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-synthesis: none;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Media defaults */
+img,
+picture,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+/* Form controls inherit type by default */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+/* --- Typography defaults --------------------------------------------------- */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  line-height: var(--leading-tight);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text);
+}
+
+h1 { font-size: var(--text-3xl); }
+h2 { font-size: var(--text-2xl); }
+h3 { font-size: var(--text-xl); }
+h4 { font-size: var(--text-lg); }
+
+p { line-height: var(--leading-normal); }
+
+a {
+  color: var(--color-link);
+  text-decoration: none;
+}
+a:hover { text-decoration: underline; }
+
+/* Numbers in data contexts line up */
+table,
+[data-tabular] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Focus visibility (accessibility floor) -------------------------------- */
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+/* Don't show the ring for mouse users on elements that manage their own */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+::selection {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary-active);
+}
+
+/* --- App shell helpers (referenced from JSX) ------------------------------- */
+.app-wrapper {
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Legacy layout wrappers — kept so existing markup stays valid while
+   components migrate. Neutral, full-bleed. */
+.layout-wrapper {
+  min-height: 100vh;
+  width: 100%;
+}
+
+.layout-content {
+  width: 100%;
+}
+
+/* --- Small utilities --------------------------------------------------------
+   Reserved for one-off cases that would otherwise repeat identical inline
+   styles across unrelated components. Prefer a CSS Module for anything
+   component-specific. */
+.form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
+/* --- Reduced motion -------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --- Print ----------------------------------------------------------------- */
+@media print {
+  body { background: #fff; }
+  .no-print { display: none !important; }
+}

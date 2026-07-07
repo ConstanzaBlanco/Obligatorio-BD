@@ -1,72 +1,70 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { useUser } from "./UserContext";
+import { useUser } from "./useUser";
+import { PageContainer, PageHeader } from "./ui/Page";
+import Card from "./ui/Card";
+import Button from "./ui/Button";
+import Badge from "./ui/Badge";
+import Field, { Input, Select } from "./ui/Field";
+import Modal from "./ui/Modal";
+import EmptyState from "./ui/EmptyState";
+import { SkeletonCard } from "./ui/Skeleton";
+import { useToast } from "./ui/useToast";
+import { useConfirm } from "./ui/useConfirm";
+import styles from "./Edificios.module.css";
 
 export default function Edificios() {
   const { user } = useUser();
   const rol = user?.rol?.toLowerCase();
+  const isAdmin = rol === "administrador";
 
   const [edificios, setEdificios] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [departamentoFiltro, setDepartamentoFiltro] = useState("");
   const [departamentos, setDepartamentos] = useState([]);
   const [facultades, setFacultades] = useState([]);
-  const [mensaje, setMensaje] = useState("");
 
   // CREAR
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [nuevoNombre, setNuevoNombre] = useState("");
   const [nuevaDireccion, setNuevaDireccion] = useState("");
   const [nuevoDepartamento, setNuevoDepartamento] = useState("");
   const [idFacultad, setIdFacultad] = useState("");
 
-  // MODAL
+  // MODAL EDITAR
   const [showModal, setShowModal] = useState(false);
   const [edificioAEditar, setEdificioAEditar] = useState(null);
-
   const [editIdFacultad, setEditIdFacultad] = useState("");
   const [editHabilitado, setEditHabilitado] = useState("");
-
   const [editNuevoNombre, setEditNuevoNombre] = useState("");
+
+  const { success, error: toastError } = useToast();
+  const confirm = useConfirm();
 
   const guardarCambios = async () => {
     const token = localStorage.getItem("token");
 
-    const body = {
-      nombre_original: edificioAEditar.nombre_edificio,
-    };
-
-    if (editNuevoNombre.trim() !== "") {
-      body.nuevo_nombre_edificio = editNuevoNombre.trim();
-    }
-
-    if (editIdFacultad !== "") {
-      body.id_facultad = parseInt(editIdFacultad);
-    }
-    if (editHabilitado !== "") {
-      body.habilitado = editHabilitado === "true";
-    }
+    const body = { nombre_original: edificioAEditar.nombre_edificio };
+    if (editNuevoNombre.trim() !== "") body.nuevo_nombre_edificio = editNuevoNombre.trim();
+    if (editIdFacultad !== "") body.id_facultad = parseInt(editIdFacultad);
+    if (editHabilitado !== "") body.habilitado = editHabilitado === "true";
 
     try {
       const res = await fetch("http://localhost:8000/editarEdificio", {
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-
       const data = await res.json();
-
       if (!res.ok) {
-        setMensaje(data.detail || "Error al editar edificio.");
+        toastError(data.detail || "Error al editar edificio.");
         return;
       }
-
-      setMensaje("Edificio actualizado correctamente.");
+      success("Edificio actualizado correctamente.");
       setShowModal(false);
       cargarEdificios();
     } catch {
-      setMensaje("Error al editar edificio.");
+      toastError("Error al editar edificio.");
     }
   };
 
@@ -78,7 +76,9 @@ export default function Edificios() {
       });
       const data = await res.json();
       setDepartamentos(Array.isArray(data.departamentos) ? data.departamentos : []);
-    } catch {}
+    } catch {
+      // Non-critical: the filter dropdown just stays empty.
+    }
   };
 
   const cargarFacultades = async () => {
@@ -89,25 +89,23 @@ export default function Edificios() {
       });
       const data = await res.json();
       setFacultades(data || []);
-    } catch {}
+    } catch {
+      // Non-critical: the "crear edificio" facultad select just stays empty.
+    }
   };
 
   const cargarEdificios = async () => {
     try {
       const token = localStorage.getItem("token");
-
       let url = "http://localhost:8000/edificios";
       if (departamentoFiltro) url += `?departamento=${departamentoFiltro}`;
-
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       setEdificios(data.edificios || []);
-      setMensaje("");
     } catch {
-      setMensaje("Error cargando edificios.");
+      toastError("Error cargando edificios.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -115,53 +113,48 @@ export default function Edificios() {
     cargarDepartamentos();
     cargarFacultades();
     cargarEdificios();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch once on mount
   }, []);
 
   useEffect(() => {
     cargarEdificios();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- re-fetch on filter change only
   }, [departamentoFiltro]);
 
   const eliminarEdificio = async (nombre_edificio) => {
-    if (!window.confirm(`¿Seguro que deseas eliminar "${nombre_edificio}"?`)) return;
+    const ok = await confirm({
+      title: "Eliminar edificio",
+      message: `¿Seguro que querés eliminar "${nombre_edificio}"? Esta acción no se puede deshacer.`,
+      confirmText: "Eliminar",
+      danger: true,
+    });
+    if (!ok) return;
 
     const token = localStorage.getItem("token");
-
     try {
       const res = await fetch(
         `http://localhost:8000/eliminarEdificio/${encodeURIComponent(nombre_edificio)}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }
       );
-
       const data = await res.json().catch(() => ({}));
-
       if (!res.ok) {
-        setMensaje(data.detail || "No se pudo eliminar el edificio.");
+        toastError(data.detail || "No se pudo eliminar el edificio.");
         return;
       }
-
-      setMensaje("Edificio eliminado correctamente.");
+      success("Edificio eliminado correctamente.");
       cargarEdificios();
     } catch {
-      setMensaje("Error eliminando edificio.");
+      toastError("Error eliminando edificio.");
     }
   };
 
   const crearEdificio = async (e) => {
     e.preventDefault();
-    setMensaje("");
-
     const token = localStorage.getItem("token");
-
     try {
       const res = await fetch("http://localhost:8000/crearEdificio", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           nombre_edificio: nuevoNombre,
           direccion: nuevaDireccion,
@@ -169,301 +162,167 @@ export default function Edificios() {
           id_facultad: parseInt(idFacultad),
         }),
       });
-
       const data = await res.json();
-
       if (!res.ok) {
-        setMensaje(data.detail || "Error creando edificio.");
+        toastError(data.detail || "Error creando edificio.");
         return;
       }
-
-      setMensaje("Edificio creado correctamente.");
+      success("Edificio creado correctamente.");
       setNuevoNombre("");
       setNuevaDireccion("");
       setNuevoDepartamento("");
       setIdFacultad("");
-
+      setShowCreateModal(false);
       cargarEdificios();
     } catch {
-      setMensaje("Error creando edificio.");
+      toastError("Error creando edificio.");
     }
   };
 
-  const departamentosFiltrados = departamentos.filter(dep => {
-    const edificiosDelDep = edificios.filter(e => e.departamento === dep);
+  const departamentosFiltrados = departamentos.filter((dep) => {
+    const edificiosDelDep = edificios.filter((e) => e.departamento === dep);
     if (edificiosDelDep.length === 0) return false;
-    const todosDeshabilitados = edificiosDelDep.every(e => e.habilitado === false);
-    if (todosDeshabilitados) return false;
-    return true;
+    return !edificiosDelDep.every((e) => e.habilitado === false);
   });
 
   return (
-    <div style={{ marginTop: 30 }}>
-      <h2>Listado de Edificios</h2>
+    <PageContainer>
+      <PageHeader
+        eyebrow="Salas"
+        title="Edificios"
+        description={isAdmin ? "Consultá, creá y administrá los edificios del sistema." : "Elegí un edificio para ver sus salas y reservar."}
+        actions={isAdmin && <Button onClick={() => setShowCreateModal(true)}>Nuevo edificio</Button>}
+      />
 
-      <select
-        value={departamentoFiltro}
-        onChange={(e) => setDepartamentoFiltro(e.target.value)}
-        style={{ marginRight: 10, padding: 5 }}
-      >
-        <option value="">Todos los departamentos</option>
-        {departamentosFiltrados.map((dep, i) => (
-          <option key={i} value={dep}>{dep}</option>
-        ))}
-      </select>
+      <div className={styles.toolbar}>
+        <Field label="Filtrar por departamento">
+          <Select value={departamentoFiltro} onChange={(e) => setDepartamentoFiltro(e.target.value)}>
+            <option value="">Todos los departamentos</option>
+            {departamentosFiltrados.map((dep, i) => (
+              <option key={i} value={dep}>{dep}</option>
+            ))}
+          </Select>
+        </Field>
+      </div>
 
-      {mensaje && <p style={{ color: "green" }}>{mensaje}</p>}
+      {loading ? (
+        <div className={styles.grid}>
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      ) : edificios.length === 0 ? (
+        <EmptyState title="No hay edificios" description="Todavía no hay edificios que coincidan con el filtro." />
+      ) : (
+        <div className={styles.grid}>
+          {edificios.map((e, i) => (
+            <Card key={i} tone={e.habilitado ? undefined : "muted"}>
+              <div className={styles.cardHead}>
+                <Link to={`/edificios/${e.nombre_edificio}`} className={styles.name}>
+                  {e.nombre_edificio}
+                </Link>
+                <Badge variant={e.habilitado ? "success" : "neutral"} dot>
+                  {e.habilitado ? "Habilitado" : "Deshabilitado"}
+                </Badge>
+              </div>
 
-      <ul style={{ listStyle: "none", padding: 0, marginTop: 20 }}>
-        {edificios.map((e, i) => (
-          <li
-            key={i}
-            style={{
-              ...itemStyle,
-              backgroundColor: e.habilitado ? "white" : "#e5e5e5",
-              opacity: e.habilitado ? 1 : 0.7,
-            }}
-          >
-            <strong>
-              <Link
-                to={`/edificios/${e.nombre_edificio}`}
-                style={{ textDecoration: "none", color: "#007bff" }}
-              >
-                {e.nombre_edificio}
-              </Link>
-            </strong>
+              <dl className={styles.meta}>
+                <div><dt>Dirección</dt><dd>{e.direccion}</dd></div>
+                <div><dt>Departamento</dt><dd>{e.departamento}</dd></div>
+                <div><dt>Facultad</dt><dd>#{e.id_facultad}</dd></div>
+              </dl>
 
-            <p>Dirección: {e.direccion}</p>
-            <p>Departamento: {e.departamento}</p>
-            <p>ID Facultad: {e.id_facultad}</p>
-            <p><strong>Estado:</strong> {e.habilitado ? "Habilitado" : "Deshabilitado"}</p>
-
-            {rol === "administrador" && (
-              <>
-                <button
-                  style={btnEditar}
-                  onClick={() => {
-                    setEdificioAEditar(e);
-                    setEditIdFacultad(e.id_facultad);
-                    setEditHabilitado(e.habilitado ? "true" : "false");
-                    setEditNuevoNombre("");
-                    setShowModal(true);
-                  }}
-                >
-                  Editar Edificio
-                </button>
-
-                <button
-                  onClick={() => eliminarEdificio(e.nombre_edificio)}
-                  style={btnEliminar}
-                >
-                  Eliminar
-                </button>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
-
-      {/* CREAR EDIFICIO */}
-      {rol === "administrador" && (
-        <>
-          <h3 style={{ marginTop: 40 }}>Crear Nuevo Edificio</h3>
-
-          <form onSubmit={crearEdificio} style={{ maxWidth: 400, margin: "auto" }}>
-            <input
-              type="text"
-              placeholder="Nombre del edificio"
-              value={nuevoNombre}
-              onChange={(e) => setNuevoNombre(e.target.value)}
-              required
-              style={inputStyle}
-            />
-
-            <input
-              type="text"
-              placeholder="Dirección"
-              value={nuevaDireccion}
-              onChange={(e) => setNuevaDireccion(e.target.value)}
-              required
-              style={inputStyle}
-            />
-
-            <input
-              type="text"
-              placeholder="Departamento"
-              value={nuevoDepartamento}
-              onChange={(e) => setNuevoDepartamento(e.target.value)}
-              required
-              style={inputStyle}
-            />
-
-            <select
-              required
-              size="5"
-              value={idFacultad}
-              onChange={(e) => setIdFacultad(e.target.value)}
-              style={{ ...inputStyle, height: "120px", overflowY: "scroll" }}
-            >
-              <option value="">Seleccione una facultad...</option>
-              {facultades.map((f) => (
-                <option key={f.id_facultad} value={f.id_facultad}>
-                  {f.nombre}
-                </option>
-              ))}
-            </select>
-
-            <button type="submit" style={btnCrear}>Crear Edificio</button>
-          </form>
-        </>
+              {isAdmin && (
+                <div className={styles.actions}>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      setEdificioAEditar(e);
+                      setEditIdFacultad(e.id_facultad);
+                      setEditHabilitado(e.habilitado ? "true" : "false");
+                      setEditNuevoNombre("");
+                      setShowModal(true);
+                    }}
+                  >
+                    Editar
+                  </Button>
+                  <Button variant="danger" size="sm" onClick={() => eliminarEdificio(e.nombre_edificio)}>
+                    Eliminar
+                  </Button>
+                </div>
+              )}
+            </Card>
+          ))}
+        </div>
       )}
 
-      {/* MODAL EDITAR */}
-      {showModal && (
-        <div style={modalOverlay}>
-          <div style={modalContent}>
-            <h3>Editar Edificio</h3>
+      {isAdmin && (
+        <Modal
+          isOpen={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          title="Nuevo edificio"
+          footer={
+            <>
+              <Button variant="secondary" onClick={() => setShowCreateModal(false)}>Cancelar</Button>
+              <Button type="submit" form="crear-edificio-form">Crear edificio</Button>
+            </>
+          }
+        >
+          <form id="crear-edificio-form" onSubmit={crearEdificio} className="form-stack">
+            <Field label="Nombre del edificio" required>
+              <Input value={nuevoNombre} onChange={(e) => setNuevoNombre(e.target.value)} required />
+            </Field>
+            <Field label="Dirección" required>
+              <Input value={nuevaDireccion} onChange={(e) => setNuevaDireccion(e.target.value)} required />
+            </Field>
+            <Field label="Departamento" required>
+              <Input value={nuevoDepartamento} onChange={(e) => setNuevoDepartamento(e.target.value)} required />
+            </Field>
+            <Field label="Facultad" required>
+              <Select value={idFacultad} onChange={(e) => setIdFacultad(e.target.value)} required>
+                <option value="">Seleccioná una facultad…</option>
+                {facultades.map((f) => (
+                  <option key={f.id_facultad} value={f.id_facultad}>{f.nombre}</option>
+                ))}
+              </Select>
+            </Field>
+          </form>
+        </Modal>
+      )}
 
-            <p><strong>{edificioAEditar?.nombre_edificio}</strong></p>
-
-            {/* CAMBIAR NOMBRE */}
-            <label>Cambiar nombre:</label>
-            <input
-              type="text"
-              placeholder="Nuevo nombre..."
-              value={editNuevoNombre}
-              onChange={(e) => setEditNuevoNombre(e.target.value)}
-              style={inputStyle}
-            />
-
-            <label>Facultad:</label>
-            <select
-              value={editIdFacultad}
-              onChange={(e) => setEditIdFacultad(e.target.value)}
-              style={inputStyle}
-            >
+      <Modal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title={`Editar ${edificioAEditar?.nombre_edificio || "edificio"}`}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setShowModal(false)}>Cancelar</Button>
+            <Button onClick={guardarCambios}>Guardar cambios</Button>
+          </>
+        }
+      >
+        <div className={styles.editForm}>
+          <Field label="Nuevo nombre" hint="Dejalo vacío para no cambiarlo.">
+            <Input placeholder="Nuevo nombre…" value={editNuevoNombre} onChange={(e) => setEditNuevoNombre(e.target.value)} />
+          </Field>
+          <Field label="Facultad">
+            <Select value={editIdFacultad} onChange={(e) => setEditIdFacultad(e.target.value)}>
               <option value="">(sin cambios)</option>
               {facultades.map((f) => (
-                <option key={f.id_facultad} value={f.id_facultad}>
-                  {f.nombre}
-                </option>
+                <option key={f.id_facultad} value={f.id_facultad}>{f.nombre}</option>
               ))}
-            </select>
-
-            <label>Estado del edificio:</label>
-            <select
-              value={editHabilitado}
-              onChange={(e) => setEditHabilitado(e.target.value)}
-              style={inputStyle}
-            >
+            </Select>
+          </Field>
+          <Field label="Estado">
+            <Select value={editHabilitado} onChange={(e) => setEditHabilitado(e.target.value)}>
               <option value="">(sin cambios)</option>
               <option value="true">Habilitado</option>
               <option value="false">Deshabilitado</option>
-            </select>
-
-            <div style={{ marginTop: 15 }}>
-              <button onClick={() => setShowModal(false)} style={btnCancelar}>
-                Cancelar
-              </button>
-
-              <button onClick={guardarCambios} style={btnGuardar}>
-                Guardar cambios
-              </button>
-            </div>
-          </div>
+            </Select>
+          </Field>
         </div>
-      )}
-    </div>
+      </Modal>
+    </PageContainer>
   );
 }
-
-const itemStyle = {
-  border: "1px solid #ccc",
-  padding: 12,
-  borderRadius: 6,
-  marginBottom: 10,
-  maxWidth: 400,
-  margin: "10px auto",
-  textAlign: "left",
-};
-
-const inputStyle = {
-  display: "block",
-  width: "100%",
-  marginBottom: 10,
-  padding: 8,
-  borderRadius: 6,
-  border: "1px solid #ccc",
-};
-
-const btnEliminar = {
-  marginTop: 10,
-  padding: "6px 10px",
-  backgroundColor: "#dc3545",
-  color: "white",
-  border: "none",
-  borderRadius: 6,
-  cursor: "pointer",
-};
-
-const btnEditar = {
-  marginTop: 10,
-  padding: "6px 10px",
-  backgroundColor: "#007bff",
-  color: "white",
-  border: "none",
-  borderRadius: 6,
-  cursor: "pointer",
-  marginRight: 10,
-};
-
-const btnCancelar = {
-  backgroundColor: "#6c757d",
-  color: "white",
-  padding: "8px 12px",
-  borderRadius: 6,
-  border: "none",
-  marginRight: 10,
-  cursor: "pointer",
-};
-
-const btnGuardar = {
-  backgroundColor: "#28a745",
-  color: "white",
-  padding: "8px 12px",
-  borderRadius: 6,
-  border: "none",
-  cursor: "pointer",
-};
-
-const btnCrear = {
-  marginTop: 10,
-  padding: "8px 12px",
-  backgroundColor: "#28a745",
-  color: "white",
-  border: "none",
-  borderRadius: 6,
-  cursor: "pointer",
-  width: "100%",
-};
-
-const modalOverlay = {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  width: "100%",
-  height: "100%",
-  backgroundColor: "rgba(0,0,0,0.5)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  zIndex: 1000,
-};
-
-const modalContent = {
-  backgroundColor: "white",
-  padding: 20,
-  borderRadius: 10,
-  width: "90%",
-  maxWidth: 400,
-};

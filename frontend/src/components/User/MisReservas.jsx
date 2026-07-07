@@ -1,62 +1,64 @@
 import { useEffect, useState } from "react";
-import { useUser } from "../UserContext";
+import { useUser } from "../useUser";
+import { PageContainer, PageHeader } from "../ui/Page";
+import Card from "../ui/Card";
+import Button from "../ui/Button";
+import Badge from "../ui/Badge";
+import { Input } from "../ui/Field";
+import EmptyState from "../ui/EmptyState";
+import { SkeletonCard } from "../ui/Skeleton";
+import { useToast } from "../ui/useToast";
+import { useConfirm } from "../ui/useConfirm";
+import styles from "./Reservas.module.css";
 
 export default function MisReservas() {
   const [misReservas, setMisReservas] = useState([]);
   const [inviteInputs, setInviteInputs] = useState({});
   const [reservasParticipando, setReservasParticipando] = useState([]);
   const [reservasBloqueadas, setReservasBloqueadas] = useState([]);
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const token = localStorage.getItem("token");
   const { user: currentUser } = useUser();
-
-function formatFechaCompleta(fechaStr) {
-  const [y, m, d] = fechaStr.split("-");
-  const fecha = new Date(y, m - 1, d);
-  return fecha.toLocaleString("es-UY", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric"
-  });
-}
-
+  const { success, error: toastError, warning } = useToast();
+  const confirm = useConfirm();
 
   function formatFecha(fechaStr) {
-  const [y, m, d] = fechaStr.split("-");
-  const fecha = new Date(y, m - 1, d); 
-  return fecha.toLocaleDateString("es-UY");
-}
-
+    const [y, m, d] = fechaStr.split("-");
+    const fecha = new Date(y, m - 1, d);
+    return fecha.toLocaleDateString("es-UY");
+  }
 
   function formatHora(hora) {
     if (!hora) return "";
-
     if (typeof hora === "string") {
       const parts = hora.split(":");
       if (parts.length >= 2) return `${parts[0]}:${parts[1]}`;
       return hora;
     }
-
     if (typeof hora === "number") {
       const h = Math.floor(hora / 3600);
       const m = Math.floor((hora % 3600) / 60);
       return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
     }
-
     if (typeof hora === "object") {
       const h = hora.hour ?? null;
       const m = hora.minute ?? null;
       if (h !== null && m !== null)
         return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
     }
-
     return String(hora);
   }
 
   const cancelarReserva = async (id_reserva) => {
-    const confirmacion = window.confirm("¿Seguro que querés cancelar esta reserva?");
-    if (!confirmacion) return;
+    const ok = await confirm({
+      title: "Cancelar reserva",
+      message: "¿Seguro que querés cancelar esta reserva?",
+      confirmText: "Cancelar reserva",
+      cancelText: "Volver",
+      danger: true,
+    });
+    if (!ok) return;
 
     try {
       const res = await fetch("http://localhost:8000/cancelarReserva", {
@@ -71,15 +73,15 @@ function formatFechaCompleta(fechaStr) {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.detail || data.error || "No se pudo cancelar la reserva.");
+        toastError(data.detail || data.error || "No se pudo cancelar la reserva.");
         return;
       }
 
-      alert(data.mensaje);
+      success(data.mensaje || "Reserva cancelada.");
       cargarActivas();
     } catch (err) {
       console.error(err);
-      alert("Error de conexión con el servidor");
+      toastError("Error de conexión con el servidor");
     }
   };
 
@@ -110,29 +112,29 @@ function formatFechaCompleta(fechaStr) {
           init[r.id_reserva] = { value: "", list: [], errors: [] };
         });
         setInviteInputs(init);
-
       } else {
-        setError(data.detail || "Error al cargar reservas");
+        toastError(data.detail || "Error al cargar reservas");
       }
-
     } catch (err) {
       console.error(err);
-      setError("Error conectando con el servidor");
+      toastError("Error conectando con el servidor");
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     cargarActivas();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch once on mount
   }, []);
 
-
-  //  FUNCION PARA DESBLOQUEAR
-
   const desbloquearReserva = async (id_reserva) => {
-    const confirmacion = window.confirm(
-      "¿Seguro que querés desbloquear esta reserva? Volverás a recibir invitaciones."
-    );
-    if (!confirmacion) return;
+    const ok = await confirm({
+      title: "Desbloquear reserva",
+      message: "¿Seguro que querés desbloquear esta reserva? Volverás a recibir invitaciones.",
+      confirmText: "Desbloquear",
+    });
+    if (!ok) return;
 
     try {
       const res = await fetch("http://localhost:8000/invitaciones/desbloquear", {
@@ -147,379 +149,259 @@ function formatFechaCompleta(fechaStr) {
       const data = await res.json();
 
       if (!res.ok || data.error) {
-        alert(data.error || "No se pudo desbloquear la reserva");
+        toastError(data.error || "No se pudo desbloquear la reserva");
         return;
       }
 
-      alert(data.mensaje);
+      success(data.mensaje || "Reserva desbloqueada.");
       cargarActivas();
     } catch (err) {
       console.error(err);
-      alert("Error al desbloquear la reserva");
+      toastError("Error al desbloquear la reserva");
     }
   };
 
+  const agregarCi = async (id_reserva) => {
+    const v = inviteInputs[id_reserva]?.value || "";
+    if (!v) return warning("Ingresá un CI");
+
+    const existing = inviteInputs[id_reserva]?.list || [];
+    if (existing.includes(Number(v))) return warning("CI ya agregado");
+
+    const myCi = currentUser?.ci;
+    if (myCi && Number(v) === Number(myCi)) {
+      return warning("No te podés invitar a vos mismo");
+    }
+
+    try {
+      const res = await fetch(`http://localhost:8000/participante/existe/${v}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+
+      if (data.error) {
+        toastError(data.error);
+        return;
+      }
+
+      setInviteInputs((prev) => {
+        const cur = prev[id_reserva] || { value: "", list: [], errors: [] };
+        if (data.exists) {
+          return { ...prev, [id_reserva]: { value: "", list: [...cur.list, Number(v)], errors: cur.errors } };
+        }
+        return {
+          ...prev,
+          [id_reserva]: {
+            value: "",
+            list: cur.list,
+            errors: [...cur.errors, { ci: Number(v), error: "No existe ese CI" }],
+          },
+        };
+      });
+    } catch (err) {
+      console.error(err);
+      toastError("Error validando CI");
+    }
+  };
+
+  const enviarInvitaciones = async (id_reserva) => {
+    const list = inviteInputs[id_reserva]?.list || [];
+    if (!list.length) return;
+
+    try {
+      const res = await fetch("http://localhost:8000/invitaciones/invitar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id_reserva, participantes: list }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        if (Array.isArray(data.errores)) {
+          const msgs = data.errores.map((e) => `${e.ci}: ${e.error}`).join("\n");
+          toastError(`No se pudieron enviar algunas invitaciones:\n${msgs}`);
+        } else {
+          toastError(data.error || "Error al enviar invitaciones");
+        }
+        return;
+      }
+
+      let msg = data.mensaje || "Invitaciones enviadas correctamente.";
+      if (Array.isArray(data.invitados)) msg += `\nInvitados: ${data.invitados.join(", ")}`;
+      if (Array.isArray(data.errores)) {
+        const msgs = data.errores.map((e) => `${e.ci}: ${e.error}`).join("\n");
+        msg += `\nAlgunos errores:\n${msgs}`;
+      }
+      success(msg);
+
+      setInviteInputs((prev) => ({ ...prev, [id_reserva]: { value: "", list: [], errors: [] } }));
+      cargarActivas();
+    } catch (err) {
+      console.error(err);
+      toastError("Error enviando invitaciones");
+    }
+  };
+
+  const nothing =
+    !loading &&
+    misReservas.length === 0 &&
+    reservasParticipando.length === 0 &&
+    reservasBloqueadas.length === 0;
+
   return (
-    <div style={{ padding: 24 }}>
-      <h2>Mis Reservas Activas</h2>
+    <PageContainer>
+      <PageHeader
+        eyebrow="Tus reservas"
+        title="Mis reservas activas"
+        description="Gestioná tus reservas, invitá participantes y controlá tus invitaciones."
+      />
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      {misReservas.length === 0 && reservasParticipando.length === 0 && (
-        <p>No tenés reservas activas.</p>
+      {loading && (
+        <div className={styles.grid}>
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       )}
 
-      {/* RESERVAS QUE CREASTE */}
+      {nothing && (
+        <EmptyState
+          title="No tenés reservas activas"
+          description="Cuando reserves una sala, vas a verla acá."
+        />
+      )}
+
+      {/* Reservas creadas */}
       {misReservas.length > 0 && (
-        <>
-          <h3>Reservas que creaste</h3>
-
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Reservas que creaste</h2>
+          <div className={styles.grid}>
             {misReservas.map((r, idx) => (
-              <div
-                key={`creada-${r.id_reserva}`}
-                style={{
-                  border: "1px solid #ccc",
-                  borderRadius: 8,
-                  padding: 16,
-                  width: 260,
-                  background: "#fff6f6",
-                }}
-              >
-                <h4>{r.nombre_sala} - {r.edificio}</h4>
+              <Card key={`creada-${r.id_reserva}`} tone="ok">
+                <div className={styles.card}>
+                  <div className={styles.cardHead}>
+                    <span className={styles.roomName}>{r.nombre_sala} · {r.edificio}</span>
+                    <Badge variant="neutral">#{idx + 1}</Badge>
+                  </div>
+                  <div className={styles.rowMeta}>
+                    <span><strong>{formatFecha(r.fecha)}</strong></span>
+                    <span>{formatHora(r.hora_inicio)} → {formatHora(r.hora_fin)}</span>
+                  </div>
 
-                <p><strong>N°:</strong> {idx + 1}</p>
-
-                <p><strong>Fecha:</strong> {formatFecha(r.fecha)}</p>
-
-                <p>
-                  <strong>Hora:</strong> {formatHora(r.hora_inicio)} → {formatHora(r.hora_fin)}
-                </p>
-
-                {/* INVITAR PARTICIPANTES */}
-                <div style={{ marginTop: 10 }}>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    placeholder="CI a invitar"
-                    value={(inviteInputs[r.id_reserva]?.value) || ""}
-                    onChange={(e) => {
-                      const raw = e.target.value || "";
-                      const digits = raw.replace(/\D/g, "");
-                      setInviteInputs((prev) => ({
-                        ...prev,
-                        [r.id_reserva]: {
-                          ...(prev[r.id_reserva] || { list: [], errors: [] }),
-                          value: digits,
-                        },
-                      }));
-                    }}
-                    style={{ padding: 6, width: 140, marginRight: 8 }}
-                  />
-
-                  <button
-                    onClick={async () => {
-                      const v = inviteInputs[r.id_reserva]?.value || "";
-                      if (!v) return alert("Ingresá un CI");
-
-                      const existing = inviteInputs[r.id_reserva]?.list || [];
-                      if (existing.includes(Number(v)))
-                        return alert("CI ya agregado");
-
-                      const myCi = currentUser?.ci;
-                      if (myCi && Number(v) === Number(myCi)) {
-                        return alert("No te podés invitar a vos mismo");
-                      }
-
-                      try {
-                        const res = await fetch(
-                          `http://localhost:8000/participante/existe/${v}`,
-                          {
-                            headers: { Authorization: `Bearer ${token}` },
-                          }
-                        );
-                        const data = await res.json();
-
-                        if (data.error) {
-                          alert(data.error);
-                          return;
-                        }
-
-                        if (data.exists) {
-                          setInviteInputs((prev) => {
-                            const cur = prev[r.id_reserva] || {
-                              value: "",
-                              list: [],
-                              errors: [],
-                            };
-                            return {
-                              ...prev,
-                              [r.id_reserva]: {
-                                value: "",
-                                list: [...cur.list, Number(v)],
-                                errors: cur.errors,
-                              },
-                            };
-                          });
-                        } else {
-                          setInviteInputs((prev) => {
-                            const cur = prev[r.id_reserva] || {
-                              value: "",
-                              list: [],
-                              errors: [],
-                            };
-                            return {
-                              ...prev,
-                              [r.id_reserva]: {
-                                value: "",
-                                list: cur.list,
-                                errors: [
-                                  ...cur.errors,
-                                  { ci: Number(v), error: "No existe ese CI" },
-                                ],
-                              },
-                            };
-                          });
-                        }
-                      } catch (err) {
-                        console.error(err);
-                        alert("Error validando CI");
-                      }
-                    }}
-                    style={{
-                      padding: "8px 12px",
-                      background: "#0275d8",
-                      color: "white",
-                      border: "none",
-                      borderRadius: 6,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Agregar
-                  </button>
-
-                  {inviteInputs[r.id_reserva]?.list?.length > 0 && (
-                    <button
-                                            onClick={async () => {
-                        const list = inviteInputs[r.id_reserva].list;
-                        if (!list.length) return;
-
-                        try {
-                          const res = await fetch(
-                            "http://localhost:8000/invitaciones/invitar",
-                            {
-                              method: "POST",
-                              headers: {
-                                "Content-Type": "application/json",
-                                Authorization: `Bearer ${token}`,
-                              },
-                              body: JSON.stringify({
-                                id_reserva: r.id_reserva,
-                                participantes: list,
-                              }),
-                            }
-                          );
-
-                          const data = await res.json();
-
-                          if (!res.ok || data.error) {
-                            if (Array.isArray(data.errores)) {
-                              const msgs = data.errores
-                                .map((e) => `${e.ci}: ${e.error}`)
-                                .join("\n");
-                              alert(
-                                `No se pudieron enviar algunas invitaciones:\n${msgs}`
-                              );
-                            } else {
-                              alert(data.error || "Error al enviar invitaciones");
-                            }
-                            return;
-                          }
-
-                          let msg =
-                            data.mensaje || "Invitaciones enviadas correctamente.";
-
-                          if (Array.isArray(data.invitados)) {
-                            msg += `\nInvitados: ${data.invitados.join(", ")}`;
-                          }
-                          if (Array.isArray(data.errores)) {
-                            const msgs = data.errores
-                              .map((e) => `${e.ci}: ${e.error}`)
-                              .join("\n");
-                            msg += `\nAlgunos errores:\n${msgs}`;
-                          }
-
-                          alert(msg);
-
+                  <div className={styles.inviteBlock}>
+                    <div className={styles.inviteRow}>
+                      <Input
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        placeholder="CI a invitar"
+                        aria-label="CI a invitar"
+                        value={inviteInputs[r.id_reserva]?.value || ""}
+                        onChange={(e) => {
+                          const digits = (e.target.value || "").replace(/\D/g, "");
                           setInviteInputs((prev) => ({
                             ...prev,
-                            [r.id_reserva]: { value: "", list: [], errors: [] },
+                            [r.id_reserva]: {
+                              ...(prev[r.id_reserva] || { list: [], errors: [] }),
+                              value: digits,
+                            },
                           }));
-
-                          cargarActivas();
-                        } catch (err) {
-                          console.error(err);
-                          alert("Error enviando invitaciones");
-                        }
-                      }}
-                      style={{
-                        padding: "8px 12px",
-                        marginLeft: 8,
-                        background: "#5cb85c",
-                        color: "white",
-                        border: "none",
-                        borderRadius: 6,
-                        cursor: "pointer",
-                      }}
-                    >
-                      Enviar
-                    </button>
-                  )}
-
-                  <div style={{ marginTop: 8 }}>
-                    {(inviteInputs[r.id_reserva]?.list || []).map((ciItem) => (
-                      <span
-                        key={ciItem}
-                        style={{
-                          display: "inline-block",
-                          padding: "4px 8px",
-                          marginRight: 6,
-                          background: "#eef",
-                          borderRadius: 6,
                         }}
-                      >
-                        {ciItem}
-                      </span>
-                    ))}
+                      />
+                      <Button variant="secondary" size="sm" onClick={() => agregarCi(r.id_reserva)}>
+                        Agregar
+                      </Button>
+                      {inviteInputs[r.id_reserva]?.list?.length > 0 && (
+                        <Button size="sm" onClick={() => enviarInvitaciones(r.id_reserva)}>
+                          Enviar
+                        </Button>
+                      )}
+                    </div>
 
-                    {(inviteInputs[r.id_reserva]?.errors || []).map((errItem) => (
-                      <div
-                        key={String(errItem.ci)}
-                        style={{ color: "crimson", fontSize: 12 }}
-                      >
-                        {errItem.ci}: {errItem.error}
+                    {(inviteInputs[r.id_reserva]?.list?.length > 0 ||
+                      inviteInputs[r.id_reserva]?.errors?.length > 0) && (
+                      <div className={styles.chips}>
+                        {(inviteInputs[r.id_reserva]?.list || []).map((ciItem) => (
+                          <span key={ciItem} className={styles.chip}>{ciItem}</span>
+                        ))}
+                        {(inviteInputs[r.id_reserva]?.errors || []).map((errItem) => (
+                          <span key={String(errItem.ci)} className={styles.chipError}>
+                            {errItem.ci}: {errItem.error}
+                          </span>
+                        ))}
                       </div>
-                    ))}
+                    )}
+                  </div>
+
+                  <div className={styles.cardActions}>
+                    <Button variant="danger" size="sm" onClick={() => cancelarReserva(r.id_reserva)}>
+                      Cancelar reserva
+                    </Button>
                   </div>
                 </div>
-
-                {/* CANCELAR */}
-                <button
-                  onClick={() => cancelarReserva(r.id_reserva)}
-                  style={{
-                    marginTop: 10,
-                    padding: "8px 12px",
-                    background: "#d9534f",
-                    color: "white",
-                    border: "none",
-                    borderRadius: 6,
-                    cursor: "pointer",
-                  }}
-                >
-                  Cancelar
-                </button>
-              </div>
+              </Card>
             ))}
           </div>
-        </>
+        </section>
       )}
 
-      {/* RESERVAS DONDE PARTICIPÁS */}
+      {/* Reservas donde participa */}
       {reservasParticipando.length > 0 && (
-        <>
-          <h3>Reservas donde participás</h3>
-
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Reservas donde participás</h2>
+          <div className={styles.grid}>
             {reservasParticipando.map((r, idx) => (
-              <div
-                key={`part-${r.id_reserva}`}
-                style={{
-                  border: "1px solid #ccc",
-                  borderRadius: 8,
-                  padding: 16,
-                  width: 260,
-                  background: "#f6fff6",
-                }}
-              >
-                <h4>{r.nombre_sala} - {r.edificio}</h4>
-
-                <p><strong>N°:</strong> {idx + 1}</p>
-
-                <p><strong>Fecha:</strong> {formatFecha(r.fecha)}</p>
-
-                <p>
-                  <strong>Hora:</strong> {formatHora(r.hora_inicio)} → {formatHora(r.hora_fin)}
-                </p>
-
-                <p style={{ fontSize: 13, color: "#666" }}>
-                  <strong>Estado invitación:</strong>{" "}
-                  {r.estado_invitacion || "aceptada"}
-                </p>
-              </div>
+              <Card key={`part-${r.id_reserva}`}>
+                <div className={styles.card}>
+                  <div className={styles.cardHead}>
+                    <span className={styles.roomName}>{r.nombre_sala} · {r.edificio}</span>
+                    <Badge variant="neutral">#{idx + 1}</Badge>
+                  </div>
+                  <div className={styles.rowMeta}>
+                    <span><strong>{formatFecha(r.fecha)}</strong></span>
+                    <span>{formatHora(r.hora_inicio)} → {formatHora(r.hora_fin)}</span>
+                  </div>
+                  <div>
+                    <Badge variant="info">{r.estado_invitacion || "aceptada"}</Badge>
+                  </div>
+                </div>
+              </Card>
             ))}
           </div>
-        </>
+        </section>
       )}
 
-      {/* RESERVAS BLOQUEADAS */}
+      {/* Reservas bloqueadas */}
       {reservasBloqueadas.length > 0 && (
-        <>
-          <h3>Reservas bloqueadas</h3>
-
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Reservas bloqueadas</h2>
+          <div className={styles.grid}>
             {reservasBloqueadas.map((r, idx) => (
-              <div
-                key={`bloq-${r.id_reserva}`}
-                style={{
-                  border: "1px solid #ccc",
-                  borderRadius: 8,
-                  padding: 16,
-                  width: 260,
-                  background: "#f2f2f2",
-                  color: "#666",
-                }}
-              >
-                <h4 style={{ marginTop: 0 }}>{r.nombre_sala} - {r.edificio}</h4>
-
-                <p><strong>N°:</strong> {idx + 1}</p>
-
-                <p><strong>Fecha:</strong> {formatFecha(r.fecha)}</p>
-
-                <p>
-                  <strong>Hora:</strong> {formatHora(r.hora_inicio)} → {formatHora(r.hora_fin)}
-                </p>
-
-                <p style={{ fontSize: 13 }}>
-                  <strong>Estado invitación:</strong> {r.estado_invitacion}
-                </p>
-
-                <p style={{ fontSize: 12 }}>
-                  Bloqueaste recibir más invitaciones.
-                </p>
-
-                {/*DESBLOQUEAR */}
-                <button
-                  onClick={() => desbloquearReserva(r.id_reserva)}
-                  style={{
-                    marginTop: 10,
-                    padding: "8px 12px",
-                    background: "#0275d8",
-                    color: "white",
-                    border: "none",
-                    borderRadius: 6,
-                    cursor: "pointer",
-                    width: "100%",
-                  }}
-                >
-                  🔓 Desbloquear
-                </button>
-              </div>
+              <Card key={`bloq-${r.id_reserva}`} tone="muted">
+                <div className={styles.card}>
+                  <div className={styles.cardHead}>
+                    <span className={styles.roomName}>{r.nombre_sala} · {r.edificio}</span>
+                    <Badge variant="neutral">#{idx + 1}</Badge>
+                  </div>
+                  <div className={styles.rowMeta}>
+                    <span><strong>{formatFecha(r.fecha)}</strong></span>
+                    <span>{formatHora(r.hora_inicio)} → {formatHora(r.hora_fin)}</span>
+                  </div>
+                  <p className={styles.caption}>Bloqueaste recibir más invitaciones.</p>
+                  <div className={styles.cardActions}>
+                    <Button variant="secondary" size="sm" fullWidth onClick={() => desbloquearReserva(r.id_reserva)}>
+                      Desbloquear
+                    </Button>
+                  </div>
+                </div>
+              </Card>
             ))}
           </div>
-        </>
+        </section>
       )}
-    </div>
+    </PageContainer>
   );
 }
-

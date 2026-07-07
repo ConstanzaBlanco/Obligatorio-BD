@@ -1,12 +1,13 @@
 import { Routes, Route } from "react-router-dom";
 
+import ScrollToTop from "./components/ScrollToTop";
 import Protected from "./protect/Protected";
 import AdminOnly from "./protect/AdminOnly";
 import BiblioOnly from "./protect/BiblioOnly";
 
 import Login from "./Login";
 import Register from "./Register";
-import { useUser } from "./components/UserContext";
+import { useUser } from "./components/useUser";
 
 import PrivateLayout from "./protect/PrivateLayout"; 
 
@@ -19,7 +20,6 @@ import SalasPorEdificio from "./components/SalasPorEdificio";
 import ReservasVencidas from "./components/Bibliotecario/ReservasVencidas";
 import MisSanciones from "./components/User/MisSanciones";
 import Me from "./components/Me";
-import CrearReserva from "./components/User/CrearReserva";
 import Reservas from "./components/Bibliotecario/Reservas";
 import Sanciones from "./components/Bibliotecario/Sanciones";
 import CreateBiblioUser from "./components/Admin/CrearBibliotecario";
@@ -32,10 +32,11 @@ import NotFound from "./components/NotFound";
 import NotificationsPanel from "./components/User/NotificacionesPendientes";
 
 export default function App() {
-  const { user, logout } = useUser();
+  const { user } = useUser();
 
   return (
     <div className="app-wrapper">
+      <ScrollToTop />
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Register />} />
@@ -56,7 +57,6 @@ export default function App() {
               <Route path="/bloqueados" element={<BlockedUsers />} />
               <Route path="/edificios" element={<Edificios />} />
               <Route path="/edificios/:nombreEdificio" element={<SalasPorEdificio />} />
-              <Route path="/crear-reserva" element={<CrearReserva />} />
               <Route path="/mis-sanciones" element={<MisSanciones />} />
               <Route path="/me" element={<Me />} />
               <Route path="/notificaciones" element={<NotificationsPanel/>} />

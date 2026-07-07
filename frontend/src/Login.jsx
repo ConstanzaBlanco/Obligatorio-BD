@@ -1,76 +1,149 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "./components/UserContext";
-import "./Login.css";
+import { useUser } from "./components/useUser";
+import AuthLayout from "./components/AuthLayout";
+import { Button, Field, IconInput, PasswordInput, Spinner } from "./components/ui";
+import { useToast } from "./components/ui/useToast";
+import { MailIcon } from "./components/ui/icons";
+import styles from "./styles/Auth.module.css";
+
+const REMEMBER_KEY = "salasBiblioteca.rememberedEmail";
+
+function isEmailLike(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
 
 export default function Login() {
   const [correo, setCorreo] = useState("");
   const [contrasenia, setContrasenia] = useState("");
+  const [remember, setRemember] = useState(false);
+  const [touched, setTouched] = useState({});
   const [error, setError] = useState("");
-  
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
-  const { setUser } = useUser(); 
+  const { setUser } = useUser();
+  const { info } = useToast();
+
+  useEffect(() => {
+    const saved = localStorage.getItem(REMEMBER_KEY);
+    if (saved) {
+      setCorreo(saved);
+      setRemember(true);
+    }
+  }, []);
+
+  const correoValid = isEmailLike(correo);
+  const passwordValid = contrasenia.length > 0;
+  const canSubmit = correoValid && passwordValid && !loading;
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setTouched({ correo: true, contrasenia: true });
+    if (!correoValid || !passwordValid) return;
+
+    setError("");
+    setLoading(true);
     try {
-      // LOGIN
       const res = await axios.post("http://localhost:8000/login", {
         username: correo,
         password: contrasenia,
       });
 
-      // Guardar token
       localStorage.setItem("token", res.data.access_token);
 
-      // Obtener usuario con /me
       const me = await axios.get("http://localhost:8000/me", {
-        headers: {
-          Authorization: `Bearer ${res.data.access_token}`,
-        },
+        headers: { Authorization: `Bearer ${res.data.access_token}` },
       });
 
-      // Guardar usuario en contexto
       setUser({
         token: res.data.access_token,
         rol: res.data.rol,
-        ...me.data
+        ...me.data,
       });
-      navigate("/")
 
-    } catch (el) {
-      setError("Credenciales inválidas. Inténtalo de nuevo.", el);
+      if (remember) localStorage.setItem(REMEMBER_KEY, correo);
+      else localStorage.removeItem(REMEMBER_KEY);
 
+      navigate("/");
+    } catch {
+      setError("Credenciales inválidas. Revisá tu correo y contraseña e intentá de nuevo.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="login-container">
-      <h2 className="login-title">Iniciar Sesión</h2>
+    <AuthLayout>
+      <span className={styles.eyebrow}>Bienvenido de nuevo</span>
+      <h1 className={styles.title}>Iniciá sesión</h1>
+      <p className={styles.subtitle}>Ingresá con tu correo institucional para continuar.</p>
 
-      <button type="button" className="register-button" onClick={() => { navigate("/registro") }}>Registrarse</button>
+      <form className={styles.form} onSubmit={handleLogin} noValidate>
+        <Field
+          label="Correo"
+          error={touched.correo && !correoValid ? "Ingresá un correo válido." : undefined}
+        >
+          <IconInput
+            icon={<MailIcon />}
+            type="email"
+            placeholder="nombre@correo.ucu.edu.uy"
+            value={correo}
+            onChange={(e) => setCorreo(e.target.value)}
+            onBlur={() => setTouched((t) => ({ ...t, correo: true }))}
+            autoComplete="email"
+            required
+          />
+        </Field>
 
-      <form className="login-form" onSubmit={handleLogin}>
-        <input
-          type="email"
-          placeholder="Correo"
-          value={correo}
-          onChange={(e) => setCorreo(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={contrasenia}
-          onChange={(e) => setContrasenia(e.target.value)}
-          required
-        />
+        <Field
+          label="Contraseña"
+          error={touched.contrasenia && !passwordValid ? "Ingresá tu contraseña." : undefined}
+        >
+          <PasswordInput
+            placeholder="Tu contraseña"
+            value={contrasenia}
+            onChange={(e) => setContrasenia(e.target.value)}
+            onBlur={() => setTouched((t) => ({ ...t, contrasenia: true }))}
+            autoComplete="current-password"
+            required
+          />
+        </Field>
 
-        <button type="submit" className="login-button">Entrar</button>
+        <div className={styles.optionsRow}>
+          <label className={styles.checkboxRow}>
+            <input
+              type="checkbox"
+              checked={remember}
+              onChange={(e) => setRemember(e.target.checked)}
+            />
+            Recordarme
+          </label>
+          <button
+            type="button"
+            className={styles.linkButton}
+            onClick={() =>
+              info("Todavía no está disponible. Pedile a un bibliotecario que te ayude a restablecerla.")
+            }
+          >
+            ¿Olvidaste tu contraseña?
+          </button>
+        </div>
+
+        {error && <div className={`${styles.alert} ${styles.alertError}`} role="alert">{error}</div>}
+
+        <Button type="submit" fullWidth disabled={!canSubmit} className={styles.submitBtn}>
+          {loading ? <Spinner size={16} label="Ingresando" /> : "Iniciar sesión"}
+        </Button>
       </form>
 
-      {error && <p className="login-error">{error}</p>}
-    </div>
+      <p className={styles.footNote}>
+        ¿No tenés cuenta?{" "}
+        <button type="button" onClick={() => navigate("/registro")}>
+          Creá una
+        </button>
+      </p>
+    </AuthLayout>
   );
 }

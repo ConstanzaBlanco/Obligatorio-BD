@@ -1,18 +1,5 @@
-import { createContext, useContext, useState, useEffect } from "react";
-
-export const UserContext = createContext({
-  user: null,
-  token: null,
-  loadingUser: true,
-  login: () => { },
-  logout: () => { },
-});
-
-
-export function useUser() {
-  return useContext(UserContext);
-}
-
+import { useState, useEffect } from "react";
+import { UserContext } from "./useUser";
 
 export default function UserProvider({ children }) {
   const [token, setToken] = useState(localStorage.getItem("token") || null);
@@ -37,7 +24,7 @@ export default function UserProvider({ children }) {
         } else {
           logout();
         }
-      } catch (error) {
+      } catch {
         logout();
       }
 

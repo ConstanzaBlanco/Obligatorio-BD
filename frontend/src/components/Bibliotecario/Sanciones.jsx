@@ -1,70 +1,39 @@
 import { useEffect, useState } from "react";
-import { useUser } from "../UserContext";
-
-function Alert({ type = "error", message, onClose }) {
-  const colors = {
-    error: "#dc3545",
-    success: "#198754",
-    warning: "#ffc107",
-    info: "#0dcaf0",
-  };
-
-  return (
-    <div
-      style={{
-        background: colors[type] + "22",
-        border: "1px solid " + colors[type],
-        padding: "10px 14px",
-        borderRadius: 6,
-        color: colors[type],
-        marginBottom: 15,
-        position: "relative",
-      }}
-    >
-      <strong style={{ textTransform: "capitalize" }}>{type}:</strong>{" "}
-      {message}
-
-      <button
-        onClick={onClose}
-        style={{
-          position: "absolute",
-          right: 10,
-          top: 8,
-          background: "transparent",
-          border: "none",
-          color: colors[type],
-          fontWeight: "bold",
-          cursor: "pointer",
-        }}
-      >
-        ×
-      </button>
-    </div>
-  );
-}
+import { useUser } from "../useUser";
+import { PageContainer, PageHeader } from "../ui/Page";
+import Card from "../ui/Card";
+import Button from "../ui/Button";
+import Badge from "../ui/Badge";
+import Field, { Input, Textarea } from "../ui/Field";
+import Modal from "../ui/Modal";
+import EmptyState from "../ui/EmptyState";
+import { SkeletonCard } from "../ui/Skeleton";
+import { useToast } from "../ui/useToast";
+import { useConfirm } from "../ui/useConfirm";
+import styles from "./Sanciones.module.css";
 
 export default function Sanciones() {
   const { user } = useUser();
   const rol = user?.rol?.toLowerCase();
 
-  if (rol !== "bibliotecario") return null;
-
   const [activas, setActivas] = useState([]);
   const [pasadas, setPasadas] = useState([]);
-  const [error, setError] = useState("");
-  const [mensaje, setMensaje] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const token = localStorage.getItem("token");
+  const { success, error: toastError } = useToast();
+  const confirm = useConfirm();
 
-  // MODAL CREAR 
+  // MODAL CREAR
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newCi, setNewCi] = useState("");
   const [newFechaInicio, setNewFechaInicio] = useState("");
   const [newFechaFin, setNewFechaFin] = useState("");
   const [newDescripcion, setNewDescripcion] = useState("");
+  const [newError, setNewError] = useState("");
   const [loadingCrear, setLoadingCrear] = useState(false);
 
-  // MODAL EDITAR 
+  // MODAL EDITAR
   const [showEditModal, setShowEditModal] = useState(false);
   const [editData, setEditData] = useState({
     ci: "",
@@ -75,87 +44,73 @@ export default function Sanciones() {
     nueva_descripcion: "",
   });
 
-  //  FETCH ACTIVAS
   const cargarSancionesActivas = async () => {
     try {
-      const res = await fetch("http://localhost:8000/sanctionsActive", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
+      const res = await fetch("http://localhost:8000/sanctionsActive", { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       setActivas(data.sanciones_activas || []);
     } catch {
-      setError("Error cargando sanciones activas.");
+      toastError("Error cargando sanciones activas.");
     }
   };
 
-  // FETCH PAS
   const cargarSancionesPasadas = async () => {
     try {
-      const res = await fetch("http://localhost:8000/sanctionsPast", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
+      const res = await fetch("http://localhost:8000/sanctionsPast", { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       setPasadas(data.sanciones_pasadas || []);
     } catch {
-      setError("Error cargando sanciones pasadas.");
+      toastError("Error cargando sanciones pasadas.");
     }
   };
 
   useEffect(() => {
-    cargarSancionesActivas();
-    cargarSancionesPasadas();
+    Promise.all([cargarSancionesActivas(), cargarSancionesPasadas()]).finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- fetch once on mount
   }, []);
 
-  // QUITAR SANCIÓN 
-const quitarSancion = async (id) => {
-  setMensaje("");
-  setError("");
-
-  try {
-    const res = await fetch(`http://localhost:8000/sancion/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+  const quitarSancion = async (id) => {
+    const ok = await confirm({
+      title: "Quitar sanción",
+      message: "¿Seguro que querés quitar esta sanción?",
+      confirmText: "Quitar",
+      danger: true,
     });
+    if (!ok) return;
 
-    const data = await res.json().catch(() => ({}));
-
-    if (!res.ok) {
-      return setError(data.detail || "Error al quitar sanción.");
+    try {
+      const res = await fetch(`http://localhost:8000/sancion/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toastError(data.detail || "Error al quitar sanción.");
+        return;
+      }
+      success(data.mensaje || "Sanción quitada correctamente.");
+      await cargarSancionesActivas();
+      await cargarSancionesPasadas();
+    } catch (err) {
+      console.error(err);
+      toastError("Error al quitar la sanción.");
     }
+  };
 
-    setMensaje(data.mensaje || "Sanción quitada correctamente.");
-    await cargarSancionesActivas();
-    await cargarSancionesPasadas();
-  } catch (err) {
-    console.error(err);
-    setError("Error al quitar la sanción.");
-  }
-};
-
-  // CREAR SANCIÓN 
   const crearSancionManual = async (e) => {
     e.preventDefault();
-    setMensaje("");
-    setError("");
+    setNewError("");
 
     if (!newCi || !newFechaInicio || !newFechaFin || !newDescripcion.trim()) {
-      setError("Todos los campos son obligatorios.");
+      setNewError("Todos los campos son obligatorios.");
       return;
     }
 
     setLoadingCrear(true);
-
     try {
       const res = await fetch("http://localhost:8000/sancion/crear", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           ci: Number(newCi),
           fechaInicio: newFechaInicio,
@@ -163,21 +118,17 @@ const quitarSancion = async (id) => {
           descripcion: newDescripcion.trim(),
         }),
       });
-
       const data = await res.json();
-
       if (!res.ok) {
-        return setError(data.detail || "Error al crear sanción.");
+        setNewError(data.detail || "Error al crear sanción.");
+        return;
       }
-
-      setMensaje("Sanción creada correctamente.");
+      success("Sanción creada correctamente.");
       setShowCreateModal(false);
-
       setNewCi("");
       setNewFechaInicio("");
       setNewFechaFin("");
       setNewDescripcion("");
-
       await cargarSancionesActivas();
       await cargarSancionesPasadas();
     } finally {
@@ -185,7 +136,6 @@ const quitarSancion = async (id) => {
     }
   };
 
-  // EDITAR SANCIÓN 
   const abrirModalEditar = (s) => {
     setEditData({
       ci: s.ci_participante,
@@ -200,385 +150,141 @@ const quitarSancion = async (id) => {
 
   const editarSancion = async (e) => {
     e.preventDefault();
-    setMensaje("");
-    setError("");
-
     try {
       const res = await fetch("http://localhost:8000/editarSancion", {
         method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify(editData),
       });
-
       const data = await res.json();
-
       if (!res.ok) {
-        return setError(data.detail || "Error al editar sanción.");
+        toastError(data.detail || "Error al editar sanción.");
+        return;
       }
-
-      setMensaje("Sanción editada correctamente.");
+      success("Sanción editada correctamente.");
       setShowEditModal(false);
-
       await cargarSancionesActivas();
       await cargarSancionesPasadas();
     } catch {
-      setError("No se pudo editar la sanción.");
+      toastError("No se pudo editar la sanción.");
     }
   };
 
-  return (
-    <div style={{ marginTop: 30 }}>
-      <h1>Sanciones</h1>
+  if (rol !== "bibliotecario") return null;
 
-      {/* ALERTS */}
-      {error && (
-        <Alert type="error" message={error} onClose={() => setError("")} />
-      )}
-
-      {mensaje && (
-        <Alert
-          type="success"
-          message={mensaje}
-          onClose={() => setMensaje("")}
-        />
-      )}
-
-
-      {/* BOTÓN CREAR */}
-      <button onClick={() => setShowCreateModal(true)} style={btnPrimary}>
-        Agregar sanción
-      </button>
-
-
-      {/* SANCIONES ACTIVAS */}
-
-      <h2>Sanciones Activas</h2>
-      {activas.length === 0 ? (
-        <p>No hay sanciones activas</p>
-      ) : (
-        <div style={contenedor}>
-          {activas.map((s, i) => (
-            <div key={i} style={card}>
-              <p>
-                <b>ID:</b> {s.id}
-              </p>
-              <p>
-                <b>CI:</b> {s.ci_participante}
-              </p>
-              <p>
-                <b>Email:</b> {s.email}
-              </p>
-              <p>
-                <b>Descripción:</b> {s.descripcion}
-              </p>
-              <p>
-                <b>Inicio:</b> {s.fecha_inicio}
-              </p>
-              <p>
-                <b>Fin:</b> {s.fecha_fin}
-              </p>
-
-              <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
-                <button style={btnEdit} onClick={() => abrirModalEditar(s)}>
-                  Editar
-                </button>
-
-                <button
-                  style={btnDanger}
-                  onClick={() => quitarSancion(s.id)}
-                >
-                  Quitar
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <h2 style={{ marginTop: 40 }}>Sanciones Pasadas</h2>
-      {pasadas.length === 0 ? (
-        <p>No hay sanciones pasadas</p>
-      ) : (
-        <div style={contenedor}>
-          {pasadas.map((s, i) => (
-            <div key={i} style={{ ...card, opacity: 0.6 }}>
-              <p>
-                <b>ID:</b> {s.id}
-              </p>
-              <p>
-                <b>CI:</b> {s.ci_participante}
-              </p>
-              <p>
-                <b>Email:</b> {s.email}
-              </p>
-              <p>
-                <b>Descripción:</b> {s.descripcion}
-              </p>
-              <p>
-                <b>Inicio:</b> {s.fecha_inicio}
-              </p>
-              <p>
-                <b>Fin:</b> {s.fecha_fin}
-              </p>
-
-              <button style={{ ...btnEdit, background: "#6c757d" }} disabled>
-                Editar
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-
-      {/* MODAL CREAR SANCIÓN */}
-      {showCreateModal && (
-        <Modal onClose={() => setShowCreateModal(false)}>
-          <h3>Nueva sanción</h3>
-
-          <form onSubmit={crearSancionManual}>
-            <Input label="CI" value={newCi} onChange={setNewCi} />
-            <Input
-              label="Fecha inicio"
-              type="date"
-              value={newFechaInicio}
-              onChange={setNewFechaInicio}
-            />
-            <Input
-              label="Fecha fin"
-              type="date"
-              value={newFechaFin}
-              onChange={setNewFechaFin}
-            />
-            <Textarea
-              label="Descripción"
-              value={newDescripcion}
-              onChange={setNewDescripcion}
-            />
-
-            <div style={modalButtons}>
-              <button
-                type="button"
-                style={btnSecondary}
-                onClick={() => setShowCreateModal(false)}
-              >
-                Cancelar
-              </button>
-              <button type="submit" style={btnSuccess} disabled={loadingCrear}>
-                {loadingCrear ? "Creando..." : "Crear"}
-              </button>
-            </div>
-          </form>
-        </Modal>
-      )}
-
-      {/* MODAL EDITAR SANCIÓN */}
-      {showEditModal && (
-        <Modal onClose={() => setShowEditModal(false)}>
-          <h3>Editar sanción</h3>
-
-          <form onSubmit={editarSancion}>
-            <p>
-              <b>CI:</b> {editData.ci}
-            </p>
-
-            <Input
-              label="Nueva fecha inicio"
-              type="date"
-              value={editData.nueva_fecha_inicio}
-              onChange={(v) =>
-                setEditData({ ...editData, nueva_fecha_inicio: v })
-              }
-            />
-
-            <Input
-              label="Nueva fecha fin"
-              type="date"
-              value={editData.nueva_fecha_fin}
-              onChange={(v) =>
-                setEditData({ ...editData, nueva_fecha_fin: v })
-              }
-            />
-
-            <Textarea
-              label="Nueva descripción"
-              value={editData.nueva_descripcion}
-              onChange={(v) =>
-                setEditData({ ...editData, nueva_descripcion: v })
-              }
-            />
-
-            <div style={modalButtons}>
-              <button
-                type="button"
-                style={btnSecondary}
-                onClick={() => setShowEditModal(false)}
-              >
-                Cancelar
-              </button>
-              <button type="submit" style={btnSuccess}>
-                Guardar cambios
-              </button>
-            </div>
-          </form>
-        </Modal>
-      )}
-    </div>
-  );
-}
-
-function Modal({ children, onClose }) {
-  return (
-    <div style={modalOverlay}>
-      <div style={modalContent}>
-        {children}
-
-        <button onClick={onClose} style={closeButton}>
-          ✕
-        </button>
+  const renderCard = (s, pasada) => (
+    <Card key={s.id} tone={pasada ? "muted" : "warn"}>
+      <div className={styles.head}>
+        <span className={styles.who}>CI {s.ci_participante}</span>
+        <Badge variant="neutral">#{s.id}</Badge>
       </div>
-    </div>
+      <p className={styles.email}>{s.email}</p>
+      <p className={styles.desc}>{s.descripcion}</p>
+      <div className={styles.dates}>
+        <span>Desde <strong>{s.fecha_inicio}</strong></span>
+        <span>Hasta <strong>{s.fecha_fin}</strong></span>
+      </div>
+      {!pasada && (
+        <div className={styles.actions}>
+          <Button size="sm" variant="secondary" onClick={() => abrirModalEditar(s)}>Editar</Button>
+          <Button size="sm" variant="danger" onClick={() => quitarSancion(s.id)}>Quitar</Button>
+        </div>
+      )}
+    </Card>
   );
-}
 
-function Input({ label, type = "text", value, onChange }) {
   return (
-    <div style={field}>
-      <label>{label}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        style={input}
+    <PageContainer>
+      <PageHeader
+        eyebrow="Bibliotecario"
+        title="Sanciones"
+        description="Consultá, creá y administrá las sanciones a participantes."
+        actions={<Button onClick={() => setShowCreateModal(true)}>Agregar sanción</Button>}
       />
-    </div>
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Sanciones activas</h2>
+        {loading ? (
+          <div className={styles.grid}>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        ) : activas.length === 0 ? (
+          <EmptyState title="Sin sanciones activas" description="No hay sanciones vigentes." />
+        ) : (
+          <div className={styles.grid}>{activas.map((s) => renderCard(s, false))}</div>
+        )}
+      </section>
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Sanciones pasadas</h2>
+        {loading ? (
+          <div className={styles.grid}>
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        ) : pasadas.length === 0 ? (
+          <EmptyState title="Sin sanciones pasadas" description="Todavía no hay historial de sanciones." />
+        ) : (
+          <div className={styles.grid}>{pasadas.map((s) => renderCard(s, true))}</div>
+        )}
+      </section>
+
+      {/* CREAR */}
+      <Modal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title="Nueva sanción"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setShowCreateModal(false)}>Cancelar</Button>
+            <Button type="submit" form="crear-sancion" disabled={loadingCrear}>
+              {loadingCrear ? "Creando…" : "Crear"}
+            </Button>
+          </>
+        }
+      >
+        <form id="crear-sancion" onSubmit={crearSancionManual} className={styles.form}>
+          <Field label="CI del participante">
+            <Input value={newCi} onChange={(e) => setNewCi(e.target.value)} inputMode="numeric" placeholder="Ej. 51234567" />
+          </Field>
+          <Field label="Fecha de inicio">
+            <Input type="date" value={newFechaInicio} onChange={(e) => setNewFechaInicio(e.target.value)} />
+          </Field>
+          <Field label="Fecha de fin">
+            <Input type="date" value={newFechaFin} onChange={(e) => setNewFechaFin(e.target.value)} />
+          </Field>
+          <Field label="Descripción" error={newError}>
+            <Textarea value={newDescripcion} onChange={(e) => setNewDescripcion(e.target.value)} />
+          </Field>
+        </form>
+      </Modal>
+
+      {/* EDITAR */}
+      <Modal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        title={`Editar sanción · CI ${editData.ci}`}
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setShowEditModal(false)}>Cancelar</Button>
+            <Button type="submit" form="editar-sancion">Guardar cambios</Button>
+          </>
+        }
+      >
+        <form id="editar-sancion" onSubmit={editarSancion} className={styles.form}>
+          <Field label="Nueva fecha de inicio">
+            <Input type="date" value={editData.nueva_fecha_inicio} onChange={(v) => setEditData({ ...editData, nueva_fecha_inicio: v.target.value })} />
+          </Field>
+          <Field label="Nueva fecha de fin">
+            <Input type="date" value={editData.nueva_fecha_fin} onChange={(v) => setEditData({ ...editData, nueva_fecha_fin: v.target.value })} />
+          </Field>
+          <Field label="Nueva descripción">
+            <Textarea value={editData.nueva_descripcion} onChange={(v) => setEditData({ ...editData, nueva_descripcion: v.target.value })} />
+          </Field>
+        </form>
+      </Modal>
+    </PageContainer>
   );
 }
-
-function Textarea({ label, value, onChange }) {
-  return (
-    <div style={field}>
-      <label>{label}</label>
-      <textarea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        style={{ ...input, height: 80 }}
-      />
-    </div>
-  );
-}
-
-
-
-const contenedor = {
-  display: "flex",
-  flexWrap: "wrap",
-  gap: "20px",
-  justifyContent: "center",
-};
-
-const card = {
-  border: "1px solid #ccc",
-  padding: 12,
-  borderRadius: 6,
-  width: 280,
-  background: "white",
-  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-};
-
-const btnPrimary = {
-  padding: "8px 14px",
-  background: "#0d6efd",
-  color: "white",
-  border: "none",
-  borderRadius: 4,
-  cursor: "pointer",
-  marginBottom: 20,
-};
-
-const btnEdit = {
-  padding: "6px 12px",
-  background: "#198754",
-  color: "white",
-  border: "none",
-  borderRadius: 4,
-  cursor: "pointer",
-};
-
-const btnDanger = {
-  padding: "6px 12px",
-  background: "#dc3545",
-  color: "white",
-  border: "none",
-  borderRadius: 4,
-  cursor: "pointer",
-};
-
-const btnSecondary = {
-  padding: "6px 12px",
-  background: "#6c757d",
-  color: "white",
-  border: "none",
-  borderRadius: 4,
-  cursor: "pointer",
-};
-
-const btnSuccess = {
-  padding: "6px 12px",
-  background: "#28a745",
-  color: "white",
-  border: "none",
-  borderRadius: 4,
-  cursor: "pointer",
-};
-
-const modalOverlay = {
-  position: "fixed",
-  inset: 0,
-  background: "rgba(0,0,0,0.4)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  zIndex: 999,
-};
-
-const modalContent = {
-  background: "white",
-  padding: 20,
-  borderRadius: 8,
-  minWidth: 350,
-  maxWidth: 450,
-  position: "relative",
-};
-
-const closeButton = {
-  position: "absolute",
-  top: 10,
-  right: 10,
-  background: "transparent",
-  border: "none",
-  fontSize: 20,
-  cursor: "pointer",
-};
-
-const modalButtons = {
-  display: "flex",
-  justifyContent: "flex-end",
-  gap: 10,
-  marginTop: 15,
-};
-
-const field = {
-  display: "flex",
-  flexDirection: "column",
-  marginBottom: 10,
-};
-
-const input = {
-  padding: "6px 8px",
-  borderRadius: 4,
-  border: "1px solid #ccc",
-  fontSize: 14,
-};

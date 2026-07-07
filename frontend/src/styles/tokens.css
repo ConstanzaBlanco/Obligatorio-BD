@@ -1,0 +1,248 @@
+/* =============================================================================
+   DESIGN TOKENS — single source of truth
+   Sistema de Reservas · Biblioteca
+   Direction: Modern SaaS, "reading room after hours" —
+   ink-navy shell + brass signature, grounded in the institutional blue
+   already present in the app (#002B7A heritage).
+
+   Two layers:
+   1. Primitive scales (raw values) — never reference these directly in
+      components; they are the paint, not the intent.
+   2. Semantic tokens (:root) — reference THESE in components. They remap
+      cleanly for dark mode via [data-theme="dark"].
+   ============================================================================= */
+
+:root {
+  /* ---------------------------------------------------------------------------
+     1. PRIMITIVE SCALES
+     --------------------------------------------------------------------------- */
+
+  /* Neutral — cool, faintly blue slate ------------------------------------- */
+  --slate-50:  #f6f8fb;
+  --slate-100: #eef2f8;
+  --slate-200: #dde4ee;
+  --slate-300: #c3cedc;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-800: #1e293b;
+  --slate-900: #0f1d2e;   /* sidebar ink */
+  --slate-950: #0a1521;
+
+  /* Primary — institutional azure (descends from #002B7A) ------------------ */
+  --blue-50:  #eaf1ff;
+  --blue-100: #d3e2ff;
+  --blue-200: #adc8ff;
+  --blue-300: #7fa6ff;
+  --blue-400: #4f81f7;
+  --blue-500: #2c63e6;
+  --blue-600: #1e4fd1;   /* primary action — white text passes AA */
+  --blue-700: #1a40a8;
+  --blue-800: #17357f;
+  --blue-900: #142b63;
+  --blue-950: #0e1d42;
+
+  /* Accent — brass / reading-lamp gold (the signature, used sparingly) ----- */
+  --brass-300: #f0d488;
+  --brass-400: #e7b84b;
+  --brass-500: #d69e2e;
+  --brass-600: #b7791f;
+  --brass-700: #8f5e15;
+
+  /* Semantic hues ---------------------------------------------------------- */
+  --green-50:  #e7f7ee;  --green-500: #16a34a;  --green-600: #15803d;  --green-700: #166534;
+  --amber-50:  #fef3c7;  --amber-500: #d97706;  --amber-600: #b45309;  --amber-700: #92400e;
+  --red-50:    #fdecea;  --red-500:   #dc2626;  --red-600:   #b91c1c;  --red-700:   #991b1b;
+
+  /* ---------------------------------------------------------------------------
+     2. TYPOGRAPHY
+     --------------------------------------------------------------------------- */
+  --font-sans: "Inter Variable", "Inter", "Segoe UI", system-ui, -apple-system,
+               "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", "Consolas", "Liberation Mono",
+               monospace;
+
+  --text-xs:   0.75rem;   /* 12 */
+  --text-sm:   0.875rem;  /* 14 */
+  --text-base: 1rem;      /* 16 */
+  --text-lg:   1.125rem;  /* 18 */
+  --text-xl:   1.25rem;   /* 20 */
+  --text-2xl:  1.5rem;    /* 24 */
+  --text-3xl:  1.875rem;  /* 30 */
+  --text-4xl:  2.25rem;   /* 36 */
+
+  --font-normal:   400;
+  --font-medium:   500;
+  --font-semibold: 600;
+  --font-bold:     700;
+
+  --leading-tight:   1.2;
+  --leading-snug:    1.35;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.65;
+
+  --tracking-tight: -0.011em;
+  --tracking-wide:  0.04em;   /* eyebrows / overline labels */
+
+  /* ---------------------------------------------------------------------------
+     3. SPACING — 4px base grid
+     --------------------------------------------------------------------------- */
+  --space-0:  0;
+  --space-1:  0.25rem;  /* 4  */
+  --space-2:  0.5rem;   /* 8  */
+  --space-3:  0.75rem;  /* 12 */
+  --space-4:  1rem;     /* 16 */
+  --space-5:  1.25rem;  /* 20 */
+  --space-6:  1.5rem;   /* 24 */
+  --space-8:  2rem;     /* 32 */
+  --space-10: 2.5rem;   /* 40 */
+  --space-12: 3rem;     /* 48 */
+  --space-16: 4rem;     /* 64 */
+
+  --container-max: 1200px;
+  --sidebar-width: 248px;
+
+  /* ---------------------------------------------------------------------------
+     4. RADIUS
+     --------------------------------------------------------------------------- */
+  --radius-none: 0;
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --radius-xl:   20px;
+  --radius-full: 9999px;
+
+  /* ---------------------------------------------------------------------------
+     5. SHADOW — tuned for a light canvas
+     --------------------------------------------------------------------------- */
+  --shadow-sm: 0 1px 2px rgba(15, 29, 46, 0.06),
+               0 1px 1px rgba(15, 29, 46, 0.04);
+  --shadow-md: 0 2px 4px rgba(15, 29, 46, 0.06),
+               0 4px 12px rgba(15, 29, 46, 0.08);
+  --shadow-lg: 0 8px 24px rgba(15, 29, 46, 0.10),
+               0 2px 6px rgba(15, 29, 46, 0.06);
+  --shadow-xl: 0 16px 48px rgba(15, 29, 46, 0.16),
+               0 4px 12px rgba(15, 29, 46, 0.08);
+
+  /* ---------------------------------------------------------------------------
+     6. MOTION
+     --------------------------------------------------------------------------- */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --ease-standard:   cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.3, 0, 0, 1);
+  --ease-out:        cubic-bezier(0, 0, 0.2, 1);
+
+  /* ---------------------------------------------------------------------------
+     7. Z-INDEX — named layers
+     --------------------------------------------------------------------------- */
+  --z-base:     0;
+  --z-dropdown: 1000;
+  --z-sticky:   1010;
+  --z-header:   1020;
+  --z-overlay:  1030;
+  --z-modal:    1040;
+  --z-toast:    1050;
+
+  /* ===========================================================================
+     SEMANTIC TOKENS — reference these in components (LIGHT theme)
+     =========================================================================== */
+  color-scheme: light;
+
+  --color-canvas:         var(--slate-50);
+  --color-surface:        #ffffff;
+  --color-surface-sunken: var(--slate-100);
+  --color-surface-hover:  var(--slate-100);
+
+  --color-border:         var(--slate-200);
+  --color-border-strong:  var(--slate-300);
+
+  --color-text:           var(--slate-900);
+  --color-text-muted:     var(--slate-500);
+  --color-text-subtle:    var(--slate-400);
+  --color-text-inverse:   #ffffff;
+
+  --color-primary:        var(--blue-600);
+  --color-primary-hover:  var(--blue-700);
+  --color-primary-active: var(--blue-800);
+  --color-primary-subtle: var(--blue-50);
+  --color-on-primary:     #ffffff;
+  --color-link:           var(--blue-600);
+
+  --color-accent:         var(--brass-500);
+  --color-accent-strong:  var(--brass-600);
+
+  /* Sidebar / app shell (stays dark in both themes) */
+  --color-sidebar:        var(--slate-900);
+  --color-sidebar-raised: #142338;
+  --color-sidebar-text:   #cbd6e6;
+  --color-sidebar-muted:  #7c8ba3;
+  --color-sidebar-active-bg:   rgba(214, 158, 46, 0.12);
+  --color-sidebar-active-text: #ffffff;
+
+  /* Status — bg / text pairs meet AA on their own surface */
+  --color-success:        var(--green-600);
+  --color-success-bg:     var(--green-50);
+  --color-success-text:   var(--green-700);
+  --color-warning:        var(--amber-600);
+  --color-warning-bg:     var(--amber-50);
+  --color-warning-text:   var(--amber-700);
+  --color-error:          var(--red-600);
+  --color-error-bg:       var(--red-50);
+  --color-error-text:     var(--red-700);
+  --color-info:           var(--blue-600);
+  --color-info-bg:        var(--blue-50);
+  --color-info-text:      var(--blue-800);
+
+  --focus-ring:           rgba(30, 79, 209, 0.45);
+  --focus-ring-width:     3px;
+
+  --backdrop:             rgba(10, 21, 33, 0.55);
+}
+
+/* =============================================================================
+   DARK THEme — activate with <html data-theme="dark">. Not on by default,
+   but every component that uses semantic tokens is ready for it.
+   ============================================================================= */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-canvas:         var(--slate-950);
+  --color-surface:        var(--slate-900);
+  --color-surface-sunken: #0c1826;
+  --color-surface-hover:  #16283c;
+
+  --color-border:         var(--slate-800);
+  --color-border-strong:  var(--slate-700);
+
+  --color-text:           var(--slate-50);
+  --color-text-muted:     var(--slate-400);
+  --color-text-subtle:    var(--slate-500);
+  --color-text-inverse:   var(--slate-900);
+
+  --color-primary:        var(--blue-500);
+  --color-primary-hover:  var(--blue-400);
+  --color-primary-active: var(--blue-300);
+  --color-primary-subtle: rgba(44, 99, 230, 0.16);
+  --color-on-primary:     #ffffff;
+  --color-link:           var(--blue-300);
+
+  --color-success-bg:     rgba(22, 163, 74, 0.14);
+  --color-success-text:   #6ee7a8;
+  --color-warning-bg:     rgba(217, 119, 6, 0.16);
+  --color-warning-text:   #fbbf70;
+  --color-error-bg:       rgba(220, 38, 38, 0.16);
+  --color-error-text:     #fca5a5;
+  --color-info-bg:        rgba(44, 99, 230, 0.16);
+  --color-info-text:      #a9c5ff;
+
+  --focus-ring:           rgba(79, 129, 247, 0.55);
+  --backdrop:             rgba(3, 8, 14, 0.66);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.5);
+}
