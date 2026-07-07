@@ -10,7 +10,7 @@ services:
       MYSQL_PASSWORD: shaw
       TZ: America/Montevideo
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./sql:/docker-entrypoint-initdb.d
@@ -51,13 +51,13 @@ services:
 
   frontend:
     build:
-      context: ./Frontend
+      context: ./frontend
       dockerfile: Dockerfile
     container_name: gestion_salas_frontend
     ports:
-      - "5173:5173"   
+      - "5173:5173"
     volumes:
-      - ./Frontend:/app
+      - ./frontend:/app
       - /app/node_modules
     depends_on:
       - api
