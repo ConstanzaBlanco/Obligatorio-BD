@@ -49,7 +49,6 @@ export default function Home() {
     ocupacionEdificios: [],
     asistencias: [],
     sanciones: [],
-    usoReservas: null,
     topMes: [],
     promedioSanciones: [],
   });
@@ -67,7 +66,6 @@ export default function Home() {
         ocupacionEdificios: "/estadisticas/ocupacion-edificios",
         asistencias: "/estadisticas/asistencias",
         sanciones: "/estadisticas/sanciones",
-        usoReservas: "/estadisticas/uso-reservas",
         topMes: "/estadisticas/top-participantes-mes",
         promedioSanciones: "/estadisticas/promedio-sanciones",
       };
@@ -99,8 +97,6 @@ export default function Home() {
     return <Navigate to="/mis-reservas" replace />;
   }
 
-  const utilizadas = data.usoReservas?.Utilizadas ?? 0;
-  const noUtilizadas = data.usoReservas?.NoUtilizadas ?? 0;
   const totalSanciones = data.sanciones.reduce((sum, s) => sum + s.cant_sanciones, 0);
 
   const topSalas = data.salas.slice(0, 5);
@@ -109,9 +105,6 @@ export default function Home() {
   const maxCarrera = Math.max(1, ...data.reservasCarrera.map((r) => r.cantidadReservas));
   const maxSanciones = Math.max(1, ...data.sanciones.map((s) => s.cant_sanciones));
   const maxDuracion = Math.max(1, ...data.promedioSanciones.map((p) => Number(p.promedio_dias)));
-
-  const utilizadasDeg = (utilizadas / 100) * 360;
-  const noUtilizadasDeg = utilizadasDeg + (noUtilizadas / 100) * 360;
 
   return (
     <PageContainer size="wide">
@@ -209,24 +202,8 @@ export default function Home() {
               )}
             </Card>
 
-            {/* Uso de reservas */}
-            <Card className={`${styles.card} ${styles.donutCard}`}>
-              <h3 className={styles.cardTitle}>Uso de reservas</h3>
-              <div
-                className={styles.donut}
-                style={{
-                  background: `conic-gradient(var(--color-primary) 0deg ${utilizadasDeg}deg, var(--color-warning) ${utilizadasDeg}deg ${noUtilizadasDeg}deg, var(--color-surface-sunken) ${noUtilizadasDeg}deg 360deg)`,
-                }}
-              >
-                <div className={styles.donutHole}>
-                  <span className={styles.donutValue}>{pct(utilizadas)}</span>
-                  <span className={styles.donutCaption}>utilizadas</span>
-                </div>
-              </div>
-            </Card>
-
             {/* Ocupación de edificios */}
-            <Card className={styles.card}>
+            <Card className={`${styles.card} ${styles.spanTwo}`}>
               <div className={styles.cardHeadRow}>
                 <h3 className={styles.cardTitle}>Ocupación actual de edificios</h3>
                 <span className={styles.nowBadge}>Ahora</span>

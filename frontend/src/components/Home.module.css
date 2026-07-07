@@ -15,7 +15,6 @@
   flex-direction: column;
   height: 100%;
 }
-.donutCard { justify-content: center; }
 
 .cardTitle {
   font-size: var(--text-sm);
@@ -154,35 +153,6 @@
   color: var(--color-error);
 }
 
-/* ---- Donut ---- */
-.donut {
-  position: relative;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  flex: none;
-}
-.donutHole {
-  position: absolute;
-  inset: 14px;
-  border-radius: 50%;
-  background: var(--color-surface);
-  display: grid;
-  place-items: center;
-  text-align: center;
-}
-.donutValue {
-  display: block;
-  font-size: var(--text-lg);
-  font-weight: var(--font-bold);
-  letter-spacing: var(--tracking-tight);
-}
-.donutCaption {
-  display: block;
-  font-size: 10px;
-  color: var(--color-text-muted);
-  font-weight: var(--font-semibold);
-}
 /* ---- Ocupación de edificios ---- */
 .nowBadge {
   font-size: var(--text-xs);
