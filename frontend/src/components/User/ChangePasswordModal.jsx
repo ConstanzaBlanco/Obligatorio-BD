@@ -1,7 +1,8 @@
 import { useState } from "react";
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
-import Field, { Input } from "../ui/Field";
+import Field from "../ui/Field";
+import PasswordInput from "../ui/PasswordInput";
 import { useToast } from "../ui/useToast";
 
 export default function ChangePasswordModal({ isOpen, onClose }) {
@@ -78,8 +79,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
     >
       <form id="change-password-form" onSubmit={handleSubmit} className="form-stack">
         <Field label="Contraseña actual">
-          <Input
-            type="password"
+          <PasswordInput
             placeholder="Tu contraseña actual"
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
@@ -89,8 +89,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
         </Field>
 
         <Field label="Nueva contraseña" error={error}>
-          <Input
-            type="password"
+          <PasswordInput
             placeholder="Elegí una nueva contraseña"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
