@@ -123,12 +123,12 @@ export default function Register() {
 
   return (
     <AuthLayout>
-      <span className={styles.eyebrow}>Empezá gratis</span>
+      <span className={styles.eyebrow}>Primera vez por acá</span>
       <h1 className={styles.title}>Creá tu cuenta</h1>
       <p className={styles.subtitle}>Registrate para reservar salas y recibir invitaciones.</p>
 
       <form className={styles.form} onSubmit={handleRegister} noValidate>
-        <div className={styles.nameRow}>
+        <div className={styles.fieldRow}>
           <Field label="Nombre" error={touched.name && !nameValid ? "Requerido." : undefined}>
             <IconInput
               icon={<UserIcon />}
@@ -165,41 +165,43 @@ export default function Register() {
           />
         </Field>
 
-        <Field
-          label="Cédula de identidad"
-          hint={!touched.ci || ciValid ? "8 dígitos, sin puntos ni guiones." : undefined}
-          error={touched.ci && !ciValid ? "El CI debe tener exactamente 8 dígitos." : undefined}
-        >
-          <IconInput
-            icon={<IdIcon />}
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            placeholder="Ej. 51234567"
-            value={ci}
-            onChange={(e) => setCi(e.target.value.replace(/\D/g, "").slice(0, 8))}
-            onBlur={() => touch("ci")}
-            required
-            minLength={8}
-            maxLength={8}
-          />
-        </Field>
-
-        <Field label="Programa académico" error={touched.academicProgram && !programValid ? "Seleccioná un programa." : undefined}>
-          <Select
-            value={academicProgram}
-            onChange={(e) => setAcademicProgram(e.target.value)}
-            onBlur={() => touch("academicProgram")}
-            required
+        <div className={styles.fieldRow}>
+          <Field
+            label="Cédula de identidad"
+            hint={!touched.ci || ciValid ? "8 dígitos, sin puntos." : undefined}
+            error={touched.ci && !ciValid ? "Deben ser 8 dígitos." : undefined}
           >
-            <option value="">Seleccioná un programa académico</option>
-            {programs.map((p, i) => (
-              <option key={i} value={p.nombre_programa}>
-                {p.nombre_programa}
-              </option>
-            ))}
-          </Select>
-        </Field>
+            <IconInput
+              icon={<IdIcon />}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              placeholder="Ej. 51234567"
+              value={ci}
+              onChange={(e) => setCi(e.target.value.replace(/\D/g, "").slice(0, 8))}
+              onBlur={() => touch("ci")}
+              required
+              minLength={8}
+              maxLength={8}
+            />
+          </Field>
+
+          <Field label="Programa académico" error={touched.academicProgram && !programValid ? "Seleccioná uno." : undefined}>
+            <Select
+              value={academicProgram}
+              onChange={(e) => setAcademicProgram(e.target.value)}
+              onBlur={() => touch("academicProgram")}
+              required
+            >
+              <option value="">Seleccioná…</option>
+              {programs.map((p, i) => (
+                <option key={i} value={p.nombre_programa}>
+                  {p.nombre_programa}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        </div>
 
         <div className={styles.passwordGroup}>
           <Field label="Contraseña" error={touched.password && !passwordValid ? "Debe tener más de 6 caracteres." : undefined}>
@@ -223,11 +225,11 @@ export default function Register() {
               <span className={styles.requirementDot}>
                 {/[A-Z]/.test(password) && /[a-z]/.test(password) && <CheckIcon width={9} height={9} />}
               </span>
-              Mayúsculas y minúsculas (recomendado)
+              Mayúsculas y minúsculas
             </span>
             <span className={`${styles.requirement} ${/[0-9]/.test(password) ? styles.met : ""}`}>
               <span className={styles.requirementDot}>{/[0-9]/.test(password) && <CheckIcon width={9} height={9} />}</span>
-              Un número (recomendado)
+              Un número
             </span>
           </div>
         </div>
