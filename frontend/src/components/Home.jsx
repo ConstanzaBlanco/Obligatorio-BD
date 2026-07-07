@@ -99,15 +99,9 @@ export default function Home() {
     return <Navigate to="/mis-reservas" replace />;
   }
 
-  const totalReservas = data.salas.reduce((sum, s) => sum + s.cant_reservas, 0);
-  const facultadCount = new Set(data.reservasCarrera.map((r) => r.facultad)).size;
   const utilizadas = data.usoReservas?.Utilizadas ?? 0;
   const noUtilizadas = data.usoReservas?.NoUtilizadas ?? 0;
-  const sinActividad = Math.max(0, 100 - utilizadas - noUtilizadas);
   const totalSanciones = data.sanciones.reduce((sum, s) => sum + s.cant_sanciones, 0);
-  const ocupacionPromedio = data.ocupacionEdificios.length
-    ? data.ocupacionEdificios.reduce((sum, o) => sum + o.porcentaje_ocupadas, 0) / data.ocupacionEdificios.length
-    : 0;
 
   const topSalas = data.salas.slice(0, 5);
   const maxSalas = Math.max(1, ...topSalas.map((s) => s.cant_reservas));
@@ -128,40 +122,16 @@ export default function Home() {
       />
 
       {loading ? (
-        <div className={styles.kpis}>
-          {Array.from({ length: 4 }).map((_, i) => (
+        <div className={styles.grid}>
+          {Array.from({ length: 6 }).map((_, i) => (
             <SkeletonCard key={i} />
           ))}
         </div>
       ) : (
         <>
-          {/* KPIs */}
-          <div className={styles.kpis}>
-            <Card className={styles.kpi}>
-              <span className={styles.kpiLabel}>Reservas totales</span>
-              <span className={styles.kpiValue}>{totalReservas}</span>
-              <span className={styles.kpiHint}>en las {facultadCount} facultades</span>
-            </Card>
-            <Card className={styles.kpi}>
-              <span className={styles.kpiLabel}>Reservas utilizadas</span>
-              <span className={`${styles.kpiValue} ${styles.kpiAccent}`}>{pct(utilizadas)}</span>
-              <span className={styles.kpiHint}>{pct(noUtilizadas)} no utilizadas</span>
-            </Card>
-            <Card className={styles.kpi}>
-              <span className={styles.kpiLabel}>Sanciones activas</span>
-              <span className={`${styles.kpiValue} ${styles.kpiDanger}`}>{totalSanciones}</span>
-              <span className={styles.kpiHint}>alumnos y docentes</span>
-            </Card>
-            <Card className={styles.kpi}>
-              <span className={styles.kpiLabel}>Ocupación actual</span>
-              <span className={styles.kpiValue}>{pct(ocupacionPromedio)}</span>
-              <span className={styles.kpiHint}>{data.ocupacionEdificios.length} edificios</span>
-            </Card>
-          </div>
-
           <div className={styles.grid}>
             {/* Salas más reservadas */}
-            <Card>
+            <Card className={styles.card}>
               <h3 className={styles.cardTitle}>Salas más reservadas</h3>
               {topSalas.length ? (
                 <div className={styles.hbarList}>
@@ -187,7 +157,7 @@ export default function Home() {
             </Card>
 
             {/* Promedio de participantes */}
-            <Card>
+            <Card className={styles.card}>
               <h3 className={styles.cardTitle}>Promedio de participantes por sala</h3>
               {data.promedioParticipantes.length ? (
                 <div className={styles.vchart}>
@@ -212,7 +182,7 @@ export default function Home() {
             </Card>
 
             {/* Reservas por facultad y carrera */}
-            <Card>
+            <Card className={styles.card}>
               <h3 className={styles.cardTitle}>Reservas por facultad y carrera</h3>
               {data.reservasCarrera.length ? (
                 <div className={styles.facultadList}>
@@ -240,39 +210,23 @@ export default function Home() {
             </Card>
 
             {/* Uso de reservas */}
-            <Card>
+            <Card className={`${styles.card} ${styles.donutCard}`}>
               <h3 className={styles.cardTitle}>Uso de reservas</h3>
-              <div className={styles.donutWrap}>
-                <div
-                  className={styles.donut}
-                  style={{
-                    background: `conic-gradient(var(--color-primary) 0deg ${utilizadasDeg}deg, var(--color-warning) ${utilizadasDeg}deg ${noUtilizadasDeg}deg, var(--color-surface-sunken) ${noUtilizadasDeg}deg 360deg)`,
-                  }}
-                >
-                  <div className={styles.donutHole}>
-                    <span className={styles.donutValue}>{pct(utilizadas)}</span>
-                    <span className={styles.donutCaption}>utilizadas</span>
-                  </div>
-                </div>
-                <div className={styles.legend}>
-                  <div className={styles.legendRow}>
-                    <span className={styles.legendDot} style={{ background: "var(--color-primary)" }} />
-                    <span>Utilizadas <strong>{pct(utilizadas)}</strong></span>
-                  </div>
-                  <div className={styles.legendRow}>
-                    <span className={styles.legendDot} style={{ background: "var(--color-warning)" }} />
-                    <span>No utilizadas <strong>{pct(noUtilizadas)}</strong></span>
-                  </div>
-                  <div className={styles.legendRow}>
-                    <span className={styles.legendDot} style={{ background: "var(--color-surface-sunken)" }} />
-                    <span className={styles.muted2}>Sin actividad <strong>{pct(sinActividad)}</strong></span>
-                  </div>
+              <div
+                className={styles.donut}
+                style={{
+                  background: `conic-gradient(var(--color-primary) 0deg ${utilizadasDeg}deg, var(--color-warning) ${utilizadasDeg}deg ${noUtilizadasDeg}deg, var(--color-surface-sunken) ${noUtilizadasDeg}deg 360deg)`,
+                }}
+              >
+                <div className={styles.donutHole}>
+                  <span className={styles.donutValue}>{pct(utilizadas)}</span>
+                  <span className={styles.donutCaption}>utilizadas</span>
                 </div>
               </div>
             </Card>
 
             {/* Ocupación de edificios */}
-            <Card>
+            <Card className={styles.card}>
               <div className={styles.cardHeadRow}>
                 <h3 className={styles.cardTitle}>Ocupación actual de edificios</h3>
                 <span className={styles.nowBadge}>Ahora</span>
@@ -295,7 +249,7 @@ export default function Home() {
             </Card>
 
             {/* Top participantes del mes */}
-            <Card>
+            <Card className={styles.card}>
               <h3 className={styles.cardTitle}>Top participantes del mes</h3>
               {data.topMes.length ? (
                 <div className={styles.rankList}>
@@ -330,7 +284,7 @@ export default function Home() {
             </Card>
 
             {/* Asistencias y reservas */}
-            <Card className={styles.spanTwo}>
+            <Card className={`${styles.card} ${styles.spanTwo}`}>
               <h3 className={styles.cardTitle}>Asistencias y reservas</h3>
               {data.asistencias.length ? (
                 <div className={styles.attTable}>
@@ -370,7 +324,7 @@ export default function Home() {
             </Card>
 
             {/* Sanciones por rol y programa */}
-            <Card>
+            <Card className={styles.card}>
               <h3 className={styles.cardTitle}>Sanciones por rol y programa</h3>
               {data.sanciones.length ? (
                 <div className={styles.facultadList}>
@@ -402,7 +356,7 @@ export default function Home() {
             </Card>
 
             {/* Promedio duración de sanciones */}
-            <Card className={styles.spanThree}>
+            <Card className={`${styles.card} ${styles.spanThree}`}>
               <div className={styles.cardHeadRow}>
                 <h3 className={styles.cardTitle}>Promedio de duración de sanciones (días)</h3>
                 <span className={styles.muted2}>por CI del usuario</span>
